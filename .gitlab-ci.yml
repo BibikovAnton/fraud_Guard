@@ -25,14 +25,14 @@ build:
   extends:
     - .build
     - .global-variables
-    - .rules-merge-or-master
+    - .rules-master
 
 test:
   stage: test
   image: docker:27.5.1
   extends:
     - .global-variables
-    - .rules-merge-or-master
+    - .rules-master
   services:
     - name: docker:27.5.1-dind
       command: [
