@@ -1,0 +1,62 @@
+include:
+  - project: pipelines/pipelines
+    ref: main
+    file:
+      - "/jobs/build.yaml"
+      - "/jobs/rules.yaml"
+
+.global-variables:
+  variables:
+      DOCKERFILE_PATH: solution/Dockerfile
+      DOCKER_CONFIG: /kaniko/.docker
+      CONTEXT: $CI_PROJECT_DIR
+      IMAGE_TAG: $CI_COMMIT_SHA
+      IMAGE_NAME: $CI_REGISTRY_IMAGE:$IMAGE_TAG
+      REGISTRY_USER: $CI_REGISTRY_USER
+      REGISTRY_PASSWORD: $CI_REGISTRY_PASSWORD
+      REGISTRY_URL: $CI_REGISTRY
+
+stages:
+  - build
+  - test
+
+build:
+  stage: build
+  extends:
+    - .build
+    - .global-variables
+    - .rules-merge-or-master
+
+test:
+  stage: test
+  image: docker:27.5.1
+  extends:
+    - .global-variables
+    - .rules-merge-or-master
+  services:
+    - name: docker:27.5.1-dind
+      command: [
+        "--registry-mirror=https://dockerhub.timeweb.cloud"
+      ]
+  variables:
+    DOCKER_HOST: "tcp://docker:2376"
+    DOCKER_TLS_VERIFY: "1"
+    DOCKER_CERT_PATH: "/certs/client"
+  script:
+    - for try in {1..10}; do sleep 1; docker info && break ; done
+    - echo "$DOCKER_DEPLOY_KEY" | docker login -u "backend" --password-stdin $CI_REGISTRY
+    - docker compose version
+    - docker pull registry.prodcontest.com:443/2026-test-repos/backend/checker:$BACKEND_CHECKER_TAG
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+    - docker-compose build
+    - docker-compose up --abort-on-container-exit --exit-code-from antifraud-checker
+  after_script:
+    - docker-compose down -v
+  artifacts:
+    when: always
+    paths:
+      - reports/*
+    reports:
+      junit: reports/junit.xml
+    expire_in: 1 week
+
