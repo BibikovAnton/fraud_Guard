@@ -43,6 +43,7 @@ test:
     DOCKER_TLS_VERIFY: "1"
     DOCKER_CERT_PATH: "/certs/client"
   script:
+    - for try in {1..10}; do sleep 1; test -f /certs/client/ca.pem && break ; done
     - for try in {1..10}; do sleep 1; docker info && break ; done
     - echo "$DOCKER_DEPLOY_KEY" | docker login -u "backend" --password-stdin $CI_REGISTRY
     - docker compose version
