@@ -1,6 +1,7 @@
 services:
   antifraud-service:
     image: "${IMAGE_NAME}"
+    networks: [isolated]
     depends_on:
       postgres:
         condition: service_healthy
@@ -29,6 +30,7 @@ services:
       start_period: 10s
   antifraud-checker:
     image: "registry.prodcontest.com:443/2026-test-repos/backend/checker:${BACKEND_CHECKER_TAG}"
+    networks: [isolated]
     environment:
       - ADMIN_EMAIL=admin@mail.ru
       - ADMIN_FULLNAME=Test Test
@@ -51,6 +53,7 @@ services:
         condition: service_healthy
   redis:
     image: redis:7-alpine
+    networks: [isolated]
     container_name: antifraud-redis
     ports:
       - "6379:6379"
@@ -65,6 +68,7 @@ services:
       start_period: 10s
   postgres:
     image: postgres:16-alpine
+    networks: [isolated]
     container_name: antifraud-postgres
     ports:
       - "5432:5432"
@@ -80,7 +84,9 @@ services:
       timeout: 3s
       retries: 10
       start_period: 10s
-
+networks:
+  isolated:
+    internal: true
 volumes:
   postgres_data:
   redis_data:
