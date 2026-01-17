@@ -88,7 +88,6 @@ services:
       start_period: 10s
 networks:
   isolated:
-    internal: true
 volumes:
   postgres_data:
   redis_data:
