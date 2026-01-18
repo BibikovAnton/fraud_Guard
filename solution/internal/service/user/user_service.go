@@ -120,9 +120,130 @@ func (s *userService) GetMe(ctx context.Context, userID string) (model.User, err
 // UpdateMe полностью обновляет профиль пользователя
 // Важно: все поля обязательны, для очистки нужно передать null
 func (s *userService) UpdateMe(ctx context.Context, userID string, req model.UserUpdateRequest) (model.User, error) {
-	// TODO: реализовать обновление профиля
-	// Нужно будет добавить метод Update в репозиторий
-	return model.User{}, fmt.Errorf("not implemented yet")
+	// Сначала получаем текущего пользователя для сохранения неизменяемых полей
+	existingUser, err := s.userRepo.FindByID(ctx, userID)
+	if err != nil {
+		return model.User{}, fmt.Errorf("failed to find existing user: %w", err)
+	}
+
+	// Создаем обновленного пользователя с сохранением неизменяемых полей
+	updatedUser := model.User{
+		ID:           existingUser.ID,
+		Email:        existingUser.Email,        // email нельзя менять
+		PasswordHash: existingUser.PasswordHash, // пароль нельзя менять через этот метод
+		FullName:     req.FullName,
+		Age:          req.Age,
+		Region:       req.Region,
+		Gender:       req.Gender,
+		MaritalStatus: req.MaritalStatus,
+		Role:         existingUser.Role,     // обычный пользователь не может менять роль
+		IsActive:     existingUser.IsActive, // обычный пользователь не может деактивировать себя
+		CreatedAt:    existingUser.CreatedAt,
+		UpdatedAt:    time.Now().UTC(), // обновляем время изменения
+	}
+
+	// Сохраняем в базу данных
+	if err := s.userRepo.Update(ctx, updatedUser); err != nil {
+		return model.User{}, fmt.Errorf("failed to update user: %w", err)
+	}
+
+	// Возвращаем обновленного пользователя
+	return updatedUser, nil
+}
+
+// CreateByAdmin создает нового пользователя с правами администратора
+// Важно: позволяет указывать роль пользователя
+func (s *userService) CreateByAdmin(ctx context.Context, req model.UserCreateRequest) (model.User, error) {
+	// Валидация email на уникальность - критично для безопасности
+	exists, err := s.userRepo.ExistsByEmail(ctx, req.Email)
+	if err != nil {
+		return model.User{}, fmt.Errorf("failed to check email existence: %w", err)
+	}
+	if exists {
+		return model.User{}, fmt.Errorf("user with email %s already exists", req.Email)
+	}
+
+	// Хеширование пароля с bcrypt - проверенная временем практика
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return model.User{}, fmt.Errorf("failed to hash password: %w", err)
+	}
+
+	// Создание пользователя с указанной ролью
+	user := model.NewUser(req.Email, string(passwordHash), req.FullName, req.Role)
+	
+	// Установка опциональных полей если они переданы
+	user.Age = req.Age
+	user.Region = req.Region
+	user.Gender = req.Gender
+	user.MaritalStatus = req.MaritalStatus
+
+	// Сохранение в базу данных
+	if err := s.userRepo.Create(ctx, user); err != nil {
+		return model.User{}, fmt.Errorf("failed to create user: %w", err)
+	}
+
+	return user, nil
+}
+
+// GetByID возвращает пользователя по ID (только для админов)
+func (s *userService) GetByID(ctx context.Context, userID string) (model.User, error) {
+	user, err := s.userRepo.FindByIDIncludingInactive(ctx, userID)
+	if err != nil {
+		return model.User{}, fmt.Errorf("failed to get user by ID: %w", err)
+	}
+
+	return user, nil
+}
+
+// UpdateByAdmin обновляет пользователя с полными правами администратора
+func (s *userService) UpdateByAdmin(ctx context.Context, userID string, req model.UserUpdateRequest) (model.User, error) {
+	// Сначала получаем текущего пользователя
+	existingUser, err := s.userRepo.FindByIDIncludingInactive(ctx, userID)
+	if err != nil {
+		return model.User{}, fmt.Errorf("failed to find existing user: %w", err)
+	}
+
+	// Создаем обновленного пользователя
+	updatedUser := model.User{
+		ID:           existingUser.ID,
+		Email:        existingUser.Email,        // email нельзя менять
+		PasswordHash: existingUser.PasswordHash, // пароль нельзя менять через этот метод
+		FullName:     req.FullName,
+		Age:          req.Age,
+		Region:       req.Region,
+		Gender:       req.Gender,
+		MaritalStatus: req.MaritalStatus,
+		Role:         existingUser.Role,     // по умолчанию сохраняем текущую роль
+		IsActive:     existingUser.IsActive, // по умолчанию сохраняем текущий статус
+		CreatedAt:    existingUser.CreatedAt,
+		UpdatedAt:    time.Now().UTC(), // обновляем время изменения
+	}
+
+	// Применяем административные изменения если они указаны
+	if req.Role != nil {
+		updatedUser.Role = *req.Role
+	}
+	if req.IsActive != nil {
+		updatedUser.IsActive = *req.IsActive
+	}
+
+	// Сохраняем в базу данных через административный метод
+	if err := s.userRepo.UpdateByAdmin(ctx, updatedUser); err != nil {
+		return model.User{}, fmt.Errorf("failed to update user by admin: %w", err)
+	}
+
+	// Возвращаем обновленного пользователя
+	return updatedUser, nil
+}
+
+// SoftDelete деактивирует пользователя (только для админов)
+func (s *userService) SoftDelete(ctx context.Context, userID string) error {
+	if err := s.userRepo.SoftDelete(ctx, userID); err != nil {
+		return fmt.Errorf("failed to soft delete user: %w", err)
+	}
+
+	return nil
 }
 
 // generateJWT создает JWT токен для пользователя

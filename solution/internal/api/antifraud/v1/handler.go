@@ -164,27 +164,198 @@ func (h *handlerAdapter) APIV1UsersGet(ctx context.Context, params antifraud_v1.
 }
 
 func (h *handlerAdapter) APIV1UsersIDDelete(ctx context.Context, params antifraud_v1.APIV1UsersIDDeleteParams) (antifraud_v1.APIV1UsersIDDeleteRes, error) {
-	return nil, nil
+	// Проверяем, что пользователь имеет права ADMIN
+	userRole := ctx.Value("user_role").(string)
+	if userRole != "ADMIN" {
+		return nil, fmt.Errorf("access denied: admin rights required")
+	}
+
+	// Вызываем сервис
+	if err := h.userService.SoftDelete(ctx, params.ID.String()); err != nil {
+		return nil, fmt.Errorf("failed to delete user: %w", err)
+	}
+
+	// Возвращаем 204 No Content
+	return &antifraud_v1.APIV1UsersIDDeleteNoContent{}, nil
 }
 
 func (h *handlerAdapter) APIV1UsersIDGet(ctx context.Context, params antifraud_v1.APIV1UsersIDGetParams) (antifraud_v1.APIV1UsersIDGetRes, error) {
-	return nil, nil
+	// Проверяем, что пользователь имеет права ADMIN
+	userRole := ctx.Value("user_role").(string)
+	if userRole != "ADMIN" {
+		return nil, fmt.Errorf("access denied: admin rights required")
+	}
+
+	// Вызываем сервис
+	user, err := h.userService.GetByID(ctx, params.ID.String())
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user: %w", err)
+	}
+
+	// encodeAPIV1UsersIDGetResponse ожидает *antifraud_v1.User
+	apiUser := convertUserToAPI(user)
+	return &apiUser, nil
 }
 
 func (h *handlerAdapter) APIV1UsersIDPut(ctx context.Context, req *antifraud_v1.UserUpdateRequest, params antifraud_v1.APIV1UsersIDPutParams) (antifraud_v1.APIV1UsersIDPutRes, error) {
-	return nil, nil
+	// Проверяем, что пользователь имеет права ADMIN
+	userRole := ctx.Value("user_role").(string)
+	if userRole != "ADMIN" {
+		return nil, fmt.Errorf("access denied: admin rights required")
+	}
+
+	// Конвертируем запрос в нашу модель
+	updateReq := model.UserUpdateRequest{
+		FullName: req.FullName,
+	}
+
+	// Nil* поля приходят всегда: либо value, либо null.
+	// Если Null=true, считаем что поле нужно очистить (передать nil).
+	if req.Region.Null {
+		updateReq.Region = nil
+	} else {
+		region := req.Region.Value
+		updateReq.Region = &region
+	}
+	if req.Gender.Null {
+		updateReq.Gender = nil
+	} else {
+		gender := model.Gender(req.Gender.Value)
+		updateReq.Gender = &gender
+	}
+	if req.Age.Null {
+		updateReq.Age = nil
+	} else {
+		age := req.Age.Value
+		updateReq.Age = &age
+	}
+	if req.MaritalStatus.Null {
+		updateReq.MaritalStatus = nil
+	} else {
+		maritalStatus := model.MaritalStatus(req.MaritalStatus.Value)
+		updateReq.MaritalStatus = &maritalStatus
+	}
+
+	// Обрабатываем административные поля
+	if req.Role.Set {
+		role := model.UserRole(req.Role.Value)
+		updateReq.Role = &role
+	}
+	if req.IsActive.Set {
+		isActive := req.IsActive.Value
+		updateReq.IsActive = &isActive
+	}
+
+	// Вызываем сервис
+	user, err := h.userService.UpdateByAdmin(ctx, params.ID.String(), updateReq)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update user: %w", err)
+	}
+
+	apiUser := convertUserToAPI(user)
+	return &apiUser, nil
 }
 
 func (h *handlerAdapter) APIV1UsersMeGet(ctx context.Context) (antifraud_v1.APIV1UsersMeGetRes, error) {
-	return nil, nil
+	// Получаем userID из контекста (JWT middleware должен был его установить)
+	userID := ctx.Value("user_id").(string)
+	
+	// Вызываем сервис
+	user, err := h.userService.GetMe(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user profile: %w", err)
+	}
+
+	apiUser := convertUserToAPI(user)
+	return &apiUser, nil
 }
 
 func (h *handlerAdapter) APIV1UsersMePut(ctx context.Context, req *antifraud_v1.UserUpdateRequest) (antifraud_v1.APIV1UsersMePutRes, error) {
-	return nil, nil
+	// Получаем userID из контекста
+	userID := ctx.Value("user_id").(string)
+	
+	// Конвертируем запрос в нашу модель
+	updateReq := model.UserUpdateRequest{
+		FullName: req.FullName,
+	}
+
+	// Nil* поля: либо value, либо null.
+	if req.Region.Null {
+		updateReq.Region = nil
+	} else {
+		region := req.Region.Value
+		updateReq.Region = &region
+	}
+	if req.Gender.Null {
+		updateReq.Gender = nil
+	} else {
+		gender := model.Gender(req.Gender.Value)
+		updateReq.Gender = &gender
+	}
+	if req.Age.Null {
+		updateReq.Age = nil
+	} else {
+		age := req.Age.Value
+		updateReq.Age = &age
+	}
+	if req.MaritalStatus.Null {
+		updateReq.MaritalStatus = nil
+	} else {
+		maritalStatus := model.MaritalStatus(req.MaritalStatus.Value)
+		updateReq.MaritalStatus = &maritalStatus
+	}
+
+	// Вызываем сервис
+	user, err := h.userService.UpdateMe(ctx, userID, updateReq)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update user profile: %w", err)
+	}
+
+	apiUser := convertUserToAPI(user)
+	return &apiUser, nil
 }
 
 func (h *handlerAdapter) APIV1UsersPost(ctx context.Context, req *antifraud_v1.UserCreateRequest) (antifraud_v1.APIV1UsersPostRes, error) {
-	return nil, nil
+	// Проверяем, что пользователь имеет права ADMIN
+	userRole := ctx.Value("user_role").(string)
+	if userRole != "ADMIN" {
+		return nil, fmt.Errorf("access denied: admin rights required")
+	}
+
+	// Конвертируем запрос в нашу модель
+	createReq := model.UserCreateRequest{
+		Email:    req.Email,
+		Password: req.Password,
+		FullName: req.FullName,
+		Role:     model.UserRole(req.Role),
+	}
+
+	// UserCreateRequest использует Opt* (Set/Value)
+	if req.Region.Set {
+		region := req.Region.Value
+		createReq.Region = &region
+	}
+	if req.Gender.Set {
+		gender := model.Gender(req.Gender.Value)
+		createReq.Gender = &gender
+	}
+	if req.Age.Set {
+		age := req.Age.Value
+		createReq.Age = &age
+	}
+	if req.MaritalStatus.Set {
+		maritalStatus := model.MaritalStatus(req.MaritalStatus.Value)
+		createReq.MaritalStatus = &maritalStatus
+	}
+
+	// Вызываем сервис
+	user, err := h.userService.CreateByAdmin(ctx, createReq)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create user: %w", err)
+	}
+
+	apiUser := convertUserToAPI(user)
+	return &apiUser, nil
 }
 
 // convertUserToAPI конвертирует нашу модель User в OpenAPI модель

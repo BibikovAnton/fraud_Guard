@@ -21,10 +21,12 @@ type UserService interface {
 	GetMe(ctx context.Context, userID string) (model.User, error)
 	UpdateMe(ctx context.Context, userID string, req model.UserUpdateRequest) (model.User, error)
 	
-	// TODO: добавить методы для управления пользователями (админские функции)
-	// CreateByAdmin(ctx context.Context, req model.UserCreateRequest) (model.User, error)
-	// GetByID(ctx context.Context, userID string) (model.User, error)
-	// UpdateByAdmin(ctx context.Context, userID string, req model.UserUpdateRequest) (model.User, error)
+	// Административные функции
+	CreateByAdmin(ctx context.Context, req model.UserCreateRequest) (model.User, error)
+	GetByID(ctx context.Context, userID string) (model.User, error)
+	UpdateByAdmin(ctx context.Context, userID string, req model.UserUpdateRequest) (model.User, error)
+	SoftDelete(ctx context.Context, userID string) error
+	
+	// TODO: добавить методы для списка пользователей
 	// GetAll(ctx context.Context, page, size int) ([]model.User, int, error)
-	// SoftDelete(ctx context.Context, userID string) error
 }

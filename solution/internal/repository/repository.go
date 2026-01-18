@@ -18,14 +18,17 @@ type UserRepository interface {
 	FindByEmail(ctx context.Context, email string) (model.User, error)
 	FindByID(ctx context.Context, id string) (model.User, error)
 	ExistsByEmail(ctx context.Context, email string) (bool, error)
+	Update(ctx context.Context, user model.User) error
 	
 	// Дополнительные методы для авторизации и управления
 	FindByEmailIncludingInactive(ctx context.Context, email string) (model.User, error)
 	FindByIDIncludingInactive(ctx context.Context, id string) (model.User, error)
 	ExistsByEmailAndActive(ctx context.Context, email string) (bool, error)
 	
-	// TODO: добавить методы для обновления, списка пользователей
-	// Update(ctx context.Context, user model.User) error
+	// Административные функции
+	UpdateByAdmin(ctx context.Context, user model.User) error
+	SoftDelete(ctx context.Context, id string) error
+	
+	// TODO: добавить методы для списка пользователей
 	// FindAll(ctx context.Context, offset, limit int) ([]model.User, int, error)
-	// SoftDelete(ctx context.Context, id string) error
 }
