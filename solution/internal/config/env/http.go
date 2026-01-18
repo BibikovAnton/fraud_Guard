@@ -20,5 +20,5 @@ func NewHTTPConfig() (*httpConfig, error) {
 }
 
 func (cfg *httpConfig) Address() string {
-	return "8080"
+	return cfg.raw.Port
 }
