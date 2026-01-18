@@ -10,7 +10,11 @@ COPY solution/go.mod solution/go.sum ./
 RUN go mod download && go mod verify
 
 # Copy application source.
-COPY solution/cmd solution/internal solution/pkg solution/platform solution/migrations ./
+COPY solution/cmd ./cmd/
+COPY solution/internal ./internal/
+COPY solution/pkg ./pkg/
+COPY solution/platform ./platform/
+COPY solution/migrations ./migrations/
 
 # Debug: Check if directories exist
 RUN ls -la ./cmd && ls -la ./migrations
