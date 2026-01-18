@@ -5,8 +5,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-faster/errors"
-	"net"
 	"go.uber.org/zap"
+	"net"
 	"net/http"
 	v1 "solution/internal/api/antifraud/v1"
 	"solution/internal/config"
@@ -76,7 +76,7 @@ func (a *App) initCloser(_ context.Context) error {
 }
 
 func (a *App) initListener(_ context.Context) error {
-	lis, err := net.Listen("tcp", "127.0.0.1:"+config.AppConfig().Http.Address())
+	lis, err := net.Listen("tcp", config.AppConfig().Http.Address())
 	if err != nil {
 		return err
 	}

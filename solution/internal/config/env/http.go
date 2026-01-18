@@ -1,6 +1,9 @@
 package env
 
-import "github.com/caarlos0/env/v11"
+import (
+	"github.com/caarlos0/env/v11"
+	"os"
+)
 
 type HTTPEnvConfig struct {
 	Port string `env:"SERVER_PORT,required"`
@@ -20,5 +23,6 @@ func NewHTTPConfig() (*httpConfig, error) {
 }
 
 func (cfg *httpConfig) Address() string {
+	cfg.raw.Port = os.Getenv("SERVER_PORT")
 	return cfg.raw.Port
 }
