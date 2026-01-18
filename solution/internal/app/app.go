@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-faster/errors"
@@ -43,6 +44,7 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initDI,
 		a.initLogger,
 		a.initCloser,
+		a.initListener,
 		a.initHTTPServer,
 		a.runMigrations,
 	}
@@ -71,6 +73,24 @@ func (a *App) initLogger(_ context.Context) error {
 
 func (a *App) initCloser(_ context.Context) error {
 	closer.SetLogger(logger.Logger())
+	return nil
+}
+
+func (a *App) initListener(_ context.Context) error {
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", config.AppConfig().Http.Address()))
+	if err != nil {
+		return err
+	}
+
+	closer.AddNamed("TCP listener", func(ctx context.Context) error {
+		lerr := lis.Close()
+		if lerr != nil && !errors.Is(lerr, net.ErrClosed) {
+			return lerr
+		}
+		return nil
+	})
+
+	a.listener = lis
 	return nil
 }
 
