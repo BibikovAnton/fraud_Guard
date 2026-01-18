@@ -109,18 +109,12 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 		logger.Error(ctx, "Error creating OpenAPI antifraudServer", zap.Error(err))
 		return err
 	}
+	
+	logger.Info(ctx, "OpenAPI server created successfully", zap.Any("server", antifraudServer != nil))
 
 	if antifraudServer != nil {
 		logger.Info(ctx, "Mounting OpenAPI server on /api/v1")
 		r.Mount("/api/v1", antifraudServer)
-		
-		// Debug: add simple ping to test if handler works
-		r.Get("/api/v1/ping", func(w http.ResponseWriter, r *http.Request) {
-			logger.Info(ctx, "Direct ping handler called")
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{"status":"ok"}`))
-		})
 	}
 
 	a.httpServer = &http.Server{
