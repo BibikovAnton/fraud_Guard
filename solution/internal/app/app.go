@@ -120,13 +120,6 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 
-	// Initialize listener
-	a.listener, err = net.Listen("tcp", a.httpServer.Addr)
-	if err != nil {
-		logger.Error(ctx, "Failed to create listener", zap.Error(err))
-		return err
-	}
-
 	closer.AddNamed("HTTP server", func(ctx context.Context) error {
 		if err = a.httpServer.Shutdown(ctx); err != nil {
 			return err
