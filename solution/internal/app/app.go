@@ -121,7 +121,7 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 	}
 
 	closer.AddNamed("HTTP server", func(ctx context.Context) error {
-		if err = a.httpServer.Shutdown(ctx); err != nil {
+		if err := a.httpServer.Shutdown(ctx); err != nil {
 			return err
 		}
 		return nil
