@@ -10,10 +10,10 @@ COPY solution/go.mod solution/go.sum ./
 RUN go mod download && go mod verify
 
 # Copy application source.
-COPY solution/ .
+COPY solution/cmd solution/internal solution/pkg solution/platform solution/migrations ./
 
 # Move migrations to correct location.
-RUN mv ./solution/migrations ./migrations
+RUN mv ./migrations ./migrations
 
 RUN go build -o bin/application ./cmd/main.go
 
