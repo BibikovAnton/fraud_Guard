@@ -10,14 +10,19 @@ import (
 	"solution/internal/config"
 	"solution/internal/repository"
 	repositoryAntifraud "solution/internal/repository/antifraud"
+	repositoryUser "solution/internal/repository/user"
 	"solution/internal/service"
 	serviceAntifraud "solution/internal/service/antifraurd"
+	serviceUser "solution/internal/service/user"
 	"solution/platform/pkg/closer"
 )
 
 type diContainer struct {
 	antifraudService    service.AntifraudService
+	userService        service.UserService
+	
 	antifraudRepository repository.AntifraudRepository
+	userRepository      repository.UserRepository
 
 	postgresConn     *pgx.Conn
 	postgresDBHandle *sql.DB
@@ -38,11 +43,25 @@ func (d *diContainer) AntifraudService(ctx context.Context) service.AntifraudSer
 	return d.antifraudService
 }
 
+func (d *diContainer) UserService(ctx context.Context) service.UserService {
+	if d.userService == nil {
+		d.userService = serviceUser.NewUserService(d.UserRepository(ctx), config.AppConfig().RandomSecret.RANDOM_SECRET())
+	}
+	return d.userService
+}
+
 func (d *diContainer) AntifraudRepository(ctx context.Context) repository.AntifraudRepository {
 	if d.antifraudRepository == nil {
 		d.antifraudRepository = repositoryAntifraud.NewRepository(d.PostgresDBHandle(ctx))
 	}
 	return d.antifraudRepository
+}
+
+func (d *diContainer) UserRepository(ctx context.Context) repository.UserRepository {
+	if d.userRepository == nil {
+		d.userRepository = repositoryUser.NewRepository(d.PostgresDBHandle(ctx))
+	}
+	return d.userRepository
 }
 
 func (d *diContainer) PostgresDBClient(ctx context.Context) *pgx.Conn {

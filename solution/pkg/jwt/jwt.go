@@ -91,3 +91,34 @@ func ValidateSecret(secret string) error {
 func (j *JWT) GetTokenExpiry() time.Duration {
 	return j.tokenExpiry
 }
+
+// GenerateToken - удобная функция для генерации токена
+// Добавил для совместимости с UserService, из прошлого проекта так было удобнее
+func GenerateToken(userID, role, secret string, expiresIn time.Duration) (string, error) {
+	if role != "USER" && role != "ADMIN" {
+		return "", errors.New("invalid role, must be USER or ADMIN")
+	}
+
+	if userID == "" {
+		return "", errors.New("userID cannot be empty")
+	}
+
+	now := time.Now().UTC() // всегда UTC для воспроизводимости
+	claims := CustomClaims{
+		UserID: userID,
+		Role:   role,
+		RegisteredClaims: jwt.RegisteredClaims{
+			IssuedAt:  jwt.NewNumericDate(now),
+			ExpiresAt: jwt.NewNumericDate(now.Add(expiresIn)),
+			Subject:   userID,
+		},
+	}
+	
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString([]byte(secret))
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
+}

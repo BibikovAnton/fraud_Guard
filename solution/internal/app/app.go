@@ -101,7 +101,7 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(10 * time.Second))
 
-	handlerAdapter := v1.NewHandlerAdapter(a.diContainer.AntifraudService(ctx))
+	handlerAdapter := v1.NewHandlerAdapter(a.diContainer.AntifraudService(ctx), a.diContainer.UserService(ctx))
 	secHandlerAdapter := v1.NewSecurityHandlerAdapter()
 
 	antifraudServer, err := antifraud_v1.NewServer(handlerAdapter, secHandlerAdapter)
@@ -109,19 +109,13 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 		logger.Error(ctx, "Error creating OpenAPI antifraudServer", zap.Error(err))
 		return err
 	}
-	
+
 	logger.Info(ctx, "OpenAPI server created successfully", zap.Any("server", antifraudServer != nil))
 
 	if antifraudServer != nil {
 		logger.Info(ctx, "Mounting OpenAPI server on /api/v1")
 		r.Mount("/api/v1", antifraudServer)
-		
-		// Test direct call to OpenAPI server
-		r.Get("/test", func(w http.ResponseWriter, r *http.Request) {
-			logger.Info(ctx, "Test endpoint called")
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("test ok"))
-		})
+
 	}
 
 	a.httpServer = &http.Server{
