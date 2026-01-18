@@ -12,6 +12,9 @@ RUN go mod download && go mod verify
 # Copy application source.
 COPY solution/ .
 
+# Move migrations to correct location.
+RUN mv ./solution/migrations ./migrations
+
 RUN go build -o bin/application ./cmd/main.go
 
 # Prepare executor image.
@@ -22,7 +25,7 @@ RUN apk add --no-cache ca-certificates libc6-compat openssh bash curl
 WORKDIR /opt
 
 COPY --from=builder /opt/bin/application ./
-COPY --from=builder /opt/migrations ./
+COPY --from=builder /opt/migrations ./migrations
 
 # Run the application.
 CMD ["./application"]
