@@ -8,7 +8,7 @@ import (
 
 // Handler handles operations described by OpenAPI v3 specification.
 type Handler interface {
-	// AuthLoginPost implements POST /auth/login operation.
+	// APIV1AuthLoginPost implements POST /api/v1/auth/login operation.
 	//
 	// Сценарии:
 	// - 200: корректные credentials => accessToken.
@@ -17,9 +17,9 @@ type Handler interface {
 	// - 423: пользователь деактивирован (isActive=false).
 	// - 422: формат email/пароля невалиден.
 	//
-	// POST /auth/login
-	AuthLoginPost(ctx context.Context, req *LoginRequest) (AuthLoginPostRes, error)
-	// AuthRegisterPost implements POST /auth/register operation.
+	// POST /api/v1/auth/login
+	APIV1AuthLoginPost(ctx context.Context, req *LoginRequest) (APIV1AuthLoginPostRes, error)
+	// APIV1AuthRegisterPost implements POST /api/v1/auth/register operation.
 	//
 	// Сценарии:
 	// - 201: пользователь создан, роль USER по умолчанию,
@@ -27,17 +27,17 @@ type Handler interface {
 	// - 409: email уже используется.
 	// - 422: не проходит валидация (email, пароль, возраст и т.д.).
 	//
-	// POST /auth/register
-	AuthRegisterPost(ctx context.Context, req *RegisterRequest) (AuthRegisterPostRes, error)
-	// FraudRulesGet implements GET /fraud-rules operation.
+	// POST /api/v1/auth/register
+	APIV1AuthRegisterPost(ctx context.Context, req *RegisterRequest) (APIV1AuthRegisterPostRes, error)
+	// APIV1FraudRulesGet implements GET /api/v1/fraud-rules operation.
 	//
 	// Только ADMIN.
 	// Сценарии:
 	// - 200: список правил.
 	//
-	// GET /fraud-rules
-	FraudRulesGet(ctx context.Context) (FraudRulesGetRes, error)
-	// FraudRulesIDDelete implements DELETE /fraud-rules/{id} operation.
+	// GET /api/v1/fraud-rules
+	APIV1FraudRulesGet(ctx context.Context) (APIV1FraudRulesGetRes, error)
+	// APIV1FraudRulesIDDelete implements DELETE /api/v1/fraud-rules/{id} operation.
 	//
 	// **Важно:** Это soft-delete. Правило НЕ удаляется физически из
 	// базы данных,
@@ -56,9 +56,9 @@ type Handler interface {
 	// - ADMIN может снова активировать через PUT /fraud-rules/{id} с
 	// enabled=true.
 	//
-	// DELETE /fraud-rules/{id}
-	FraudRulesIDDelete(ctx context.Context, params FraudRulesIDDeleteParams) (FraudRulesIDDeleteRes, error)
-	// FraudRulesIDGet implements GET /fraud-rules/{id} operation.
+	// DELETE /api/v1/fraud-rules/{id}
+	APIV1FraudRulesIDDelete(ctx context.Context, params APIV1FraudRulesIDDeleteParams) (APIV1FraudRulesIDDeleteRes, error)
+	// APIV1FraudRulesIDGet implements GET /api/v1/fraud-rules/{id} operation.
 	//
 	// Возвращает полную информацию о правиле антифрода.
 	// Только ADMIN имеет доступ к этому эндпоинту.
@@ -72,16 +72,16 @@ type Handler interface {
 	// - priority: приоритет (меньше = выше, проверяется раньше)
 	// - createdAt, updatedAt: временные метки.
 	//
-	// GET /fraud-rules/{id}
-	FraudRulesIDGet(ctx context.Context, params FraudRulesIDGetParams) (FraudRulesIDGetRes, error)
-	// FraudRulesIDPut implements PUT /fraud-rules/{id} operation.
+	// GET /api/v1/fraud-rules/{id}
+	APIV1FraudRulesIDGet(ctx context.Context, params APIV1FraudRulesIDGetParams) (APIV1FraudRulesIDGetRes, error)
+	// APIV1FraudRulesIDPut implements PUT /api/v1/fraud-rules/{id} operation.
 	//
 	// Только ADMIN. Полное обновление.
 	// 422 возвращается при невалидном DSL/полях.
 	//
-	// PUT /fraud-rules/{id}
-	FraudRulesIDPut(ctx context.Context, req *FraudRuleUpdateRequest, params FraudRulesIDPutParams) (FraudRulesIDPutRes, error)
-	// FraudRulesPost implements POST /fraud-rules operation.
+	// PUT /api/v1/fraud-rules/{id}
+	APIV1FraudRulesIDPut(ctx context.Context, req *FraudRuleUpdateRequest, params APIV1FraudRulesIDPutParams) (APIV1FraudRulesIDPutRes, error)
+	// APIV1FraudRulesPost implements POST /api/v1/fraud-rules operation.
 	//
 	// Только ADMIN.
 	// Валидация:
@@ -95,26 +95,26 @@ type Handler interface {
 	// - 409: правило с таким именем уже есть (если включена
 	// уникальность имени).
 	//
-	// POST /fraud-rules
-	FraudRulesPost(ctx context.Context, req *FraudRuleCreateRequest) (FraudRulesPostRes, error)
-	// FraudRulesValidatePost implements POST /fraud-rules/validate operation.
+	// POST /api/v1/fraud-rules
+	APIV1FraudRulesPost(ctx context.Context, req *FraudRuleCreateRequest) (APIV1FraudRulesPostRes, error)
+	// APIV1FraudRulesValidatePost implements POST /api/v1/fraud-rules/validate operation.
 	//
 	// Только ADMIN. Полезно для UI "проверить правило".
 	// Сценарии:
 	// - 200: валидно (isValid=true)
 	// - 200: невалидно (isValid=false, errors заполнен).
 	//
-	// POST /fraud-rules/validate
-	FraudRulesValidatePost(ctx context.Context, req *DslValidateRequest) (FraudRulesValidatePostRes, error)
-	// PingGet implements GET /ping operation.
+	// POST /api/v1/fraud-rules/validate
+	APIV1FraudRulesValidatePost(ctx context.Context, req *DslValidateRequest) (APIV1FraudRulesValidatePostRes, error)
+	// APIV1PingGet implements GET /api/v1/ping operation.
 	//
 	// Проверка работоспособности сервиса.
 	// Возвращает 200 OK если сервис готов обрабатывать
 	// запросы.
 	//
-	// GET /ping
-	PingGet(ctx context.Context) (*PingGetOK, error)
-	// StatsMerchantsRiskGet implements GET /stats/merchants/risk operation.
+	// GET /api/v1/ping
+	APIV1PingGet(ctx context.Context) (*APIV1PingGetOK, error)
+	// APIV1StatsMerchantsRiskGet implements GET /api/v1/stats/merchants/risk operation.
 	//
 	// Только ADMIN.
 	// Метрики по merchantId/merchantCategoryCode:
@@ -122,9 +122,9 @@ type Handler interface {
 	// - declineRate
 	// - fraudRate.
 	//
-	// GET /stats/merchants/risk
-	StatsMerchantsRiskGet(ctx context.Context, params StatsMerchantsRiskGetParams) (StatsMerchantsRiskGetRes, error)
-	// StatsOverviewGet implements GET /stats/overview operation.
+	// GET /api/v1/stats/merchants/risk
+	APIV1StatsMerchantsRiskGet(ctx context.Context, params APIV1StatsMerchantsRiskGetParams) (APIV1StatsMerchantsRiskGetRes, error)
+	// APIV1StatsOverviewGet implements GET /api/v1/stats/overview operation.
 	//
 	// Возвращает агрегированные метрики за указанный
 	// период для дашборда.
@@ -140,9 +140,9 @@ type Handler interface {
 	// - declineRate: доля DECLINED транзакций (0..1)
 	// - topRiskMerchants: топ-10 мерчантов по declineRate.
 	//
-	// GET /stats/overview
-	StatsOverviewGet(ctx context.Context, params StatsOverviewGetParams) (StatsOverviewGetRes, error)
-	// StatsRulesMatchesGet implements GET /stats/rules/matches operation.
+	// GET /api/v1/stats/overview
+	APIV1StatsOverviewGet(ctx context.Context, params APIV1StatsOverviewGetParams) (APIV1StatsOverviewGetRes, error)
+	// APIV1StatsRulesMatchesGet implements GET /api/v1/stats/rules/matches operation.
 	//
 	// Возвращает статистику по срабатываниям правил
 	// антифрода за период.
@@ -159,9 +159,9 @@ type Handler interface {
 	// среди matched
 	// Результаты отсортированы по matches DESC.
 	//
-	// GET /stats/rules/matches
-	StatsRulesMatchesGet(ctx context.Context, params StatsRulesMatchesGetParams) (StatsRulesMatchesGetRes, error)
-	// StatsTransactionsTimeseriesGet implements GET /stats/transactions/timeseries operation.
+	// GET /api/v1/stats/rules/matches
+	APIV1StatsRulesMatchesGet(ctx context.Context, params APIV1StatsRulesMatchesGetParams) (APIV1StatsRulesMatchesGetRes, error)
+	// APIV1StatsTransactionsTimeseriesGet implements GET /api/v1/stats/transactions/timeseries operation.
 	//
 	// Возвращает временной ряд метрик транзакций для
 	// построения графиков.
@@ -179,9 +179,9 @@ type Handler interface {
 	// - gmv: сумма транзакций
 	// - approvalRate, declineRate: доли по статусам.
 	//
-	// GET /stats/transactions/timeseries
-	StatsTransactionsTimeseriesGet(ctx context.Context, params StatsTransactionsTimeseriesGetParams) (StatsTransactionsTimeseriesGetRes, error)
-	// StatsUsersIDRiskProfileGet implements GET /stats/users/{id}/risk-profile operation.
+	// GET /api/v1/stats/transactions/timeseries
+	APIV1StatsTransactionsTimeseriesGet(ctx context.Context, params APIV1StatsTransactionsTimeseriesGetParams) (APIV1StatsTransactionsTimeseriesGetRes, error)
+	// APIV1StatsUsersIDRiskProfileGet implements GET /api/v1/stats/users/{id}/risk-profile operation.
 	//
 	// Доступ:
 	// - ADMIN: любой пользователь
@@ -192,9 +192,9 @@ type Handler interface {
 	// - declineRate_30d
 	// - lastSeenAt.
 	//
-	// GET /stats/users/{id}/risk-profile
-	StatsUsersIDRiskProfileGet(ctx context.Context, params StatsUsersIDRiskProfileGetParams) (StatsUsersIDRiskProfileGetRes, error)
-	// TransactionsBatchPost implements POST /transactions/batch operation.
+	// GET /api/v1/stats/users/{id}/risk-profile
+	APIV1StatsUsersIDRiskProfileGet(ctx context.Context, params APIV1StatsUsersIDRiskProfileGetParams) (APIV1StatsUsersIDRiskProfileGetRes, error)
+	// APIV1TransactionsBatchPost implements POST /api/v1/transactions/batch operation.
 	//
 	// Батч поддерживает частичный успех.
 	// Сценарии:
@@ -204,9 +204,9 @@ type Handler interface {
 	// созданы из-за 422/403/409 и т.п.)
 	// Для сопоставления используется index (0-based).
 	//
-	// POST /transactions/batch
-	TransactionsBatchPost(ctx context.Context, req *TransactionBatchCreateRequest) (TransactionsBatchPostRes, error)
-	// TransactionsGet implements GET /transactions operation.
+	// POST /api/v1/transactions/batch
+	APIV1TransactionsBatchPost(ctx context.Context, req *TransactionBatchCreateRequest) (APIV1TransactionsBatchPostRes, error)
+	// APIV1TransactionsGet implements GET /api/v1/transactions operation.
 	//
 	// Доступ:
 	// - ADMIN: все транзакции
@@ -217,16 +217,16 @@ type Handler interface {
 	// - from/to (RFC3339)
 	// - page/size.
 	//
-	// GET /transactions
-	TransactionsGet(ctx context.Context, params TransactionsGetParams) (TransactionsGetRes, error)
-	// TransactionsIDGet implements GET /transactions/{id} operation.
+	// GET /api/v1/transactions
+	APIV1TransactionsGet(ctx context.Context, params APIV1TransactionsGetParams) (APIV1TransactionsGetRes, error)
+	// APIV1TransactionsIDGet implements GET /api/v1/transactions/{id} operation.
 	//
 	// - ADMIN: любая транзакция
 	// - USER: только свои.
 	//
-	// GET /transactions/{id}
-	TransactionsIDGet(ctx context.Context, params TransactionsIDGetParams) (TransactionsIDGetRes, error)
-	// TransactionsPost implements POST /transactions operation.
+	// GET /api/v1/transactions/{id}
+	APIV1TransactionsIDGet(ctx context.Context, params APIV1TransactionsIDGetParams) (APIV1TransactionsIDGetRes, error)
+	// APIV1TransactionsPost implements POST /api/v1/transactions operation.
 	//
 	// Создаёт транзакцию (покупку) и проверяет её по всем
 	// активным правилам антифрода.
@@ -256,18 +256,18 @@ type Handler interface {
 	// - 404: пользователь с указанным userId не найден
 	// - 422: невалидные поля (amount <= 0, некорректная валюта и т.д.).
 	//
-	// POST /transactions
-	TransactionsPost(ctx context.Context, req *TransactionCreateRequest) (TransactionsPostRes, error)
-	// UsersGet implements GET /users operation.
+	// POST /api/v1/transactions
+	APIV1TransactionsPost(ctx context.Context, req *TransactionCreateRequest) (APIV1TransactionsPostRes, error)
+	// APIV1UsersGet implements GET /api/v1/users operation.
 	//
 	// Только ADMIN.
 	// Сценарии:
 	// - 200: страница пользователей
 	// - 422: некорректные page/size.
 	//
-	// GET /users
-	UsersGet(ctx context.Context, params UsersGetParams) (UsersGetRes, error)
-	// UsersIDDelete implements DELETE /users/{id} operation.
+	// GET /api/v1/users
+	APIV1UsersGet(ctx context.Context, params APIV1UsersGetParams) (APIV1UsersGetRes, error)
+	// APIV1UsersIDDelete implements DELETE /api/v1/users/{id} operation.
 	//
 	// **Важно:** Это soft-delete. Пользователь НЕ удаляется
 	// физически из базы данных,
@@ -285,9 +285,9 @@ type Handler interface {
 	// **Восстановление:**
 	// - ADMIN может снова активировать через PUT /users/{id} с isActive=true.
 	//
-	// DELETE /users/{id}
-	UsersIDDelete(ctx context.Context, params UsersIDDeleteParams) (UsersIDDeleteRes, error)
-	// UsersIDGet implements GET /users/{id} operation.
+	// DELETE /api/v1/users/{id}
+	APIV1UsersIDDelete(ctx context.Context, params APIV1UsersIDDeleteParams) (APIV1UsersIDDeleteRes, error)
+	// APIV1UsersIDGet implements GET /api/v1/users/{id} operation.
 	//
 	// Доступ:
 	// - ADMIN: любой пользователь
@@ -297,9 +297,9 @@ type Handler interface {
 	// - 403: попытка USER прочитать чужой профиль
 	// - 404: не найден.
 	//
-	// GET /users/{id}
-	UsersIDGet(ctx context.Context, params UsersIDGetParams) (UsersIDGetRes, error)
-	// UsersIDPut implements PUT /users/{id} operation.
+	// GET /api/v1/users/{id}
+	APIV1UsersIDGet(ctx context.Context, params APIV1UsersIDGetParams) (APIV1UsersIDGetRes, error)
+	// APIV1UsersIDPut implements PUT /api/v1/users/{id} operation.
 	//
 	// Полное обновление профиля. Необходимо передать все
 	// поля.
@@ -320,9 +320,9 @@ type Handler interface {
 	// - region: до 32 символов или null
 	// - email изменить нельзя (игнорируется, если передан).
 	//
-	// PUT /users/{id}
-	UsersIDPut(ctx context.Context, req *UserUpdateRequest, params UsersIDPutParams) (UsersIDPutRes, error)
-	// UsersMeGet implements GET /users/me operation.
+	// PUT /api/v1/users/{id}
+	APIV1UsersIDPut(ctx context.Context, req *UserUpdateRequest, params APIV1UsersIDPutParams) (APIV1UsersIDPutRes, error)
+	// APIV1UsersMeGet implements GET /api/v1/users/me operation.
 	//
 	// Возвращает профиль пользователя, определённого по JWT
 	// токену.
@@ -330,9 +330,9 @@ type Handler interface {
 	// своего ID.
 	// Доступно для любой роли (ADMIN, USER).
 	//
-	// GET /users/me
-	UsersMeGet(ctx context.Context) (UsersMeGetRes, error)
-	// UsersMePut implements PUT /users/me operation.
+	// GET /api/v1/users/me
+	APIV1UsersMeGet(ctx context.Context) (APIV1UsersMeGetRes, error)
+	// APIV1UsersMePut implements PUT /api/v1/users/me operation.
 	//
 	// Полное обновление профиля текущего пользователя.
 	// Необходимо передать все поля. Чтобы очистить поле,
@@ -346,9 +346,9 @@ type Handler interface {
 	// ADMIN может менять любые поля своего профиля, включая role
 	// и isActive.
 	//
-	// PUT /users/me
-	UsersMePut(ctx context.Context, req *UserUpdateRequest) (UsersMePutRes, error)
-	// UsersPost implements POST /users operation.
+	// PUT /api/v1/users/me
+	APIV1UsersMePut(ctx context.Context, req *UserUpdateRequest) (APIV1UsersMePutRes, error)
+	// APIV1UsersPost implements POST /api/v1/users operation.
 	//
 	// Только ADMIN. В ответе нет токенов (создание "из админки").
 	// Сценарии:
@@ -357,8 +357,8 @@ type Handler interface {
 	// - 422: не проходит валидация полей (пароль/роль/возраст
 	// и т.д.).
 	//
-	// POST /users
-	UsersPost(ctx context.Context, req *UserCreateRequest) (UsersPostRes, error)
+	// POST /api/v1/users
+	APIV1UsersPost(ctx context.Context, req *UserCreateRequest) (APIV1UsersPostRes, error)
 }
 
 // Server implements http server based on OpenAPI v3 specification and

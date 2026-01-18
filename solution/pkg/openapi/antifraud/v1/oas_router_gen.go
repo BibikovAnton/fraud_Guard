@@ -49,9 +49,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		switch elem[0] {
-		case '/': // Prefix: "/"
+		case '/': // Prefix: "/api/v1/"
 
-			if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
+			if l := len("/api/v1/"); len(elem) >= l && elem[0:l] == "/api/v1/" {
 				elem = elem[l:]
 			} else {
 				break
@@ -85,7 +85,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 						// Leaf node.
 						switch r.Method {
 						case "POST":
-							s.handleAuthLoginPostRequest([0]string{}, elemIsEscaped, w, r)
+							s.handleAPIV1AuthLoginPostRequest([0]string{}, elemIsEscaped, w, r)
 						default:
 							s.notAllowed(w, r, "POST")
 						}
@@ -105,7 +105,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 						// Leaf node.
 						switch r.Method {
 						case "POST":
-							s.handleAuthRegisterPostRequest([0]string{}, elemIsEscaped, w, r)
+							s.handleAPIV1AuthRegisterPostRequest([0]string{}, elemIsEscaped, w, r)
 						default:
 							s.notAllowed(w, r, "POST")
 						}
@@ -126,9 +126,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				if len(elem) == 0 {
 					switch r.Method {
 					case "GET":
-						s.handleFraudRulesGetRequest([0]string{}, elemIsEscaped, w, r)
+						s.handleAPIV1FraudRulesGetRequest([0]string{}, elemIsEscaped, w, r)
 					case "POST":
-						s.handleFraudRulesPostRequest([0]string{}, elemIsEscaped, w, r)
+						s.handleAPIV1FraudRulesPostRequest([0]string{}, elemIsEscaped, w, r)
 					default:
 						s.notAllowed(w, r, "GET,POST")
 					}
@@ -160,7 +160,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 							// Leaf node.
 							switch r.Method {
 							case "POST":
-								s.handleFraudRulesValidatePostRequest([0]string{}, elemIsEscaped, w, r)
+								s.handleAPIV1FraudRulesValidatePostRequest([0]string{}, elemIsEscaped, w, r)
 							default:
 								s.notAllowed(w, r, "POST")
 							}
@@ -183,15 +183,15 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 						// Leaf node.
 						switch r.Method {
 						case "DELETE":
-							s.handleFraudRulesIDDeleteRequest([1]string{
+							s.handleAPIV1FraudRulesIDDeleteRequest([1]string{
 								args[0],
 							}, elemIsEscaped, w, r)
 						case "GET":
-							s.handleFraudRulesIDGetRequest([1]string{
+							s.handleAPIV1FraudRulesIDGetRequest([1]string{
 								args[0],
 							}, elemIsEscaped, w, r)
 						case "PUT":
-							s.handleFraudRulesIDPutRequest([1]string{
+							s.handleAPIV1FraudRulesIDPutRequest([1]string{
 								args[0],
 							}, elemIsEscaped, w, r)
 						default:
@@ -215,7 +215,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					// Leaf node.
 					switch r.Method {
 					case "GET":
-						s.handlePingGetRequest([0]string{}, elemIsEscaped, w, r)
+						s.handleAPIV1PingGetRequest([0]string{}, elemIsEscaped, w, r)
 					default:
 						s.notAllowed(w, r, "GET")
 					}
@@ -247,7 +247,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 						// Leaf node.
 						switch r.Method {
 						case "GET":
-							s.handleStatsMerchantsRiskGetRequest([0]string{}, elemIsEscaped, w, r)
+							s.handleAPIV1StatsMerchantsRiskGetRequest([0]string{}, elemIsEscaped, w, r)
 						default:
 							s.notAllowed(w, r, "GET")
 						}
@@ -267,7 +267,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 						// Leaf node.
 						switch r.Method {
 						case "GET":
-							s.handleStatsOverviewGetRequest([0]string{}, elemIsEscaped, w, r)
+							s.handleAPIV1StatsOverviewGetRequest([0]string{}, elemIsEscaped, w, r)
 						default:
 							s.notAllowed(w, r, "GET")
 						}
@@ -287,7 +287,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 						// Leaf node.
 						switch r.Method {
 						case "GET":
-							s.handleStatsRulesMatchesGetRequest([0]string{}, elemIsEscaped, w, r)
+							s.handleAPIV1StatsRulesMatchesGetRequest([0]string{}, elemIsEscaped, w, r)
 						default:
 							s.notAllowed(w, r, "GET")
 						}
@@ -307,7 +307,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 						// Leaf node.
 						switch r.Method {
 						case "GET":
-							s.handleStatsTransactionsTimeseriesGetRequest([0]string{}, elemIsEscaped, w, r)
+							s.handleAPIV1StatsTransactionsTimeseriesGetRequest([0]string{}, elemIsEscaped, w, r)
 						default:
 							s.notAllowed(w, r, "GET")
 						}
@@ -348,7 +348,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 							// Leaf node.
 							switch r.Method {
 							case "GET":
-								s.handleStatsUsersIDRiskProfileGetRequest([1]string{
+								s.handleAPIV1StatsUsersIDRiskProfileGetRequest([1]string{
 									args[0],
 								}, elemIsEscaped, w, r)
 							default:
@@ -373,9 +373,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				if len(elem) == 0 {
 					switch r.Method {
 					case "GET":
-						s.handleTransactionsGetRequest([0]string{}, elemIsEscaped, w, r)
+						s.handleAPIV1TransactionsGetRequest([0]string{}, elemIsEscaped, w, r)
 					case "POST":
-						s.handleTransactionsPostRequest([0]string{}, elemIsEscaped, w, r)
+						s.handleAPIV1TransactionsPostRequest([0]string{}, elemIsEscaped, w, r)
 					default:
 						s.notAllowed(w, r, "GET,POST")
 					}
@@ -407,7 +407,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 							// Leaf node.
 							switch r.Method {
 							case "POST":
-								s.handleTransactionsBatchPostRequest([0]string{}, elemIsEscaped, w, r)
+								s.handleAPIV1TransactionsBatchPostRequest([0]string{}, elemIsEscaped, w, r)
 							default:
 								s.notAllowed(w, r, "POST")
 							}
@@ -430,7 +430,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 						// Leaf node.
 						switch r.Method {
 						case "GET":
-							s.handleTransactionsIDGetRequest([1]string{
+							s.handleAPIV1TransactionsIDGetRequest([1]string{
 								args[0],
 							}, elemIsEscaped, w, r)
 						default:
@@ -453,9 +453,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				if len(elem) == 0 {
 					switch r.Method {
 					case "GET":
-						s.handleUsersGetRequest([0]string{}, elemIsEscaped, w, r)
+						s.handleAPIV1UsersGetRequest([0]string{}, elemIsEscaped, w, r)
 					case "POST":
-						s.handleUsersPostRequest([0]string{}, elemIsEscaped, w, r)
+						s.handleAPIV1UsersPostRequest([0]string{}, elemIsEscaped, w, r)
 					default:
 						s.notAllowed(w, r, "GET,POST")
 					}
@@ -487,9 +487,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 							// Leaf node.
 							switch r.Method {
 							case "GET":
-								s.handleUsersMeGetRequest([0]string{}, elemIsEscaped, w, r)
+								s.handleAPIV1UsersMeGetRequest([0]string{}, elemIsEscaped, w, r)
 							case "PUT":
-								s.handleUsersMePutRequest([0]string{}, elemIsEscaped, w, r)
+								s.handleAPIV1UsersMePutRequest([0]string{}, elemIsEscaped, w, r)
 							default:
 								s.notAllowed(w, r, "GET,PUT")
 							}
@@ -512,15 +512,15 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 						// Leaf node.
 						switch r.Method {
 						case "DELETE":
-							s.handleUsersIDDeleteRequest([1]string{
+							s.handleAPIV1UsersIDDeleteRequest([1]string{
 								args[0],
 							}, elemIsEscaped, w, r)
 						case "GET":
-							s.handleUsersIDGetRequest([1]string{
+							s.handleAPIV1UsersIDGetRequest([1]string{
 								args[0],
 							}, elemIsEscaped, w, r)
 						case "PUT":
-							s.handleUsersIDPutRequest([1]string{
+							s.handleAPIV1UsersIDPutRequest([1]string{
 								args[0],
 							}, elemIsEscaped, w, r)
 						default:
@@ -614,9 +614,9 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 			break
 		}
 		switch elem[0] {
-		case '/': // Prefix: "/"
+		case '/': // Prefix: "/api/v1/"
 
-			if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
+			if l := len("/api/v1/"); len(elem) >= l && elem[0:l] == "/api/v1/" {
 				elem = elem[l:]
 			} else {
 				break
@@ -650,10 +650,10 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						// Leaf node.
 						switch method {
 						case "POST":
-							r.name = AuthLoginPostOperation
+							r.name = APIV1AuthLoginPostOperation
 							r.summary = "Авторизация пользователя"
 							r.operationID = ""
-							r.pathPattern = "/auth/login"
+							r.pathPattern = "/api/v1/auth/login"
 							r.args = args
 							r.count = 0
 							return r, true
@@ -674,10 +674,10 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						// Leaf node.
 						switch method {
 						case "POST":
-							r.name = AuthRegisterPostOperation
+							r.name = APIV1AuthRegisterPostOperation
 							r.summary = "Регистрация нового пользователя"
 							r.operationID = ""
-							r.pathPattern = "/auth/register"
+							r.pathPattern = "/api/v1/auth/register"
 							r.args = args
 							r.count = 0
 							return r, true
@@ -699,18 +699,18 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 				if len(elem) == 0 {
 					switch method {
 					case "GET":
-						r.name = FraudRulesGetOperation
+						r.name = APIV1FraudRulesGetOperation
 						r.summary = "Список правил фрода"
 						r.operationID = ""
-						r.pathPattern = "/fraud-rules"
+						r.pathPattern = "/api/v1/fraud-rules"
 						r.args = args
 						r.count = 0
 						return r, true
 					case "POST":
-						r.name = FraudRulesPostOperation
+						r.name = APIV1FraudRulesPostOperation
 						r.summary = "Создать правило фрода"
 						r.operationID = ""
-						r.pathPattern = "/fraud-rules"
+						r.pathPattern = "/api/v1/fraud-rules"
 						r.args = args
 						r.count = 0
 						return r, true
@@ -743,10 +743,10 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 							// Leaf node.
 							switch method {
 							case "POST":
-								r.name = FraudRulesValidatePostOperation
+								r.name = APIV1FraudRulesValidatePostOperation
 								r.summary = "Валидация DSL выражения (без сохранения правила)"
 								r.operationID = ""
-								r.pathPattern = "/fraud-rules/validate"
+								r.pathPattern = "/api/v1/fraud-rules/validate"
 								r.args = args
 								r.count = 0
 								return r, true
@@ -770,26 +770,26 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						// Leaf node.
 						switch method {
 						case "DELETE":
-							r.name = FraudRulesIDDeleteOperation
+							r.name = APIV1FraudRulesIDDeleteOperation
 							r.summary = "Деактивация правила фрода"
 							r.operationID = ""
-							r.pathPattern = "/fraud-rules/{id}"
+							r.pathPattern = "/api/v1/fraud-rules/{id}"
 							r.args = args
 							r.count = 1
 							return r, true
 						case "GET":
-							r.name = FraudRulesIDGetOperation
+							r.name = APIV1FraudRulesIDGetOperation
 							r.summary = "Получить правило фрода по ID"
 							r.operationID = ""
-							r.pathPattern = "/fraud-rules/{id}"
+							r.pathPattern = "/api/v1/fraud-rules/{id}"
 							r.args = args
 							r.count = 1
 							return r, true
 						case "PUT":
-							r.name = FraudRulesIDPutOperation
+							r.name = APIV1FraudRulesIDPutOperation
 							r.summary = "Обновить правило фрода"
 							r.operationID = ""
-							r.pathPattern = "/fraud-rules/{id}"
+							r.pathPattern = "/api/v1/fraud-rules/{id}"
 							r.args = args
 							r.count = 1
 							return r, true
@@ -812,10 +812,10 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 					// Leaf node.
 					switch method {
 					case "GET":
-						r.name = PingGetOperation
+						r.name = APIV1PingGetOperation
 						r.summary = "Health check"
 						r.operationID = ""
-						r.pathPattern = "/ping"
+						r.pathPattern = "/api/v1/ping"
 						r.args = args
 						r.count = 0
 						return r, true
@@ -848,10 +848,10 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						// Leaf node.
 						switch method {
 						case "GET":
-							r.name = StatsMerchantsRiskGetOperation
+							r.name = APIV1StatsMerchantsRiskGetOperation
 							r.summary = "Риск-метрики по мерчантам"
 							r.operationID = ""
-							r.pathPattern = "/stats/merchants/risk"
+							r.pathPattern = "/api/v1/stats/merchants/risk"
 							r.args = args
 							r.count = 0
 							return r, true
@@ -872,10 +872,10 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						// Leaf node.
 						switch method {
 						case "GET":
-							r.name = StatsOverviewGetOperation
+							r.name = APIV1StatsOverviewGetOperation
 							r.summary = "Обзор ключевых метрик (дашборд)"
 							r.operationID = ""
-							r.pathPattern = "/stats/overview"
+							r.pathPattern = "/api/v1/stats/overview"
 							r.args = args
 							r.count = 0
 							return r, true
@@ -896,10 +896,10 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						// Leaf node.
 						switch method {
 						case "GET":
-							r.name = StatsRulesMatchesGetOperation
+							r.name = APIV1StatsRulesMatchesGetOperation
 							r.summary = "Статистика срабатываний правил"
 							r.operationID = ""
-							r.pathPattern = "/stats/rules/matches"
+							r.pathPattern = "/api/v1/stats/rules/matches"
 							r.args = args
 							r.count = 0
 							return r, true
@@ -920,10 +920,10 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						// Leaf node.
 						switch method {
 						case "GET":
-							r.name = StatsTransactionsTimeseriesGetOperation
+							r.name = APIV1StatsTransactionsTimeseriesGetOperation
 							r.summary = "Таймсерия по транзакциям"
 							r.operationID = ""
-							r.pathPattern = "/stats/transactions/timeseries"
+							r.pathPattern = "/api/v1/stats/transactions/timeseries"
 							r.args = args
 							r.count = 0
 							return r, true
@@ -965,10 +965,10 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 							// Leaf node.
 							switch method {
 							case "GET":
-								r.name = StatsUsersIDRiskProfileGetOperation
+								r.name = APIV1StatsUsersIDRiskProfileGetOperation
 								r.summary = "Риск-профиль пользователя (в т.ч. для USER — только свой)"
 								r.operationID = ""
-								r.pathPattern = "/stats/users/{id}/risk-profile"
+								r.pathPattern = "/api/v1/stats/users/{id}/risk-profile"
 								r.args = args
 								r.count = 1
 								return r, true
@@ -992,18 +992,18 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 				if len(elem) == 0 {
 					switch method {
 					case "GET":
-						r.name = TransactionsGetOperation
+						r.name = APIV1TransactionsGetOperation
 						r.summary = "Список транзакций"
 						r.operationID = ""
-						r.pathPattern = "/transactions"
+						r.pathPattern = "/api/v1/transactions"
 						r.args = args
 						r.count = 0
 						return r, true
 					case "POST":
-						r.name = TransactionsPostOperation
+						r.name = APIV1TransactionsPostOperation
 						r.summary = "Создать транзакцию и выполнить антифрод-проверку"
 						r.operationID = ""
-						r.pathPattern = "/transactions"
+						r.pathPattern = "/api/v1/transactions"
 						r.args = args
 						r.count = 0
 						return r, true
@@ -1036,10 +1036,10 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 							// Leaf node.
 							switch method {
 							case "POST":
-								r.name = TransactionsBatchPostOperation
+								r.name = APIV1TransactionsBatchPostOperation
 								r.summary = "Создать батч транзакций"
 								r.operationID = ""
-								r.pathPattern = "/transactions/batch"
+								r.pathPattern = "/api/v1/transactions/batch"
 								r.args = args
 								r.count = 0
 								return r, true
@@ -1063,10 +1063,10 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						// Leaf node.
 						switch method {
 						case "GET":
-							r.name = TransactionsIDGetOperation
+							r.name = APIV1TransactionsIDGetOperation
 							r.summary = "Получить транзакцию"
 							r.operationID = ""
-							r.pathPattern = "/transactions/{id}"
+							r.pathPattern = "/api/v1/transactions/{id}"
 							r.args = args
 							r.count = 1
 							return r, true
@@ -1088,18 +1088,18 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 				if len(elem) == 0 {
 					switch method {
 					case "GET":
-						r.name = UsersGetOperation
+						r.name = APIV1UsersGetOperation
 						r.summary = "Список пользователей"
 						r.operationID = ""
-						r.pathPattern = "/users"
+						r.pathPattern = "/api/v1/users"
 						r.args = args
 						r.count = 0
 						return r, true
 					case "POST":
-						r.name = UsersPostOperation
+						r.name = APIV1UsersPostOperation
 						r.summary = "Создание пользователя админом"
 						r.operationID = ""
-						r.pathPattern = "/users"
+						r.pathPattern = "/api/v1/users"
 						r.args = args
 						r.count = 0
 						return r, true
@@ -1132,18 +1132,18 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 							// Leaf node.
 							switch method {
 							case "GET":
-								r.name = UsersMeGetOperation
+								r.name = APIV1UsersMeGetOperation
 								r.summary = "Получить профиль текущего пользователя"
 								r.operationID = ""
-								r.pathPattern = "/users/me"
+								r.pathPattern = "/api/v1/users/me"
 								r.args = args
 								r.count = 0
 								return r, true
 							case "PUT":
-								r.name = UsersMePutOperation
+								r.name = APIV1UsersMePutOperation
 								r.summary = "Обновить профиль текущего пользователя"
 								r.operationID = ""
-								r.pathPattern = "/users/me"
+								r.pathPattern = "/api/v1/users/me"
 								r.args = args
 								r.count = 0
 								return r, true
@@ -1167,26 +1167,26 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						// Leaf node.
 						switch method {
 						case "DELETE":
-							r.name = UsersIDDeleteOperation
+							r.name = APIV1UsersIDDeleteOperation
 							r.summary = "Деактивация пользователя"
 							r.operationID = ""
-							r.pathPattern = "/users/{id}"
+							r.pathPattern = "/api/v1/users/{id}"
 							r.args = args
 							r.count = 1
 							return r, true
 						case "GET":
-							r.name = UsersIDGetOperation
+							r.name = APIV1UsersIDGetOperation
 							r.summary = "Получение профиля пользователя"
 							r.operationID = ""
-							r.pathPattern = "/users/{id}"
+							r.pathPattern = "/api/v1/users/{id}"
 							r.args = args
 							r.count = 1
 							return r, true
 						case "PUT":
-							r.name = UsersIDPutOperation
+							r.name = APIV1UsersIDPutOperation
 							r.summary = "Полное обновление профиля пользователя"
 							r.operationID = ""
-							r.pathPattern = "/users/{id}"
+							r.pathPattern = "/api/v1/users/{id}"
 							r.args = args
 							r.count = 1
 							return r, true

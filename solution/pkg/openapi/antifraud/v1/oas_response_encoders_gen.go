@@ -11,7 +11,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-func encodeAuthLoginPostResponse(response AuthLoginPostRes, w http.ResponseWriter, span trace.Span) error {
+func encodeAPIV1AuthLoginPostResponse(response APIV1AuthLoginPostRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
 	case *AuthResponse:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -26,7 +26,7 @@ func encodeAuthLoginPostResponse(response AuthLoginPostRes, w http.ResponseWrite
 
 		return nil
 
-	case *AuthLoginPostBadRequest:
+	case *APIV1AuthLoginPostBadRequest:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(400)
 		span.SetStatus(codes.Error, http.StatusText(400))
@@ -39,7 +39,7 @@ func encodeAuthLoginPostResponse(response AuthLoginPostRes, w http.ResponseWrite
 
 		return nil
 
-	case *AuthLoginPostUnauthorized:
+	case *APIV1AuthLoginPostUnauthorized:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(401)
 		span.SetStatus(codes.Error, http.StatusText(401))
@@ -65,7 +65,7 @@ func encodeAuthLoginPostResponse(response AuthLoginPostRes, w http.ResponseWrite
 
 		return nil
 
-	case *AuthLoginPostLocked:
+	case *APIV1AuthLoginPostLocked:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(423)
 		span.SetStatus(codes.Error, http.StatusText(423))
@@ -83,7 +83,7 @@ func encodeAuthLoginPostResponse(response AuthLoginPostRes, w http.ResponseWrite
 	}
 }
 
-func encodeAuthRegisterPostResponse(response AuthRegisterPostRes, w http.ResponseWriter, span trace.Span) error {
+func encodeAPIV1AuthRegisterPostResponse(response APIV1AuthRegisterPostRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
 	case *AuthResponse:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -98,7 +98,7 @@ func encodeAuthRegisterPostResponse(response AuthRegisterPostRes, w http.Respons
 
 		return nil
 
-	case *AuthRegisterPostBadRequest:
+	case *APIV1AuthRegisterPostBadRequest:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(400)
 		span.SetStatus(codes.Error, http.StatusText(400))
@@ -111,7 +111,7 @@ func encodeAuthRegisterPostResponse(response AuthRegisterPostRes, w http.Respons
 
 		return nil
 
-	case *AuthRegisterPostConflict:
+	case *APIV1AuthRegisterPostConflict:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(409)
 		span.SetStatus(codes.Error, http.StatusText(409))
@@ -142,9 +142,9 @@ func encodeAuthRegisterPostResponse(response AuthRegisterPostRes, w http.Respons
 	}
 }
 
-func encodeFraudRulesGetResponse(response FraudRulesGetRes, w http.ResponseWriter, span trace.Span) error {
+func encodeAPIV1FraudRulesGetResponse(response APIV1FraudRulesGetRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
-	case *FraudRulesGetOKApplicationJSON:
+	case *APIV1FraudRulesGetOKApplicationJSON:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(200)
 		span.SetStatus(codes.Ok, http.StatusText(200))
@@ -157,7 +157,7 @@ func encodeFraudRulesGetResponse(response FraudRulesGetRes, w http.ResponseWrite
 
 		return nil
 
-	case *FraudRulesGetUnauthorized:
+	case *APIV1FraudRulesGetUnauthorized:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(401)
 		span.SetStatus(codes.Error, http.StatusText(401))
@@ -170,7 +170,7 @@ func encodeFraudRulesGetResponse(response FraudRulesGetRes, w http.ResponseWrite
 
 		return nil
 
-	case *FraudRulesGetForbidden:
+	case *APIV1FraudRulesGetForbidden:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(403)
 		span.SetStatus(codes.Error, http.StatusText(403))
@@ -188,15 +188,15 @@ func encodeFraudRulesGetResponse(response FraudRulesGetRes, w http.ResponseWrite
 	}
 }
 
-func encodeFraudRulesIDDeleteResponse(response FraudRulesIDDeleteRes, w http.ResponseWriter, span trace.Span) error {
+func encodeAPIV1FraudRulesIDDeleteResponse(response APIV1FraudRulesIDDeleteRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
-	case *FraudRulesIDDeleteNoContent:
+	case *APIV1FraudRulesIDDeleteNoContent:
 		w.WriteHeader(204)
 		span.SetStatus(codes.Ok, http.StatusText(204))
 
 		return nil
 
-	case *FraudRulesIDDeleteUnauthorized:
+	case *APIV1FraudRulesIDDeleteUnauthorized:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(401)
 		span.SetStatus(codes.Error, http.StatusText(401))
@@ -209,7 +209,7 @@ func encodeFraudRulesIDDeleteResponse(response FraudRulesIDDeleteRes, w http.Res
 
 		return nil
 
-	case *FraudRulesIDDeleteForbidden:
+	case *APIV1FraudRulesIDDeleteForbidden:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(403)
 		span.SetStatus(codes.Error, http.StatusText(403))
@@ -222,7 +222,7 @@ func encodeFraudRulesIDDeleteResponse(response FraudRulesIDDeleteRes, w http.Res
 
 		return nil
 
-	case *FraudRulesIDDeleteNotFound:
+	case *APIV1FraudRulesIDDeleteNotFound:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(404)
 		span.SetStatus(codes.Error, http.StatusText(404))
@@ -240,7 +240,7 @@ func encodeFraudRulesIDDeleteResponse(response FraudRulesIDDeleteRes, w http.Res
 	}
 }
 
-func encodeFraudRulesIDGetResponse(response FraudRulesIDGetRes, w http.ResponseWriter, span trace.Span) error {
+func encodeAPIV1FraudRulesIDGetResponse(response APIV1FraudRulesIDGetRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
 	case *FraudRule:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -255,7 +255,7 @@ func encodeFraudRulesIDGetResponse(response FraudRulesIDGetRes, w http.ResponseW
 
 		return nil
 
-	case *FraudRulesIDGetUnauthorized:
+	case *APIV1FraudRulesIDGetUnauthorized:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(401)
 		span.SetStatus(codes.Error, http.StatusText(401))
@@ -268,7 +268,7 @@ func encodeFraudRulesIDGetResponse(response FraudRulesIDGetRes, w http.ResponseW
 
 		return nil
 
-	case *FraudRulesIDGetForbidden:
+	case *APIV1FraudRulesIDGetForbidden:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(403)
 		span.SetStatus(codes.Error, http.StatusText(403))
@@ -281,7 +281,7 @@ func encodeFraudRulesIDGetResponse(response FraudRulesIDGetRes, w http.ResponseW
 
 		return nil
 
-	case *FraudRulesIDGetNotFound:
+	case *APIV1FraudRulesIDGetNotFound:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(404)
 		span.SetStatus(codes.Error, http.StatusText(404))
@@ -299,7 +299,7 @@ func encodeFraudRulesIDGetResponse(response FraudRulesIDGetRes, w http.ResponseW
 	}
 }
 
-func encodeFraudRulesIDPutResponse(response FraudRulesIDPutRes, w http.ResponseWriter, span trace.Span) error {
+func encodeAPIV1FraudRulesIDPutResponse(response APIV1FraudRulesIDPutRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
 	case *FraudRule:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -314,7 +314,7 @@ func encodeFraudRulesIDPutResponse(response FraudRulesIDPutRes, w http.ResponseW
 
 		return nil
 
-	case *FraudRulesIDPutUnauthorized:
+	case *APIV1FraudRulesIDPutUnauthorized:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(401)
 		span.SetStatus(codes.Error, http.StatusText(401))
@@ -327,7 +327,7 @@ func encodeFraudRulesIDPutResponse(response FraudRulesIDPutRes, w http.ResponseW
 
 		return nil
 
-	case *FraudRulesIDPutForbidden:
+	case *APIV1FraudRulesIDPutForbidden:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(403)
 		span.SetStatus(codes.Error, http.StatusText(403))
@@ -340,7 +340,7 @@ func encodeFraudRulesIDPutResponse(response FraudRulesIDPutRes, w http.ResponseW
 
 		return nil
 
-	case *FraudRulesIDPutNotFound:
+	case *APIV1FraudRulesIDPutNotFound:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(404)
 		span.SetStatus(codes.Error, http.StatusText(404))
@@ -371,7 +371,7 @@ func encodeFraudRulesIDPutResponse(response FraudRulesIDPutRes, w http.ResponseW
 	}
 }
 
-func encodeFraudRulesPostResponse(response FraudRulesPostRes, w http.ResponseWriter, span trace.Span) error {
+func encodeAPIV1FraudRulesPostResponse(response APIV1FraudRulesPostRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
 	case *FraudRule:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -386,7 +386,7 @@ func encodeFraudRulesPostResponse(response FraudRulesPostRes, w http.ResponseWri
 
 		return nil
 
-	case *FraudRulesPostUnauthorized:
+	case *APIV1FraudRulesPostUnauthorized:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(401)
 		span.SetStatus(codes.Error, http.StatusText(401))
@@ -399,7 +399,7 @@ func encodeFraudRulesPostResponse(response FraudRulesPostRes, w http.ResponseWri
 
 		return nil
 
-	case *FraudRulesPostForbidden:
+	case *APIV1FraudRulesPostForbidden:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(403)
 		span.SetStatus(codes.Error, http.StatusText(403))
@@ -412,7 +412,7 @@ func encodeFraudRulesPostResponse(response FraudRulesPostRes, w http.ResponseWri
 
 		return nil
 
-	case *FraudRulesPostConflict:
+	case *APIV1FraudRulesPostConflict:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(409)
 		span.SetStatus(codes.Error, http.StatusText(409))
@@ -443,7 +443,7 @@ func encodeFraudRulesPostResponse(response FraudRulesPostRes, w http.ResponseWri
 	}
 }
 
-func encodeFraudRulesValidatePostResponse(response FraudRulesValidatePostRes, w http.ResponseWriter, span trace.Span) error {
+func encodeAPIV1FraudRulesValidatePostResponse(response APIV1FraudRulesValidatePostRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
 	case *DslValidateResponse:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -458,7 +458,7 @@ func encodeFraudRulesValidatePostResponse(response FraudRulesValidatePostRes, w 
 
 		return nil
 
-	case *FraudRulesValidatePostUnauthorized:
+	case *APIV1FraudRulesValidatePostUnauthorized:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(401)
 		span.SetStatus(codes.Error, http.StatusText(401))
@@ -471,7 +471,7 @@ func encodeFraudRulesValidatePostResponse(response FraudRulesValidatePostRes, w 
 
 		return nil
 
-	case *FraudRulesValidatePostForbidden:
+	case *APIV1FraudRulesValidatePostForbidden:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(403)
 		span.SetStatus(codes.Error, http.StatusText(403))
@@ -489,7 +489,7 @@ func encodeFraudRulesValidatePostResponse(response FraudRulesValidatePostRes, w 
 	}
 }
 
-func encodePingGetResponse(response *PingGetOK, w http.ResponseWriter, span trace.Span) error {
+func encodeAPIV1PingGetResponse(response *APIV1PingGetOK, w http.ResponseWriter, span trace.Span) error {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(200)
 	span.SetStatus(codes.Ok, http.StatusText(200))
@@ -503,7 +503,7 @@ func encodePingGetResponse(response *PingGetOK, w http.ResponseWriter, span trac
 	return nil
 }
 
-func encodeStatsMerchantsRiskGetResponse(response StatsMerchantsRiskGetRes, w http.ResponseWriter, span trace.Span) error {
+func encodeAPIV1StatsMerchantsRiskGetResponse(response APIV1StatsMerchantsRiskGetRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
 	case *MerchantRiskStats:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -518,7 +518,7 @@ func encodeStatsMerchantsRiskGetResponse(response StatsMerchantsRiskGetRes, w ht
 
 		return nil
 
-	case *StatsMerchantsRiskGetUnauthorized:
+	case *APIV1StatsMerchantsRiskGetUnauthorized:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(401)
 		span.SetStatus(codes.Error, http.StatusText(401))
@@ -531,7 +531,7 @@ func encodeStatsMerchantsRiskGetResponse(response StatsMerchantsRiskGetRes, w ht
 
 		return nil
 
-	case *StatsMerchantsRiskGetForbidden:
+	case *APIV1StatsMerchantsRiskGetForbidden:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(403)
 		span.SetStatus(codes.Error, http.StatusText(403))
@@ -549,7 +549,7 @@ func encodeStatsMerchantsRiskGetResponse(response StatsMerchantsRiskGetRes, w ht
 	}
 }
 
-func encodeStatsOverviewGetResponse(response StatsOverviewGetRes, w http.ResponseWriter, span trace.Span) error {
+func encodeAPIV1StatsOverviewGetResponse(response APIV1StatsOverviewGetRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
 	case *StatsOverview:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -564,7 +564,7 @@ func encodeStatsOverviewGetResponse(response StatsOverviewGetRes, w http.Respons
 
 		return nil
 
-	case *StatsOverviewGetUnauthorized:
+	case *APIV1StatsOverviewGetUnauthorized:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(401)
 		span.SetStatus(codes.Error, http.StatusText(401))
@@ -577,7 +577,7 @@ func encodeStatsOverviewGetResponse(response StatsOverviewGetRes, w http.Respons
 
 		return nil
 
-	case *StatsOverviewGetForbidden:
+	case *APIV1StatsOverviewGetForbidden:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(403)
 		span.SetStatus(codes.Error, http.StatusText(403))
@@ -608,7 +608,7 @@ func encodeStatsOverviewGetResponse(response StatsOverviewGetRes, w http.Respons
 	}
 }
 
-func encodeStatsRulesMatchesGetResponse(response StatsRulesMatchesGetRes, w http.ResponseWriter, span trace.Span) error {
+func encodeAPIV1StatsRulesMatchesGetResponse(response APIV1StatsRulesMatchesGetRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
 	case *RuleMatchStats:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -623,7 +623,7 @@ func encodeStatsRulesMatchesGetResponse(response StatsRulesMatchesGetRes, w http
 
 		return nil
 
-	case *StatsRulesMatchesGetUnauthorized:
+	case *APIV1StatsRulesMatchesGetUnauthorized:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(401)
 		span.SetStatus(codes.Error, http.StatusText(401))
@@ -636,7 +636,7 @@ func encodeStatsRulesMatchesGetResponse(response StatsRulesMatchesGetRes, w http
 
 		return nil
 
-	case *StatsRulesMatchesGetForbidden:
+	case *APIV1StatsRulesMatchesGetForbidden:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(403)
 		span.SetStatus(codes.Error, http.StatusText(403))
@@ -654,7 +654,7 @@ func encodeStatsRulesMatchesGetResponse(response StatsRulesMatchesGetRes, w http
 	}
 }
 
-func encodeStatsTransactionsTimeseriesGetResponse(response StatsTransactionsTimeseriesGetRes, w http.ResponseWriter, span trace.Span) error {
+func encodeAPIV1StatsTransactionsTimeseriesGetResponse(response APIV1StatsTransactionsTimeseriesGetRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
 	case *TransactionsTimeSeries:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -669,7 +669,7 @@ func encodeStatsTransactionsTimeseriesGetResponse(response StatsTransactionsTime
 
 		return nil
 
-	case *StatsTransactionsTimeseriesGetUnauthorized:
+	case *APIV1StatsTransactionsTimeseriesGetUnauthorized:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(401)
 		span.SetStatus(codes.Error, http.StatusText(401))
@@ -682,7 +682,7 @@ func encodeStatsTransactionsTimeseriesGetResponse(response StatsTransactionsTime
 
 		return nil
 
-	case *StatsTransactionsTimeseriesGetForbidden:
+	case *APIV1StatsTransactionsTimeseriesGetForbidden:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(403)
 		span.SetStatus(codes.Error, http.StatusText(403))
@@ -700,7 +700,7 @@ func encodeStatsTransactionsTimeseriesGetResponse(response StatsTransactionsTime
 	}
 }
 
-func encodeStatsUsersIDRiskProfileGetResponse(response StatsUsersIDRiskProfileGetRes, w http.ResponseWriter, span trace.Span) error {
+func encodeAPIV1StatsUsersIDRiskProfileGetResponse(response APIV1StatsUsersIDRiskProfileGetRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
 	case *UserRiskProfile:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -715,7 +715,7 @@ func encodeStatsUsersIDRiskProfileGetResponse(response StatsUsersIDRiskProfileGe
 
 		return nil
 
-	case *StatsUsersIDRiskProfileGetUnauthorized:
+	case *APIV1StatsUsersIDRiskProfileGetUnauthorized:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(401)
 		span.SetStatus(codes.Error, http.StatusText(401))
@@ -728,7 +728,7 @@ func encodeStatsUsersIDRiskProfileGetResponse(response StatsUsersIDRiskProfileGe
 
 		return nil
 
-	case *StatsUsersIDRiskProfileGetForbidden:
+	case *APIV1StatsUsersIDRiskProfileGetForbidden:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(403)
 		span.SetStatus(codes.Error, http.StatusText(403))
@@ -741,7 +741,7 @@ func encodeStatsUsersIDRiskProfileGetResponse(response StatsUsersIDRiskProfileGe
 
 		return nil
 
-	case *StatsUsersIDRiskProfileGetNotFound:
+	case *APIV1StatsUsersIDRiskProfileGetNotFound:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(404)
 		span.SetStatus(codes.Error, http.StatusText(404))
@@ -759,9 +759,9 @@ func encodeStatsUsersIDRiskProfileGetResponse(response StatsUsersIDRiskProfileGe
 	}
 }
 
-func encodeTransactionsBatchPostResponse(response TransactionsBatchPostRes, w http.ResponseWriter, span trace.Span) error {
+func encodeAPIV1TransactionsBatchPostResponse(response APIV1TransactionsBatchPostRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
-	case *TransactionsBatchPostCreated:
+	case *APIV1TransactionsBatchPostCreated:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(201)
 		span.SetStatus(codes.Ok, http.StatusText(201))
@@ -774,7 +774,7 @@ func encodeTransactionsBatchPostResponse(response TransactionsBatchPostRes, w ht
 
 		return nil
 
-	case *TransactionsBatchPostMultiStatus:
+	case *APIV1TransactionsBatchPostMultiStatus:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(207)
 		span.SetStatus(codes.Ok, http.StatusText(207))
@@ -818,7 +818,7 @@ func encodeTransactionsBatchPostResponse(response TransactionsBatchPostRes, w ht
 	}
 }
 
-func encodeTransactionsGetResponse(response TransactionsGetRes, w http.ResponseWriter, span trace.Span) error {
+func encodeAPIV1TransactionsGetResponse(response APIV1TransactionsGetRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
 	case *PagedTransactions:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -864,7 +864,7 @@ func encodeTransactionsGetResponse(response TransactionsGetRes, w http.ResponseW
 	}
 }
 
-func encodeTransactionsIDGetResponse(response TransactionsIDGetRes, w http.ResponseWriter, span trace.Span) error {
+func encodeAPIV1TransactionsIDGetResponse(response APIV1TransactionsIDGetRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
 	case *TransactionDecision:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -879,7 +879,7 @@ func encodeTransactionsIDGetResponse(response TransactionsIDGetRes, w http.Respo
 
 		return nil
 
-	case *TransactionsIDGetUnauthorized:
+	case *APIV1TransactionsIDGetUnauthorized:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(401)
 		span.SetStatus(codes.Error, http.StatusText(401))
@@ -892,7 +892,7 @@ func encodeTransactionsIDGetResponse(response TransactionsIDGetRes, w http.Respo
 
 		return nil
 
-	case *TransactionsIDGetForbidden:
+	case *APIV1TransactionsIDGetForbidden:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(403)
 		span.SetStatus(codes.Error, http.StatusText(403))
@@ -905,7 +905,7 @@ func encodeTransactionsIDGetResponse(response TransactionsIDGetRes, w http.Respo
 
 		return nil
 
-	case *TransactionsIDGetNotFound:
+	case *APIV1TransactionsIDGetNotFound:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(404)
 		span.SetStatus(codes.Error, http.StatusText(404))
@@ -923,7 +923,7 @@ func encodeTransactionsIDGetResponse(response TransactionsIDGetRes, w http.Respo
 	}
 }
 
-func encodeTransactionsPostResponse(response TransactionsPostRes, w http.ResponseWriter, span trace.Span) error {
+func encodeAPIV1TransactionsPostResponse(response APIV1TransactionsPostRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
 	case *TransactionDecision:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -938,7 +938,7 @@ func encodeTransactionsPostResponse(response TransactionsPostRes, w http.Respons
 
 		return nil
 
-	case *TransactionsPostBadRequest:
+	case *APIV1TransactionsPostBadRequest:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(400)
 		span.SetStatus(codes.Error, http.StatusText(400))
@@ -951,7 +951,7 @@ func encodeTransactionsPostResponse(response TransactionsPostRes, w http.Respons
 
 		return nil
 
-	case *TransactionsPostUnauthorized:
+	case *APIV1TransactionsPostUnauthorized:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(401)
 		span.SetStatus(codes.Error, http.StatusText(401))
@@ -964,7 +964,7 @@ func encodeTransactionsPostResponse(response TransactionsPostRes, w http.Respons
 
 		return nil
 
-	case *TransactionsPostForbidden:
+	case *APIV1TransactionsPostForbidden:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(403)
 		span.SetStatus(codes.Error, http.StatusText(403))
@@ -977,7 +977,7 @@ func encodeTransactionsPostResponse(response TransactionsPostRes, w http.Respons
 
 		return nil
 
-	case *TransactionsPostNotFound:
+	case *APIV1TransactionsPostNotFound:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(404)
 		span.SetStatus(codes.Error, http.StatusText(404))
@@ -1008,7 +1008,7 @@ func encodeTransactionsPostResponse(response TransactionsPostRes, w http.Respons
 	}
 }
 
-func encodeUsersGetResponse(response UsersGetRes, w http.ResponseWriter, span trace.Span) error {
+func encodeAPIV1UsersGetResponse(response APIV1UsersGetRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
 	case *PagedUsers:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -1023,7 +1023,7 @@ func encodeUsersGetResponse(response UsersGetRes, w http.ResponseWriter, span tr
 
 		return nil
 
-	case *UsersGetUnauthorized:
+	case *APIV1UsersGetUnauthorized:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(401)
 		span.SetStatus(codes.Error, http.StatusText(401))
@@ -1036,7 +1036,7 @@ func encodeUsersGetResponse(response UsersGetRes, w http.ResponseWriter, span tr
 
 		return nil
 
-	case *UsersGetForbidden:
+	case *APIV1UsersGetForbidden:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(403)
 		span.SetStatus(codes.Error, http.StatusText(403))
@@ -1067,15 +1067,15 @@ func encodeUsersGetResponse(response UsersGetRes, w http.ResponseWriter, span tr
 	}
 }
 
-func encodeUsersIDDeleteResponse(response UsersIDDeleteRes, w http.ResponseWriter, span trace.Span) error {
+func encodeAPIV1UsersIDDeleteResponse(response APIV1UsersIDDeleteRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
-	case *UsersIDDeleteNoContent:
+	case *APIV1UsersIDDeleteNoContent:
 		w.WriteHeader(204)
 		span.SetStatus(codes.Ok, http.StatusText(204))
 
 		return nil
 
-	case *UsersIDDeleteUnauthorized:
+	case *APIV1UsersIDDeleteUnauthorized:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(401)
 		span.SetStatus(codes.Error, http.StatusText(401))
@@ -1088,7 +1088,7 @@ func encodeUsersIDDeleteResponse(response UsersIDDeleteRes, w http.ResponseWrite
 
 		return nil
 
-	case *UsersIDDeleteForbidden:
+	case *APIV1UsersIDDeleteForbidden:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(403)
 		span.SetStatus(codes.Error, http.StatusText(403))
@@ -1101,7 +1101,7 @@ func encodeUsersIDDeleteResponse(response UsersIDDeleteRes, w http.ResponseWrite
 
 		return nil
 
-	case *UsersIDDeleteNotFound:
+	case *APIV1UsersIDDeleteNotFound:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(404)
 		span.SetStatus(codes.Error, http.StatusText(404))
@@ -1119,7 +1119,7 @@ func encodeUsersIDDeleteResponse(response UsersIDDeleteRes, w http.ResponseWrite
 	}
 }
 
-func encodeUsersIDGetResponse(response UsersIDGetRes, w http.ResponseWriter, span trace.Span) error {
+func encodeAPIV1UsersIDGetResponse(response APIV1UsersIDGetRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
 	case *User:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -1134,7 +1134,7 @@ func encodeUsersIDGetResponse(response UsersIDGetRes, w http.ResponseWriter, spa
 
 		return nil
 
-	case *UsersIDGetUnauthorized:
+	case *APIV1UsersIDGetUnauthorized:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(401)
 		span.SetStatus(codes.Error, http.StatusText(401))
@@ -1147,7 +1147,7 @@ func encodeUsersIDGetResponse(response UsersIDGetRes, w http.ResponseWriter, spa
 
 		return nil
 
-	case *UsersIDGetForbidden:
+	case *APIV1UsersIDGetForbidden:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(403)
 		span.SetStatus(codes.Error, http.StatusText(403))
@@ -1160,7 +1160,7 @@ func encodeUsersIDGetResponse(response UsersIDGetRes, w http.ResponseWriter, spa
 
 		return nil
 
-	case *UsersIDGetNotFound:
+	case *APIV1UsersIDGetNotFound:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(404)
 		span.SetStatus(codes.Error, http.StatusText(404))
@@ -1178,7 +1178,7 @@ func encodeUsersIDGetResponse(response UsersIDGetRes, w http.ResponseWriter, spa
 	}
 }
 
-func encodeUsersIDPutResponse(response UsersIDPutRes, w http.ResponseWriter, span trace.Span) error {
+func encodeAPIV1UsersIDPutResponse(response APIV1UsersIDPutRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
 	case *User:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -1193,7 +1193,7 @@ func encodeUsersIDPutResponse(response UsersIDPutRes, w http.ResponseWriter, spa
 
 		return nil
 
-	case *UsersIDPutUnauthorized:
+	case *APIV1UsersIDPutUnauthorized:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(401)
 		span.SetStatus(codes.Error, http.StatusText(401))
@@ -1206,7 +1206,7 @@ func encodeUsersIDPutResponse(response UsersIDPutRes, w http.ResponseWriter, spa
 
 		return nil
 
-	case *UsersIDPutForbidden:
+	case *APIV1UsersIDPutForbidden:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(403)
 		span.SetStatus(codes.Error, http.StatusText(403))
@@ -1219,7 +1219,7 @@ func encodeUsersIDPutResponse(response UsersIDPutRes, w http.ResponseWriter, spa
 
 		return nil
 
-	case *UsersIDPutNotFound:
+	case *APIV1UsersIDPutNotFound:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(404)
 		span.SetStatus(codes.Error, http.StatusText(404))
@@ -1250,7 +1250,7 @@ func encodeUsersIDPutResponse(response UsersIDPutRes, w http.ResponseWriter, spa
 	}
 }
 
-func encodeUsersMeGetResponse(response UsersMeGetRes, w http.ResponseWriter, span trace.Span) error {
+func encodeAPIV1UsersMeGetResponse(response APIV1UsersMeGetRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
 	case *User:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -1283,7 +1283,7 @@ func encodeUsersMeGetResponse(response UsersMeGetRes, w http.ResponseWriter, spa
 	}
 }
 
-func encodeUsersMePutResponse(response UsersMePutRes, w http.ResponseWriter, span trace.Span) error {
+func encodeAPIV1UsersMePutResponse(response APIV1UsersMePutRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
 	case *User:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -1298,7 +1298,7 @@ func encodeUsersMePutResponse(response UsersMePutRes, w http.ResponseWriter, spa
 
 		return nil
 
-	case *UsersMePutUnauthorized:
+	case *APIV1UsersMePutUnauthorized:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(401)
 		span.SetStatus(codes.Error, http.StatusText(401))
@@ -1311,7 +1311,7 @@ func encodeUsersMePutResponse(response UsersMePutRes, w http.ResponseWriter, spa
 
 		return nil
 
-	case *UsersMePutForbidden:
+	case *APIV1UsersMePutForbidden:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(403)
 		span.SetStatus(codes.Error, http.StatusText(403))
@@ -1342,7 +1342,7 @@ func encodeUsersMePutResponse(response UsersMePutRes, w http.ResponseWriter, spa
 	}
 }
 
-func encodeUsersPostResponse(response UsersPostRes, w http.ResponseWriter, span trace.Span) error {
+func encodeAPIV1UsersPostResponse(response APIV1UsersPostRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
 	case *User:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -1357,7 +1357,7 @@ func encodeUsersPostResponse(response UsersPostRes, w http.ResponseWriter, span 
 
 		return nil
 
-	case *UsersPostUnauthorized:
+	case *APIV1UsersPostUnauthorized:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(401)
 		span.SetStatus(codes.Error, http.StatusText(401))
@@ -1370,7 +1370,7 @@ func encodeUsersPostResponse(response UsersPostRes, w http.ResponseWriter, span 
 
 		return nil
 
-	case *UsersPostForbidden:
+	case *APIV1UsersPostForbidden:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(403)
 		span.SetStatus(codes.Error, http.StatusText(403))
@@ -1383,7 +1383,7 @@ func encodeUsersPostResponse(response UsersPostRes, w http.ResponseWriter, span 
 
 		return nil
 
-	case *UsersPostConflict:
+	case *APIV1UsersPostConflict:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(409)
 		span.SetStatus(codes.Error, http.StatusText(409))

@@ -10,6 +10,262 @@ import (
 	"github.com/google/uuid"
 )
 
+type APIV1AuthLoginPostBadRequest ApiError
+
+func (*APIV1AuthLoginPostBadRequest) aPIV1AuthLoginPostRes() {}
+
+type APIV1AuthLoginPostLocked ApiError
+
+func (*APIV1AuthLoginPostLocked) aPIV1AuthLoginPostRes() {}
+
+type APIV1AuthLoginPostUnauthorized ApiError
+
+func (*APIV1AuthLoginPostUnauthorized) aPIV1AuthLoginPostRes() {}
+
+type APIV1AuthRegisterPostBadRequest ApiError
+
+func (*APIV1AuthRegisterPostBadRequest) aPIV1AuthRegisterPostRes() {}
+
+type APIV1AuthRegisterPostConflict ApiError
+
+func (*APIV1AuthRegisterPostConflict) aPIV1AuthRegisterPostRes() {}
+
+type APIV1FraudRulesGetForbidden ApiError
+
+func (*APIV1FraudRulesGetForbidden) aPIV1FraudRulesGetRes() {}
+
+type APIV1FraudRulesGetOKApplicationJSON []FraudRule
+
+func (*APIV1FraudRulesGetOKApplicationJSON) aPIV1FraudRulesGetRes() {}
+
+type APIV1FraudRulesGetUnauthorized ApiError
+
+func (*APIV1FraudRulesGetUnauthorized) aPIV1FraudRulesGetRes() {}
+
+type APIV1FraudRulesIDDeleteForbidden ApiError
+
+func (*APIV1FraudRulesIDDeleteForbidden) aPIV1FraudRulesIDDeleteRes() {}
+
+// APIV1FraudRulesIDDeleteNoContent is response for APIV1FraudRulesIDDelete operation.
+type APIV1FraudRulesIDDeleteNoContent struct{}
+
+func (*APIV1FraudRulesIDDeleteNoContent) aPIV1FraudRulesIDDeleteRes() {}
+
+type APIV1FraudRulesIDDeleteNotFound ApiError
+
+func (*APIV1FraudRulesIDDeleteNotFound) aPIV1FraudRulesIDDeleteRes() {}
+
+type APIV1FraudRulesIDDeleteUnauthorized ApiError
+
+func (*APIV1FraudRulesIDDeleteUnauthorized) aPIV1FraudRulesIDDeleteRes() {}
+
+type APIV1FraudRulesIDGetForbidden ApiError
+
+func (*APIV1FraudRulesIDGetForbidden) aPIV1FraudRulesIDGetRes() {}
+
+type APIV1FraudRulesIDGetNotFound ApiError
+
+func (*APIV1FraudRulesIDGetNotFound) aPIV1FraudRulesIDGetRes() {}
+
+type APIV1FraudRulesIDGetUnauthorized ApiError
+
+func (*APIV1FraudRulesIDGetUnauthorized) aPIV1FraudRulesIDGetRes() {}
+
+type APIV1FraudRulesIDPutForbidden ApiError
+
+func (*APIV1FraudRulesIDPutForbidden) aPIV1FraudRulesIDPutRes() {}
+
+type APIV1FraudRulesIDPutNotFound ApiError
+
+func (*APIV1FraudRulesIDPutNotFound) aPIV1FraudRulesIDPutRes() {}
+
+type APIV1FraudRulesIDPutUnauthorized ApiError
+
+func (*APIV1FraudRulesIDPutUnauthorized) aPIV1FraudRulesIDPutRes() {}
+
+type APIV1FraudRulesPostConflict ApiError
+
+func (*APIV1FraudRulesPostConflict) aPIV1FraudRulesPostRes() {}
+
+type APIV1FraudRulesPostForbidden ApiError
+
+func (*APIV1FraudRulesPostForbidden) aPIV1FraudRulesPostRes() {}
+
+type APIV1FraudRulesPostUnauthorized ApiError
+
+func (*APIV1FraudRulesPostUnauthorized) aPIV1FraudRulesPostRes() {}
+
+type APIV1FraudRulesValidatePostForbidden ApiError
+
+func (*APIV1FraudRulesValidatePostForbidden) aPIV1FraudRulesValidatePostRes() {}
+
+type APIV1FraudRulesValidatePostUnauthorized ApiError
+
+func (*APIV1FraudRulesValidatePostUnauthorized) aPIV1FraudRulesValidatePostRes() {}
+
+type APIV1PingGetOK struct {
+	Status OptString `json:"status"`
+}
+
+// GetStatus returns the value of Status.
+func (s *APIV1PingGetOK) GetStatus() OptString {
+	return s.Status
+}
+
+// SetStatus sets the value of Status.
+func (s *APIV1PingGetOK) SetStatus(val OptString) {
+	s.Status = val
+}
+
+type APIV1StatsMerchantsRiskGetForbidden ApiError
+
+func (*APIV1StatsMerchantsRiskGetForbidden) aPIV1StatsMerchantsRiskGetRes() {}
+
+type APIV1StatsMerchantsRiskGetUnauthorized ApiError
+
+func (*APIV1StatsMerchantsRiskGetUnauthorized) aPIV1StatsMerchantsRiskGetRes() {}
+
+type APIV1StatsOverviewGetForbidden ApiError
+
+func (*APIV1StatsOverviewGetForbidden) aPIV1StatsOverviewGetRes() {}
+
+type APIV1StatsOverviewGetUnauthorized ApiError
+
+func (*APIV1StatsOverviewGetUnauthorized) aPIV1StatsOverviewGetRes() {}
+
+type APIV1StatsRulesMatchesGetForbidden ApiError
+
+func (*APIV1StatsRulesMatchesGetForbidden) aPIV1StatsRulesMatchesGetRes() {}
+
+type APIV1StatsRulesMatchesGetUnauthorized ApiError
+
+func (*APIV1StatsRulesMatchesGetUnauthorized) aPIV1StatsRulesMatchesGetRes() {}
+
+type APIV1StatsTransactionsTimeseriesGetForbidden ApiError
+
+func (*APIV1StatsTransactionsTimeseriesGetForbidden) aPIV1StatsTransactionsTimeseriesGetRes() {}
+
+type APIV1StatsTransactionsTimeseriesGetUnauthorized ApiError
+
+func (*APIV1StatsTransactionsTimeseriesGetUnauthorized) aPIV1StatsTransactionsTimeseriesGetRes() {}
+
+type APIV1StatsUsersIDRiskProfileGetForbidden ApiError
+
+func (*APIV1StatsUsersIDRiskProfileGetForbidden) aPIV1StatsUsersIDRiskProfileGetRes() {}
+
+type APIV1StatsUsersIDRiskProfileGetNotFound ApiError
+
+func (*APIV1StatsUsersIDRiskProfileGetNotFound) aPIV1StatsUsersIDRiskProfileGetRes() {}
+
+type APIV1StatsUsersIDRiskProfileGetUnauthorized ApiError
+
+func (*APIV1StatsUsersIDRiskProfileGetUnauthorized) aPIV1StatsUsersIDRiskProfileGetRes() {}
+
+type APIV1TransactionsBatchPostCreated TransactionBatchResult
+
+func (*APIV1TransactionsBatchPostCreated) aPIV1TransactionsBatchPostRes() {}
+
+type APIV1TransactionsBatchPostMultiStatus TransactionBatchResult
+
+func (*APIV1TransactionsBatchPostMultiStatus) aPIV1TransactionsBatchPostRes() {}
+
+type APIV1TransactionsIDGetForbidden ApiError
+
+func (*APIV1TransactionsIDGetForbidden) aPIV1TransactionsIDGetRes() {}
+
+type APIV1TransactionsIDGetNotFound ApiError
+
+func (*APIV1TransactionsIDGetNotFound) aPIV1TransactionsIDGetRes() {}
+
+type APIV1TransactionsIDGetUnauthorized ApiError
+
+func (*APIV1TransactionsIDGetUnauthorized) aPIV1TransactionsIDGetRes() {}
+
+type APIV1TransactionsPostBadRequest ApiError
+
+func (*APIV1TransactionsPostBadRequest) aPIV1TransactionsPostRes() {}
+
+type APIV1TransactionsPostForbidden ApiError
+
+func (*APIV1TransactionsPostForbidden) aPIV1TransactionsPostRes() {}
+
+type APIV1TransactionsPostNotFound ApiError
+
+func (*APIV1TransactionsPostNotFound) aPIV1TransactionsPostRes() {}
+
+type APIV1TransactionsPostUnauthorized ApiError
+
+func (*APIV1TransactionsPostUnauthorized) aPIV1TransactionsPostRes() {}
+
+type APIV1UsersGetForbidden ApiError
+
+func (*APIV1UsersGetForbidden) aPIV1UsersGetRes() {}
+
+type APIV1UsersGetUnauthorized ApiError
+
+func (*APIV1UsersGetUnauthorized) aPIV1UsersGetRes() {}
+
+type APIV1UsersIDDeleteForbidden ApiError
+
+func (*APIV1UsersIDDeleteForbidden) aPIV1UsersIDDeleteRes() {}
+
+// APIV1UsersIDDeleteNoContent is response for APIV1UsersIDDelete operation.
+type APIV1UsersIDDeleteNoContent struct{}
+
+func (*APIV1UsersIDDeleteNoContent) aPIV1UsersIDDeleteRes() {}
+
+type APIV1UsersIDDeleteNotFound ApiError
+
+func (*APIV1UsersIDDeleteNotFound) aPIV1UsersIDDeleteRes() {}
+
+type APIV1UsersIDDeleteUnauthorized ApiError
+
+func (*APIV1UsersIDDeleteUnauthorized) aPIV1UsersIDDeleteRes() {}
+
+type APIV1UsersIDGetForbidden ApiError
+
+func (*APIV1UsersIDGetForbidden) aPIV1UsersIDGetRes() {}
+
+type APIV1UsersIDGetNotFound ApiError
+
+func (*APIV1UsersIDGetNotFound) aPIV1UsersIDGetRes() {}
+
+type APIV1UsersIDGetUnauthorized ApiError
+
+func (*APIV1UsersIDGetUnauthorized) aPIV1UsersIDGetRes() {}
+
+type APIV1UsersIDPutForbidden ApiError
+
+func (*APIV1UsersIDPutForbidden) aPIV1UsersIDPutRes() {}
+
+type APIV1UsersIDPutNotFound ApiError
+
+func (*APIV1UsersIDPutNotFound) aPIV1UsersIDPutRes() {}
+
+type APIV1UsersIDPutUnauthorized ApiError
+
+func (*APIV1UsersIDPutUnauthorized) aPIV1UsersIDPutRes() {}
+
+type APIV1UsersMePutForbidden ApiError
+
+func (*APIV1UsersMePutForbidden) aPIV1UsersMePutRes() {}
+
+type APIV1UsersMePutUnauthorized ApiError
+
+func (*APIV1UsersMePutUnauthorized) aPIV1UsersMePutRes() {}
+
+type APIV1UsersPostConflict ApiError
+
+func (*APIV1UsersPostConflict) aPIV1UsersPostRes() {}
+
+type APIV1UsersPostForbidden ApiError
+
+func (*APIV1UsersPostForbidden) aPIV1UsersPostRes() {}
+
+type APIV1UsersPostUnauthorized ApiError
+
+func (*APIV1UsersPostUnauthorized) aPIV1UsersPostRes() {}
+
 // Стандартный формат ошибки API.
 // Все ошибки (кроме 2xx) возвращают этот формат.
 // Ref: #/components/schemas/ApiError
@@ -89,9 +345,9 @@ func (s *ApiError) SetDetails(val OptApiErrorDetails) {
 	s.Details = val
 }
 
-func (*ApiError) transactionsBatchPostRes() {}
-func (*ApiError) transactionsGetRes()       {}
-func (*ApiError) usersMeGetRes()            {}
+func (*ApiError) aPIV1TransactionsBatchPostRes() {}
+func (*ApiError) aPIV1TransactionsGetRes()       {}
+func (*ApiError) aPIV1UsersMeGetRes()            {}
 
 // Дополнительные детали ошибки.
 type ApiErrorDetails map[string]jx.Raw
@@ -104,26 +360,6 @@ func (s *ApiErrorDetails) init() ApiErrorDetails {
 	}
 	return m
 }
-
-type AuthLoginPostBadRequest ApiError
-
-func (*AuthLoginPostBadRequest) authLoginPostRes() {}
-
-type AuthLoginPostLocked ApiError
-
-func (*AuthLoginPostLocked) authLoginPostRes() {}
-
-type AuthLoginPostUnauthorized ApiError
-
-func (*AuthLoginPostUnauthorized) authLoginPostRes() {}
-
-type AuthRegisterPostBadRequest ApiError
-
-func (*AuthRegisterPostBadRequest) authRegisterPostRes() {}
-
-type AuthRegisterPostConflict ApiError
-
-func (*AuthRegisterPostConflict) authRegisterPostRes() {}
 
 // Ответ при успешной аутентификации.
 // Содержит JWT токен, время его жизни и профиль
@@ -170,8 +406,8 @@ func (s *AuthResponse) SetUser(val User) {
 	s.User = val
 }
 
-func (*AuthResponse) authLoginPostRes()    {}
-func (*AuthResponse) authRegisterPostRes() {}
+func (*AuthResponse) aPIV1AuthLoginPostRes()    {}
+func (*AuthResponse) aPIV1AuthRegisterPostRes() {}
 
 type BearerAuth struct {
 	Token string
@@ -292,7 +528,7 @@ func (s *DslValidateResponse) SetErrors(val []DslError) {
 	s.Errors = val
 }
 
-func (*DslValidateResponse) fraudRulesValidatePostRes() {}
+func (*DslValidateResponse) aPIV1FraudRulesValidatePostRes() {}
 
 // Код ошибки (машиночитаемый).
 // Используется для программной обработки ошибок на
@@ -565,9 +801,9 @@ func (s *FraudRule) SetUpdatedAt(val time.Time) {
 	s.UpdatedAt = val
 }
 
-func (*FraudRule) fraudRulesIDGetRes() {}
-func (*FraudRule) fraudRulesIDPutRes() {}
-func (*FraudRule) fraudRulesPostRes()  {}
+func (*FraudRule) aPIV1FraudRulesIDGetRes() {}
+func (*FraudRule) aPIV1FraudRulesIDPutRes() {}
+func (*FraudRule) aPIV1FraudRulesPostRes()  {}
 
 // Ref: #/components/schemas/FraudRuleCreateRequest
 type FraudRuleCreateRequest struct {
@@ -762,79 +998,6 @@ func (s *FraudRuleUpdateRequest) SetEnabled(val bool) {
 func (s *FraudRuleUpdateRequest) SetPriority(val int) {
 	s.Priority = val
 }
-
-type FraudRulesGetForbidden ApiError
-
-func (*FraudRulesGetForbidden) fraudRulesGetRes() {}
-
-type FraudRulesGetOKApplicationJSON []FraudRule
-
-func (*FraudRulesGetOKApplicationJSON) fraudRulesGetRes() {}
-
-type FraudRulesGetUnauthorized ApiError
-
-func (*FraudRulesGetUnauthorized) fraudRulesGetRes() {}
-
-type FraudRulesIDDeleteForbidden ApiError
-
-func (*FraudRulesIDDeleteForbidden) fraudRulesIDDeleteRes() {}
-
-// FraudRulesIDDeleteNoContent is response for FraudRulesIDDelete operation.
-type FraudRulesIDDeleteNoContent struct{}
-
-func (*FraudRulesIDDeleteNoContent) fraudRulesIDDeleteRes() {}
-
-type FraudRulesIDDeleteNotFound ApiError
-
-func (*FraudRulesIDDeleteNotFound) fraudRulesIDDeleteRes() {}
-
-type FraudRulesIDDeleteUnauthorized ApiError
-
-func (*FraudRulesIDDeleteUnauthorized) fraudRulesIDDeleteRes() {}
-
-type FraudRulesIDGetForbidden ApiError
-
-func (*FraudRulesIDGetForbidden) fraudRulesIDGetRes() {}
-
-type FraudRulesIDGetNotFound ApiError
-
-func (*FraudRulesIDGetNotFound) fraudRulesIDGetRes() {}
-
-type FraudRulesIDGetUnauthorized ApiError
-
-func (*FraudRulesIDGetUnauthorized) fraudRulesIDGetRes() {}
-
-type FraudRulesIDPutForbidden ApiError
-
-func (*FraudRulesIDPutForbidden) fraudRulesIDPutRes() {}
-
-type FraudRulesIDPutNotFound ApiError
-
-func (*FraudRulesIDPutNotFound) fraudRulesIDPutRes() {}
-
-type FraudRulesIDPutUnauthorized ApiError
-
-func (*FraudRulesIDPutUnauthorized) fraudRulesIDPutRes() {}
-
-type FraudRulesPostConflict ApiError
-
-func (*FraudRulesPostConflict) fraudRulesPostRes() {}
-
-type FraudRulesPostForbidden ApiError
-
-func (*FraudRulesPostForbidden) fraudRulesPostRes() {}
-
-type FraudRulesPostUnauthorized ApiError
-
-func (*FraudRulesPostUnauthorized) fraudRulesPostRes() {}
-
-type FraudRulesValidatePostForbidden ApiError
-
-func (*FraudRulesValidatePostForbidden) fraudRulesValidatePostRes() {}
-
-type FraudRulesValidatePostUnauthorized ApiError
-
-func (*FraudRulesValidatePostUnauthorized) fraudRulesValidatePostRes() {}
 
 // Ref: #/components/schemas/Gender
 type Gender string
@@ -1086,7 +1249,7 @@ func (s *MerchantRiskStats) SetItems(val []MerchantRiskRow) {
 	s.Items = val
 }
 
-func (*MerchantRiskStats) statsMerchantsRiskGetRes() {}
+func (*MerchantRiskStats) aPIV1StatsMerchantsRiskGetRes() {}
 
 // NewNilGender returns new NilGender with value set to v.
 func NewNilGender(v Gender) NilGender {
@@ -2379,7 +2542,7 @@ func (s *PagedTransactions) SetSize(val int) {
 	s.Size = val
 }
 
-func (*PagedTransactions) transactionsGetRes() {}
+func (*PagedTransactions) aPIV1TransactionsGetRes() {}
 
 // Ref: #/components/schemas/PagedUsers
 type PagedUsers struct {
@@ -2432,21 +2595,7 @@ func (s *PagedUsers) SetSize(val int) {
 	s.Size = val
 }
 
-func (*PagedUsers) usersGetRes() {}
-
-type PingGetOK struct {
-	Status OptString `json:"status"`
-}
-
-// GetStatus returns the value of Status.
-func (s *PingGetOK) GetStatus() OptString {
-	return s.Status
-}
-
-// SetStatus sets the value of Status.
-func (s *PingGetOK) SetStatus(val OptString) {
-	s.Status = val
-}
+func (*PagedUsers) aPIV1UsersGetRes() {}
 
 // Ref: #/components/schemas/RegisterRequest
 type RegisterRequest struct {
@@ -2627,15 +2776,7 @@ func (s *RuleMatchStats) SetItems(val []RuleMatchRow) {
 	s.Items = val
 }
 
-func (*RuleMatchStats) statsRulesMatchesGetRes() {}
-
-type StatsMerchantsRiskGetForbidden ApiError
-
-func (*StatsMerchantsRiskGetForbidden) statsMerchantsRiskGetRes() {}
-
-type StatsMerchantsRiskGetUnauthorized ApiError
-
-func (*StatsMerchantsRiskGetUnauthorized) statsMerchantsRiskGetRes() {}
+func (*RuleMatchStats) aPIV1StatsRulesMatchesGetRes() {}
 
 // Агрегированные метрики за указанный период.
 // Используется для дашборда администратора.
@@ -2730,43 +2871,7 @@ func (s *StatsOverview) SetTopRiskMerchants(val []MerchantRiskRow) {
 	s.TopRiskMerchants = val
 }
 
-func (*StatsOverview) statsOverviewGetRes() {}
-
-type StatsOverviewGetForbidden ApiError
-
-func (*StatsOverviewGetForbidden) statsOverviewGetRes() {}
-
-type StatsOverviewGetUnauthorized ApiError
-
-func (*StatsOverviewGetUnauthorized) statsOverviewGetRes() {}
-
-type StatsRulesMatchesGetForbidden ApiError
-
-func (*StatsRulesMatchesGetForbidden) statsRulesMatchesGetRes() {}
-
-type StatsRulesMatchesGetUnauthorized ApiError
-
-func (*StatsRulesMatchesGetUnauthorized) statsRulesMatchesGetRes() {}
-
-type StatsTransactionsTimeseriesGetForbidden ApiError
-
-func (*StatsTransactionsTimeseriesGetForbidden) statsTransactionsTimeseriesGetRes() {}
-
-type StatsTransactionsTimeseriesGetUnauthorized ApiError
-
-func (*StatsTransactionsTimeseriesGetUnauthorized) statsTransactionsTimeseriesGetRes() {}
-
-type StatsUsersIDRiskProfileGetForbidden ApiError
-
-func (*StatsUsersIDRiskProfileGetForbidden) statsUsersIDRiskProfileGetRes() {}
-
-type StatsUsersIDRiskProfileGetNotFound ApiError
-
-func (*StatsUsersIDRiskProfileGetNotFound) statsUsersIDRiskProfileGetRes() {}
-
-type StatsUsersIDRiskProfileGetUnauthorized ApiError
-
-func (*StatsUsersIDRiskProfileGetUnauthorized) statsUsersIDRiskProfileGetRes() {}
+func (*StatsOverview) aPIV1StatsOverviewGetRes() {}
 
 // Ref: #/components/schemas/Transaction
 type Transaction struct {
@@ -3249,8 +3354,8 @@ func (s *TransactionDecision) SetRuleResults(val []FraudRuleEvaluationResult) {
 	s.RuleResults = val
 }
 
-func (*TransactionDecision) transactionsIDGetRes() {}
-func (*TransactionDecision) transactionsPostRes()  {}
+func (*TransactionDecision) aPIV1TransactionsIDGetRes() {}
+func (*TransactionDecision) aPIV1TransactionsPostRes()  {}
 
 // Географическое местоположение транзакции.
 // **Правила валидации:**
@@ -3369,42 +3474,6 @@ func (s *TransactionStatus) UnmarshalText(data []byte) error {
 	}
 }
 
-type TransactionsBatchPostCreated TransactionBatchResult
-
-func (*TransactionsBatchPostCreated) transactionsBatchPostRes() {}
-
-type TransactionsBatchPostMultiStatus TransactionBatchResult
-
-func (*TransactionsBatchPostMultiStatus) transactionsBatchPostRes() {}
-
-type TransactionsIDGetForbidden ApiError
-
-func (*TransactionsIDGetForbidden) transactionsIDGetRes() {}
-
-type TransactionsIDGetNotFound ApiError
-
-func (*TransactionsIDGetNotFound) transactionsIDGetRes() {}
-
-type TransactionsIDGetUnauthorized ApiError
-
-func (*TransactionsIDGetUnauthorized) transactionsIDGetRes() {}
-
-type TransactionsPostBadRequest ApiError
-
-func (*TransactionsPostBadRequest) transactionsPostRes() {}
-
-type TransactionsPostForbidden ApiError
-
-func (*TransactionsPostForbidden) transactionsPostRes() {}
-
-type TransactionsPostNotFound ApiError
-
-func (*TransactionsPostNotFound) transactionsPostRes() {}
-
-type TransactionsPostUnauthorized ApiError
-
-func (*TransactionsPostUnauthorized) transactionsPostRes() {}
-
 // Одна точка временного ряда.
 // Ref: #/components/schemas/TransactionsTimePoint
 type TransactionsTimePoint struct {
@@ -3485,7 +3554,7 @@ func (s *TransactionsTimeSeries) SetPoints(val []TransactionsTimePoint) {
 	s.Points = val
 }
 
-func (*TransactionsTimeSeries) statsTransactionsTimeseriesGetRes() {}
+func (*TransactionsTimeSeries) aPIV1StatsTransactionsTimeseriesGetRes() {}
 
 // Ref: #/components/schemas/User
 type User struct {
@@ -3615,11 +3684,11 @@ func (s *User) SetUpdatedAt(val time.Time) {
 	s.UpdatedAt = val
 }
 
-func (*User) usersIDGetRes() {}
-func (*User) usersIDPutRes() {}
-func (*User) usersMeGetRes() {}
-func (*User) usersMePutRes() {}
-func (*User) usersPostRes()  {}
+func (*User) aPIV1UsersIDGetRes() {}
+func (*User) aPIV1UsersIDPutRes() {}
+func (*User) aPIV1UsersMeGetRes() {}
+func (*User) aPIV1UsersMePutRes() {}
+func (*User) aPIV1UsersPostRes()  {}
 
 // Ref: #/components/schemas/UserCreateRequest
 type UserCreateRequest struct {
@@ -3812,7 +3881,7 @@ func (s *UserRiskProfile) SetLastSeenAt(val OptNilDateTime) {
 	s.LastSeenAt = val
 }
 
-func (*UserRiskProfile) statsUsersIDRiskProfileGetRes() {}
+func (*UserRiskProfile) aPIV1StatsUsersIDRiskProfileGetRes() {}
 
 // Роль пользователя в системе.
 // Ref: #/components/schemas/UserRole
@@ -3946,75 +4015,6 @@ func (s *UserUpdateRequest) SetIsActive(val OptBool) {
 	s.IsActive = val
 }
 
-type UsersGetForbidden ApiError
-
-func (*UsersGetForbidden) usersGetRes() {}
-
-type UsersGetUnauthorized ApiError
-
-func (*UsersGetUnauthorized) usersGetRes() {}
-
-type UsersIDDeleteForbidden ApiError
-
-func (*UsersIDDeleteForbidden) usersIDDeleteRes() {}
-
-// UsersIDDeleteNoContent is response for UsersIDDelete operation.
-type UsersIDDeleteNoContent struct{}
-
-func (*UsersIDDeleteNoContent) usersIDDeleteRes() {}
-
-type UsersIDDeleteNotFound ApiError
-
-func (*UsersIDDeleteNotFound) usersIDDeleteRes() {}
-
-type UsersIDDeleteUnauthorized ApiError
-
-func (*UsersIDDeleteUnauthorized) usersIDDeleteRes() {}
-
-type UsersIDGetForbidden ApiError
-
-func (*UsersIDGetForbidden) usersIDGetRes() {}
-
-type UsersIDGetNotFound ApiError
-
-func (*UsersIDGetNotFound) usersIDGetRes() {}
-
-type UsersIDGetUnauthorized ApiError
-
-func (*UsersIDGetUnauthorized) usersIDGetRes() {}
-
-type UsersIDPutForbidden ApiError
-
-func (*UsersIDPutForbidden) usersIDPutRes() {}
-
-type UsersIDPutNotFound ApiError
-
-func (*UsersIDPutNotFound) usersIDPutRes() {}
-
-type UsersIDPutUnauthorized ApiError
-
-func (*UsersIDPutUnauthorized) usersIDPutRes() {}
-
-type UsersMePutForbidden ApiError
-
-func (*UsersMePutForbidden) usersMePutRes() {}
-
-type UsersMePutUnauthorized ApiError
-
-func (*UsersMePutUnauthorized) usersMePutRes() {}
-
-type UsersPostConflict ApiError
-
-func (*UsersPostConflict) usersPostRes() {}
-
-type UsersPostForbidden ApiError
-
-func (*UsersPostForbidden) usersPostRes() {}
-
-type UsersPostUnauthorized ApiError
-
-func (*UsersPostUnauthorized) usersPostRes() {}
-
 // Ref: #/components/schemas/ValidationError
 type ValidationError struct {
 	Code        string       `json:"code"`
@@ -4085,15 +4085,15 @@ func (s *ValidationError) SetFieldErrors(val []FieldError) {
 	s.FieldErrors = val
 }
 
-func (*ValidationError) authLoginPostRes()         {}
-func (*ValidationError) authRegisterPostRes()      {}
-func (*ValidationError) fraudRulesIDPutRes()       {}
-func (*ValidationError) fraudRulesPostRes()        {}
-func (*ValidationError) statsOverviewGetRes()      {}
-func (*ValidationError) transactionsBatchPostRes() {}
-func (*ValidationError) transactionsGetRes()       {}
-func (*ValidationError) transactionsPostRes()      {}
-func (*ValidationError) usersGetRes()              {}
-func (*ValidationError) usersIDPutRes()            {}
-func (*ValidationError) usersMePutRes()            {}
-func (*ValidationError) usersPostRes()             {}
+func (*ValidationError) aPIV1AuthLoginPostRes()         {}
+func (*ValidationError) aPIV1AuthRegisterPostRes()      {}
+func (*ValidationError) aPIV1FraudRulesIDPutRes()       {}
+func (*ValidationError) aPIV1FraudRulesPostRes()        {}
+func (*ValidationError) aPIV1StatsOverviewGetRes()      {}
+func (*ValidationError) aPIV1TransactionsBatchPostRes() {}
+func (*ValidationError) aPIV1TransactionsGetRes()       {}
+func (*ValidationError) aPIV1TransactionsPostRes()      {}
+func (*ValidationError) aPIV1UsersGetRes()              {}
+func (*ValidationError) aPIV1UsersIDPutRes()            {}
+func (*ValidationError) aPIV1UsersMePutRes()            {}
+func (*ValidationError) aPIV1UsersPostRes()             {}

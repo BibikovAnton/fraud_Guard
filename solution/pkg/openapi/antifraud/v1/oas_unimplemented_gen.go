@@ -13,7 +13,7 @@ type UnimplementedHandler struct{}
 
 var _ Handler = UnimplementedHandler{}
 
-// AuthLoginPost implements POST /auth/login operation.
+// APIV1AuthLoginPost implements POST /api/v1/auth/login operation.
 //
 // Сценарии:
 // - 200: корректные credentials => accessToken.
@@ -22,12 +22,12 @@ var _ Handler = UnimplementedHandler{}
 // - 423: пользователь деактивирован (isActive=false).
 // - 422: формат email/пароля невалиден.
 //
-// POST /auth/login
-func (UnimplementedHandler) AuthLoginPost(ctx context.Context, req *LoginRequest) (r AuthLoginPostRes, _ error) {
+// POST /api/v1/auth/login
+func (UnimplementedHandler) APIV1AuthLoginPost(ctx context.Context, req *LoginRequest) (r APIV1AuthLoginPostRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
-// AuthRegisterPost implements POST /auth/register operation.
+// APIV1AuthRegisterPost implements POST /api/v1/auth/register operation.
 //
 // Сценарии:
 // - 201: пользователь создан, роль USER по умолчанию,
@@ -35,23 +35,23 @@ func (UnimplementedHandler) AuthLoginPost(ctx context.Context, req *LoginRequest
 // - 409: email уже используется.
 // - 422: не проходит валидация (email, пароль, возраст и т.д.).
 //
-// POST /auth/register
-func (UnimplementedHandler) AuthRegisterPost(ctx context.Context, req *RegisterRequest) (r AuthRegisterPostRes, _ error) {
+// POST /api/v1/auth/register
+func (UnimplementedHandler) APIV1AuthRegisterPost(ctx context.Context, req *RegisterRequest) (r APIV1AuthRegisterPostRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
-// FraudRulesGet implements GET /fraud-rules operation.
+// APIV1FraudRulesGet implements GET /api/v1/fraud-rules operation.
 //
 // Только ADMIN.
 // Сценарии:
 // - 200: список правил.
 //
-// GET /fraud-rules
-func (UnimplementedHandler) FraudRulesGet(ctx context.Context) (r FraudRulesGetRes, _ error) {
+// GET /api/v1/fraud-rules
+func (UnimplementedHandler) APIV1FraudRulesGet(ctx context.Context) (r APIV1FraudRulesGetRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
-// FraudRulesIDDelete implements DELETE /fraud-rules/{id} operation.
+// APIV1FraudRulesIDDelete implements DELETE /api/v1/fraud-rules/{id} operation.
 //
 // **Важно:** Это soft-delete. Правило НЕ удаляется физически из
 // базы данных,
@@ -70,12 +70,12 @@ func (UnimplementedHandler) FraudRulesGet(ctx context.Context) (r FraudRulesGetR
 // - ADMIN может снова активировать через PUT /fraud-rules/{id} с
 // enabled=true.
 //
-// DELETE /fraud-rules/{id}
-func (UnimplementedHandler) FraudRulesIDDelete(ctx context.Context, params FraudRulesIDDeleteParams) (r FraudRulesIDDeleteRes, _ error) {
+// DELETE /api/v1/fraud-rules/{id}
+func (UnimplementedHandler) APIV1FraudRulesIDDelete(ctx context.Context, params APIV1FraudRulesIDDeleteParams) (r APIV1FraudRulesIDDeleteRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
-// FraudRulesIDGet implements GET /fraud-rules/{id} operation.
+// APIV1FraudRulesIDGet implements GET /api/v1/fraud-rules/{id} operation.
 //
 // Возвращает полную информацию о правиле антифрода.
 // Только ADMIN имеет доступ к этому эндпоинту.
@@ -89,22 +89,22 @@ func (UnimplementedHandler) FraudRulesIDDelete(ctx context.Context, params Fraud
 // - priority: приоритет (меньше = выше, проверяется раньше)
 // - createdAt, updatedAt: временные метки.
 //
-// GET /fraud-rules/{id}
-func (UnimplementedHandler) FraudRulesIDGet(ctx context.Context, params FraudRulesIDGetParams) (r FraudRulesIDGetRes, _ error) {
+// GET /api/v1/fraud-rules/{id}
+func (UnimplementedHandler) APIV1FraudRulesIDGet(ctx context.Context, params APIV1FraudRulesIDGetParams) (r APIV1FraudRulesIDGetRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
-// FraudRulesIDPut implements PUT /fraud-rules/{id} operation.
+// APIV1FraudRulesIDPut implements PUT /api/v1/fraud-rules/{id} operation.
 //
 // Только ADMIN. Полное обновление.
 // 422 возвращается при невалидном DSL/полях.
 //
-// PUT /fraud-rules/{id}
-func (UnimplementedHandler) FraudRulesIDPut(ctx context.Context, req *FraudRuleUpdateRequest, params FraudRulesIDPutParams) (r FraudRulesIDPutRes, _ error) {
+// PUT /api/v1/fraud-rules/{id}
+func (UnimplementedHandler) APIV1FraudRulesIDPut(ctx context.Context, req *FraudRuleUpdateRequest, params APIV1FraudRulesIDPutParams) (r APIV1FraudRulesIDPutRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
-// FraudRulesPost implements POST /fraud-rules operation.
+// APIV1FraudRulesPost implements POST /api/v1/fraud-rules operation.
 //
 // Только ADMIN.
 // Валидация:
@@ -118,35 +118,35 @@ func (UnimplementedHandler) FraudRulesIDPut(ctx context.Context, req *FraudRuleU
 // - 409: правило с таким именем уже есть (если включена
 // уникальность имени).
 //
-// POST /fraud-rules
-func (UnimplementedHandler) FraudRulesPost(ctx context.Context, req *FraudRuleCreateRequest) (r FraudRulesPostRes, _ error) {
+// POST /api/v1/fraud-rules
+func (UnimplementedHandler) APIV1FraudRulesPost(ctx context.Context, req *FraudRuleCreateRequest) (r APIV1FraudRulesPostRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
-// FraudRulesValidatePost implements POST /fraud-rules/validate operation.
+// APIV1FraudRulesValidatePost implements POST /api/v1/fraud-rules/validate operation.
 //
 // Только ADMIN. Полезно для UI "проверить правило".
 // Сценарии:
 // - 200: валидно (isValid=true)
 // - 200: невалидно (isValid=false, errors заполнен).
 //
-// POST /fraud-rules/validate
-func (UnimplementedHandler) FraudRulesValidatePost(ctx context.Context, req *DslValidateRequest) (r FraudRulesValidatePostRes, _ error) {
+// POST /api/v1/fraud-rules/validate
+func (UnimplementedHandler) APIV1FraudRulesValidatePost(ctx context.Context, req *DslValidateRequest) (r APIV1FraudRulesValidatePostRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
-// PingGet implements GET /ping operation.
+// APIV1PingGet implements GET /api/v1/ping operation.
 //
 // Проверка работоспособности сервиса.
 // Возвращает 200 OK если сервис готов обрабатывать
 // запросы.
 //
-// GET /ping
-func (UnimplementedHandler) PingGet(ctx context.Context) (r *PingGetOK, _ error) {
+// GET /api/v1/ping
+func (UnimplementedHandler) APIV1PingGet(ctx context.Context) (r *APIV1PingGetOK, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
-// StatsMerchantsRiskGet implements GET /stats/merchants/risk operation.
+// APIV1StatsMerchantsRiskGet implements GET /api/v1/stats/merchants/risk operation.
 //
 // Только ADMIN.
 // Метрики по merchantId/merchantCategoryCode:
@@ -154,12 +154,12 @@ func (UnimplementedHandler) PingGet(ctx context.Context) (r *PingGetOK, _ error)
 // - declineRate
 // - fraudRate.
 //
-// GET /stats/merchants/risk
-func (UnimplementedHandler) StatsMerchantsRiskGet(ctx context.Context, params StatsMerchantsRiskGetParams) (r StatsMerchantsRiskGetRes, _ error) {
+// GET /api/v1/stats/merchants/risk
+func (UnimplementedHandler) APIV1StatsMerchantsRiskGet(ctx context.Context, params APIV1StatsMerchantsRiskGetParams) (r APIV1StatsMerchantsRiskGetRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
-// StatsOverviewGet implements GET /stats/overview operation.
+// APIV1StatsOverviewGet implements GET /api/v1/stats/overview operation.
 //
 // Возвращает агрегированные метрики за указанный
 // период для дашборда.
@@ -175,12 +175,12 @@ func (UnimplementedHandler) StatsMerchantsRiskGet(ctx context.Context, params St
 // - declineRate: доля DECLINED транзакций (0..1)
 // - topRiskMerchants: топ-10 мерчантов по declineRate.
 //
-// GET /stats/overview
-func (UnimplementedHandler) StatsOverviewGet(ctx context.Context, params StatsOverviewGetParams) (r StatsOverviewGetRes, _ error) {
+// GET /api/v1/stats/overview
+func (UnimplementedHandler) APIV1StatsOverviewGet(ctx context.Context, params APIV1StatsOverviewGetParams) (r APIV1StatsOverviewGetRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
-// StatsRulesMatchesGet implements GET /stats/rules/matches operation.
+// APIV1StatsRulesMatchesGet implements GET /api/v1/stats/rules/matches operation.
 //
 // Возвращает статистику по срабатываниям правил
 // антифрода за период.
@@ -197,12 +197,12 @@ func (UnimplementedHandler) StatsOverviewGet(ctx context.Context, params StatsOv
 // среди matched
 // Результаты отсортированы по matches DESC.
 //
-// GET /stats/rules/matches
-func (UnimplementedHandler) StatsRulesMatchesGet(ctx context.Context, params StatsRulesMatchesGetParams) (r StatsRulesMatchesGetRes, _ error) {
+// GET /api/v1/stats/rules/matches
+func (UnimplementedHandler) APIV1StatsRulesMatchesGet(ctx context.Context, params APIV1StatsRulesMatchesGetParams) (r APIV1StatsRulesMatchesGetRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
-// StatsTransactionsTimeseriesGet implements GET /stats/transactions/timeseries operation.
+// APIV1StatsTransactionsTimeseriesGet implements GET /api/v1/stats/transactions/timeseries operation.
 //
 // Возвращает временной ряд метрик транзакций для
 // построения графиков.
@@ -220,12 +220,12 @@ func (UnimplementedHandler) StatsRulesMatchesGet(ctx context.Context, params Sta
 // - gmv: сумма транзакций
 // - approvalRate, declineRate: доли по статусам.
 //
-// GET /stats/transactions/timeseries
-func (UnimplementedHandler) StatsTransactionsTimeseriesGet(ctx context.Context, params StatsTransactionsTimeseriesGetParams) (r StatsTransactionsTimeseriesGetRes, _ error) {
+// GET /api/v1/stats/transactions/timeseries
+func (UnimplementedHandler) APIV1StatsTransactionsTimeseriesGet(ctx context.Context, params APIV1StatsTransactionsTimeseriesGetParams) (r APIV1StatsTransactionsTimeseriesGetRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
-// StatsUsersIDRiskProfileGet implements GET /stats/users/{id}/risk-profile operation.
+// APIV1StatsUsersIDRiskProfileGet implements GET /api/v1/stats/users/{id}/risk-profile operation.
 //
 // Доступ:
 // - ADMIN: любой пользователь
@@ -236,12 +236,12 @@ func (UnimplementedHandler) StatsTransactionsTimeseriesGet(ctx context.Context, 
 // - declineRate_30d
 // - lastSeenAt.
 //
-// GET /stats/users/{id}/risk-profile
-func (UnimplementedHandler) StatsUsersIDRiskProfileGet(ctx context.Context, params StatsUsersIDRiskProfileGetParams) (r StatsUsersIDRiskProfileGetRes, _ error) {
+// GET /api/v1/stats/users/{id}/risk-profile
+func (UnimplementedHandler) APIV1StatsUsersIDRiskProfileGet(ctx context.Context, params APIV1StatsUsersIDRiskProfileGetParams) (r APIV1StatsUsersIDRiskProfileGetRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
-// TransactionsBatchPost implements POST /transactions/batch operation.
+// APIV1TransactionsBatchPost implements POST /api/v1/transactions/batch operation.
 //
 // Батч поддерживает частичный успех.
 // Сценарии:
@@ -251,12 +251,12 @@ func (UnimplementedHandler) StatsUsersIDRiskProfileGet(ctx context.Context, para
 // созданы из-за 422/403/409 и т.п.)
 // Для сопоставления используется index (0-based).
 //
-// POST /transactions/batch
-func (UnimplementedHandler) TransactionsBatchPost(ctx context.Context, req *TransactionBatchCreateRequest) (r TransactionsBatchPostRes, _ error) {
+// POST /api/v1/transactions/batch
+func (UnimplementedHandler) APIV1TransactionsBatchPost(ctx context.Context, req *TransactionBatchCreateRequest) (r APIV1TransactionsBatchPostRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
-// TransactionsGet implements GET /transactions operation.
+// APIV1TransactionsGet implements GET /api/v1/transactions operation.
 //
 // Доступ:
 // - ADMIN: все транзакции
@@ -267,22 +267,22 @@ func (UnimplementedHandler) TransactionsBatchPost(ctx context.Context, req *Tran
 // - from/to (RFC3339)
 // - page/size.
 //
-// GET /transactions
-func (UnimplementedHandler) TransactionsGet(ctx context.Context, params TransactionsGetParams) (r TransactionsGetRes, _ error) {
+// GET /api/v1/transactions
+func (UnimplementedHandler) APIV1TransactionsGet(ctx context.Context, params APIV1TransactionsGetParams) (r APIV1TransactionsGetRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
-// TransactionsIDGet implements GET /transactions/{id} operation.
+// APIV1TransactionsIDGet implements GET /api/v1/transactions/{id} operation.
 //
 // - ADMIN: любая транзакция
 // - USER: только свои.
 //
-// GET /transactions/{id}
-func (UnimplementedHandler) TransactionsIDGet(ctx context.Context, params TransactionsIDGetParams) (r TransactionsIDGetRes, _ error) {
+// GET /api/v1/transactions/{id}
+func (UnimplementedHandler) APIV1TransactionsIDGet(ctx context.Context, params APIV1TransactionsIDGetParams) (r APIV1TransactionsIDGetRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
-// TransactionsPost implements POST /transactions operation.
+// APIV1TransactionsPost implements POST /api/v1/transactions operation.
 //
 // Создаёт транзакцию (покупку) и проверяет её по всем
 // активным правилам антифрода.
@@ -312,24 +312,24 @@ func (UnimplementedHandler) TransactionsIDGet(ctx context.Context, params Transa
 // - 404: пользователь с указанным userId не найден
 // - 422: невалидные поля (amount <= 0, некорректная валюта и т.д.).
 //
-// POST /transactions
-func (UnimplementedHandler) TransactionsPost(ctx context.Context, req *TransactionCreateRequest) (r TransactionsPostRes, _ error) {
+// POST /api/v1/transactions
+func (UnimplementedHandler) APIV1TransactionsPost(ctx context.Context, req *TransactionCreateRequest) (r APIV1TransactionsPostRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
-// UsersGet implements GET /users operation.
+// APIV1UsersGet implements GET /api/v1/users operation.
 //
 // Только ADMIN.
 // Сценарии:
 // - 200: страница пользователей
 // - 422: некорректные page/size.
 //
-// GET /users
-func (UnimplementedHandler) UsersGet(ctx context.Context, params UsersGetParams) (r UsersGetRes, _ error) {
+// GET /api/v1/users
+func (UnimplementedHandler) APIV1UsersGet(ctx context.Context, params APIV1UsersGetParams) (r APIV1UsersGetRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
-// UsersIDDelete implements DELETE /users/{id} operation.
+// APIV1UsersIDDelete implements DELETE /api/v1/users/{id} operation.
 //
 // **Важно:** Это soft-delete. Пользователь НЕ удаляется
 // физически из базы данных,
@@ -347,12 +347,12 @@ func (UnimplementedHandler) UsersGet(ctx context.Context, params UsersGetParams)
 // **Восстановление:**
 // - ADMIN может снова активировать через PUT /users/{id} с isActive=true.
 //
-// DELETE /users/{id}
-func (UnimplementedHandler) UsersIDDelete(ctx context.Context, params UsersIDDeleteParams) (r UsersIDDeleteRes, _ error) {
+// DELETE /api/v1/users/{id}
+func (UnimplementedHandler) APIV1UsersIDDelete(ctx context.Context, params APIV1UsersIDDeleteParams) (r APIV1UsersIDDeleteRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
-// UsersIDGet implements GET /users/{id} operation.
+// APIV1UsersIDGet implements GET /api/v1/users/{id} operation.
 //
 // Доступ:
 // - ADMIN: любой пользователь
@@ -362,12 +362,12 @@ func (UnimplementedHandler) UsersIDDelete(ctx context.Context, params UsersIDDel
 // - 403: попытка USER прочитать чужой профиль
 // - 404: не найден.
 //
-// GET /users/{id}
-func (UnimplementedHandler) UsersIDGet(ctx context.Context, params UsersIDGetParams) (r UsersIDGetRes, _ error) {
+// GET /api/v1/users/{id}
+func (UnimplementedHandler) APIV1UsersIDGet(ctx context.Context, params APIV1UsersIDGetParams) (r APIV1UsersIDGetRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
-// UsersIDPut implements PUT /users/{id} operation.
+// APIV1UsersIDPut implements PUT /api/v1/users/{id} operation.
 //
 // Полное обновление профиля. Необходимо передать все
 // поля.
@@ -388,12 +388,12 @@ func (UnimplementedHandler) UsersIDGet(ctx context.Context, params UsersIDGetPar
 // - region: до 32 символов или null
 // - email изменить нельзя (игнорируется, если передан).
 //
-// PUT /users/{id}
-func (UnimplementedHandler) UsersIDPut(ctx context.Context, req *UserUpdateRequest, params UsersIDPutParams) (r UsersIDPutRes, _ error) {
+// PUT /api/v1/users/{id}
+func (UnimplementedHandler) APIV1UsersIDPut(ctx context.Context, req *UserUpdateRequest, params APIV1UsersIDPutParams) (r APIV1UsersIDPutRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
-// UsersMeGet implements GET /users/me operation.
+// APIV1UsersMeGet implements GET /api/v1/users/me operation.
 //
 // Возвращает профиль пользователя, определённого по JWT
 // токену.
@@ -401,12 +401,12 @@ func (UnimplementedHandler) UsersIDPut(ctx context.Context, req *UserUpdateReque
 // своего ID.
 // Доступно для любой роли (ADMIN, USER).
 //
-// GET /users/me
-func (UnimplementedHandler) UsersMeGet(ctx context.Context) (r UsersMeGetRes, _ error) {
+// GET /api/v1/users/me
+func (UnimplementedHandler) APIV1UsersMeGet(ctx context.Context) (r APIV1UsersMeGetRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
-// UsersMePut implements PUT /users/me operation.
+// APIV1UsersMePut implements PUT /api/v1/users/me operation.
 //
 // Полное обновление профиля текущего пользователя.
 // Необходимо передать все поля. Чтобы очистить поле,
@@ -420,12 +420,12 @@ func (UnimplementedHandler) UsersMeGet(ctx context.Context) (r UsersMeGetRes, _ 
 // ADMIN может менять любые поля своего профиля, включая role
 // и isActive.
 //
-// PUT /users/me
-func (UnimplementedHandler) UsersMePut(ctx context.Context, req *UserUpdateRequest) (r UsersMePutRes, _ error) {
+// PUT /api/v1/users/me
+func (UnimplementedHandler) APIV1UsersMePut(ctx context.Context, req *UserUpdateRequest) (r APIV1UsersMePutRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
-// UsersPost implements POST /users operation.
+// APIV1UsersPost implements POST /api/v1/users operation.
 //
 // Только ADMIN. В ответе нет токенов (создание "из админки").
 // Сценарии:
@@ -434,7 +434,7 @@ func (UnimplementedHandler) UsersMePut(ctx context.Context, req *UserUpdateReque
 // - 422: не проходит валидация полей (пароль/роль/возраст
 // и т.д.).
 //
-// POST /users
-func (UnimplementedHandler) UsersPost(ctx context.Context, req *UserCreateRequest) (r UsersPostRes, _ error) {
+// POST /api/v1/users
+func (UnimplementedHandler) APIV1UsersPost(ctx context.Context, req *UserCreateRequest) (r APIV1UsersPostRes, _ error) {
 	return r, ht.ErrNotImplemented
 }

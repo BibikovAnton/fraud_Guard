@@ -28,7 +28,7 @@ func trimTrailingSlashes(u *url.URL) {
 
 // Invoker invokes operations described by OpenAPI v3 specification.
 type Invoker interface {
-	// AuthLoginPost invokes POST /auth/login operation.
+	// APIV1AuthLoginPost invokes POST /api/v1/auth/login operation.
 	//
 	// Сценарии:
 	// - 200: корректные credentials => accessToken.
@@ -37,9 +37,9 @@ type Invoker interface {
 	// - 423: пользователь деактивирован (isActive=false).
 	// - 422: формат email/пароля невалиден.
 	//
-	// POST /auth/login
-	AuthLoginPost(ctx context.Context, request *LoginRequest) (AuthLoginPostRes, error)
-	// AuthRegisterPost invokes POST /auth/register operation.
+	// POST /api/v1/auth/login
+	APIV1AuthLoginPost(ctx context.Context, request *LoginRequest) (APIV1AuthLoginPostRes, error)
+	// APIV1AuthRegisterPost invokes POST /api/v1/auth/register operation.
 	//
 	// Сценарии:
 	// - 201: пользователь создан, роль USER по умолчанию,
@@ -47,17 +47,17 @@ type Invoker interface {
 	// - 409: email уже используется.
 	// - 422: не проходит валидация (email, пароль, возраст и т.д.).
 	//
-	// POST /auth/register
-	AuthRegisterPost(ctx context.Context, request *RegisterRequest) (AuthRegisterPostRes, error)
-	// FraudRulesGet invokes GET /fraud-rules operation.
+	// POST /api/v1/auth/register
+	APIV1AuthRegisterPost(ctx context.Context, request *RegisterRequest) (APIV1AuthRegisterPostRes, error)
+	// APIV1FraudRulesGet invokes GET /api/v1/fraud-rules operation.
 	//
 	// Только ADMIN.
 	// Сценарии:
 	// - 200: список правил.
 	//
-	// GET /fraud-rules
-	FraudRulesGet(ctx context.Context) (FraudRulesGetRes, error)
-	// FraudRulesIDDelete invokes DELETE /fraud-rules/{id} operation.
+	// GET /api/v1/fraud-rules
+	APIV1FraudRulesGet(ctx context.Context) (APIV1FraudRulesGetRes, error)
+	// APIV1FraudRulesIDDelete invokes DELETE /api/v1/fraud-rules/{id} operation.
 	//
 	// **Важно:** Это soft-delete. Правило НЕ удаляется физически из
 	// базы данных,
@@ -76,9 +76,9 @@ type Invoker interface {
 	// - ADMIN может снова активировать через PUT /fraud-rules/{id} с
 	// enabled=true.
 	//
-	// DELETE /fraud-rules/{id}
-	FraudRulesIDDelete(ctx context.Context, params FraudRulesIDDeleteParams) (FraudRulesIDDeleteRes, error)
-	// FraudRulesIDGet invokes GET /fraud-rules/{id} operation.
+	// DELETE /api/v1/fraud-rules/{id}
+	APIV1FraudRulesIDDelete(ctx context.Context, params APIV1FraudRulesIDDeleteParams) (APIV1FraudRulesIDDeleteRes, error)
+	// APIV1FraudRulesIDGet invokes GET /api/v1/fraud-rules/{id} operation.
 	//
 	// Возвращает полную информацию о правиле антифрода.
 	// Только ADMIN имеет доступ к этому эндпоинту.
@@ -92,16 +92,16 @@ type Invoker interface {
 	// - priority: приоритет (меньше = выше, проверяется раньше)
 	// - createdAt, updatedAt: временные метки.
 	//
-	// GET /fraud-rules/{id}
-	FraudRulesIDGet(ctx context.Context, params FraudRulesIDGetParams) (FraudRulesIDGetRes, error)
-	// FraudRulesIDPut invokes PUT /fraud-rules/{id} operation.
+	// GET /api/v1/fraud-rules/{id}
+	APIV1FraudRulesIDGet(ctx context.Context, params APIV1FraudRulesIDGetParams) (APIV1FraudRulesIDGetRes, error)
+	// APIV1FraudRulesIDPut invokes PUT /api/v1/fraud-rules/{id} operation.
 	//
 	// Только ADMIN. Полное обновление.
 	// 422 возвращается при невалидном DSL/полях.
 	//
-	// PUT /fraud-rules/{id}
-	FraudRulesIDPut(ctx context.Context, request *FraudRuleUpdateRequest, params FraudRulesIDPutParams) (FraudRulesIDPutRes, error)
-	// FraudRulesPost invokes POST /fraud-rules operation.
+	// PUT /api/v1/fraud-rules/{id}
+	APIV1FraudRulesIDPut(ctx context.Context, request *FraudRuleUpdateRequest, params APIV1FraudRulesIDPutParams) (APIV1FraudRulesIDPutRes, error)
+	// APIV1FraudRulesPost invokes POST /api/v1/fraud-rules operation.
 	//
 	// Только ADMIN.
 	// Валидация:
@@ -115,26 +115,26 @@ type Invoker interface {
 	// - 409: правило с таким именем уже есть (если включена
 	// уникальность имени).
 	//
-	// POST /fraud-rules
-	FraudRulesPost(ctx context.Context, request *FraudRuleCreateRequest) (FraudRulesPostRes, error)
-	// FraudRulesValidatePost invokes POST /fraud-rules/validate operation.
+	// POST /api/v1/fraud-rules
+	APIV1FraudRulesPost(ctx context.Context, request *FraudRuleCreateRequest) (APIV1FraudRulesPostRes, error)
+	// APIV1FraudRulesValidatePost invokes POST /api/v1/fraud-rules/validate operation.
 	//
 	// Только ADMIN. Полезно для UI "проверить правило".
 	// Сценарии:
 	// - 200: валидно (isValid=true)
 	// - 200: невалидно (isValid=false, errors заполнен).
 	//
-	// POST /fraud-rules/validate
-	FraudRulesValidatePost(ctx context.Context, request *DslValidateRequest) (FraudRulesValidatePostRes, error)
-	// PingGet invokes GET /ping operation.
+	// POST /api/v1/fraud-rules/validate
+	APIV1FraudRulesValidatePost(ctx context.Context, request *DslValidateRequest) (APIV1FraudRulesValidatePostRes, error)
+	// APIV1PingGet invokes GET /api/v1/ping operation.
 	//
 	// Проверка работоспособности сервиса.
 	// Возвращает 200 OK если сервис готов обрабатывать
 	// запросы.
 	//
-	// GET /ping
-	PingGet(ctx context.Context) (*PingGetOK, error)
-	// StatsMerchantsRiskGet invokes GET /stats/merchants/risk operation.
+	// GET /api/v1/ping
+	APIV1PingGet(ctx context.Context) (*APIV1PingGetOK, error)
+	// APIV1StatsMerchantsRiskGet invokes GET /api/v1/stats/merchants/risk operation.
 	//
 	// Только ADMIN.
 	// Метрики по merchantId/merchantCategoryCode:
@@ -142,9 +142,9 @@ type Invoker interface {
 	// - declineRate
 	// - fraudRate.
 	//
-	// GET /stats/merchants/risk
-	StatsMerchantsRiskGet(ctx context.Context, params StatsMerchantsRiskGetParams) (StatsMerchantsRiskGetRes, error)
-	// StatsOverviewGet invokes GET /stats/overview operation.
+	// GET /api/v1/stats/merchants/risk
+	APIV1StatsMerchantsRiskGet(ctx context.Context, params APIV1StatsMerchantsRiskGetParams) (APIV1StatsMerchantsRiskGetRes, error)
+	// APIV1StatsOverviewGet invokes GET /api/v1/stats/overview operation.
 	//
 	// Возвращает агрегированные метрики за указанный
 	// период для дашборда.
@@ -160,9 +160,9 @@ type Invoker interface {
 	// - declineRate: доля DECLINED транзакций (0..1)
 	// - topRiskMerchants: топ-10 мерчантов по declineRate.
 	//
-	// GET /stats/overview
-	StatsOverviewGet(ctx context.Context, params StatsOverviewGetParams) (StatsOverviewGetRes, error)
-	// StatsRulesMatchesGet invokes GET /stats/rules/matches operation.
+	// GET /api/v1/stats/overview
+	APIV1StatsOverviewGet(ctx context.Context, params APIV1StatsOverviewGetParams) (APIV1StatsOverviewGetRes, error)
+	// APIV1StatsRulesMatchesGet invokes GET /api/v1/stats/rules/matches operation.
 	//
 	// Возвращает статистику по срабатываниям правил
 	// антифрода за период.
@@ -179,9 +179,9 @@ type Invoker interface {
 	// среди matched
 	// Результаты отсортированы по matches DESC.
 	//
-	// GET /stats/rules/matches
-	StatsRulesMatchesGet(ctx context.Context, params StatsRulesMatchesGetParams) (StatsRulesMatchesGetRes, error)
-	// StatsTransactionsTimeseriesGet invokes GET /stats/transactions/timeseries operation.
+	// GET /api/v1/stats/rules/matches
+	APIV1StatsRulesMatchesGet(ctx context.Context, params APIV1StatsRulesMatchesGetParams) (APIV1StatsRulesMatchesGetRes, error)
+	// APIV1StatsTransactionsTimeseriesGet invokes GET /api/v1/stats/transactions/timeseries operation.
 	//
 	// Возвращает временной ряд метрик транзакций для
 	// построения графиков.
@@ -199,9 +199,9 @@ type Invoker interface {
 	// - gmv: сумма транзакций
 	// - approvalRate, declineRate: доли по статусам.
 	//
-	// GET /stats/transactions/timeseries
-	StatsTransactionsTimeseriesGet(ctx context.Context, params StatsTransactionsTimeseriesGetParams) (StatsTransactionsTimeseriesGetRes, error)
-	// StatsUsersIDRiskProfileGet invokes GET /stats/users/{id}/risk-profile operation.
+	// GET /api/v1/stats/transactions/timeseries
+	APIV1StatsTransactionsTimeseriesGet(ctx context.Context, params APIV1StatsTransactionsTimeseriesGetParams) (APIV1StatsTransactionsTimeseriesGetRes, error)
+	// APIV1StatsUsersIDRiskProfileGet invokes GET /api/v1/stats/users/{id}/risk-profile operation.
 	//
 	// Доступ:
 	// - ADMIN: любой пользователь
@@ -212,9 +212,9 @@ type Invoker interface {
 	// - declineRate_30d
 	// - lastSeenAt.
 	//
-	// GET /stats/users/{id}/risk-profile
-	StatsUsersIDRiskProfileGet(ctx context.Context, params StatsUsersIDRiskProfileGetParams) (StatsUsersIDRiskProfileGetRes, error)
-	// TransactionsBatchPost invokes POST /transactions/batch operation.
+	// GET /api/v1/stats/users/{id}/risk-profile
+	APIV1StatsUsersIDRiskProfileGet(ctx context.Context, params APIV1StatsUsersIDRiskProfileGetParams) (APIV1StatsUsersIDRiskProfileGetRes, error)
+	// APIV1TransactionsBatchPost invokes POST /api/v1/transactions/batch operation.
 	//
 	// Батч поддерживает частичный успех.
 	// Сценарии:
@@ -224,9 +224,9 @@ type Invoker interface {
 	// созданы из-за 422/403/409 и т.п.)
 	// Для сопоставления используется index (0-based).
 	//
-	// POST /transactions/batch
-	TransactionsBatchPost(ctx context.Context, request *TransactionBatchCreateRequest) (TransactionsBatchPostRes, error)
-	// TransactionsGet invokes GET /transactions operation.
+	// POST /api/v1/transactions/batch
+	APIV1TransactionsBatchPost(ctx context.Context, request *TransactionBatchCreateRequest) (APIV1TransactionsBatchPostRes, error)
+	// APIV1TransactionsGet invokes GET /api/v1/transactions operation.
 	//
 	// Доступ:
 	// - ADMIN: все транзакции
@@ -237,16 +237,16 @@ type Invoker interface {
 	// - from/to (RFC3339)
 	// - page/size.
 	//
-	// GET /transactions
-	TransactionsGet(ctx context.Context, params TransactionsGetParams) (TransactionsGetRes, error)
-	// TransactionsIDGet invokes GET /transactions/{id} operation.
+	// GET /api/v1/transactions
+	APIV1TransactionsGet(ctx context.Context, params APIV1TransactionsGetParams) (APIV1TransactionsGetRes, error)
+	// APIV1TransactionsIDGet invokes GET /api/v1/transactions/{id} operation.
 	//
 	// - ADMIN: любая транзакция
 	// - USER: только свои.
 	//
-	// GET /transactions/{id}
-	TransactionsIDGet(ctx context.Context, params TransactionsIDGetParams) (TransactionsIDGetRes, error)
-	// TransactionsPost invokes POST /transactions operation.
+	// GET /api/v1/transactions/{id}
+	APIV1TransactionsIDGet(ctx context.Context, params APIV1TransactionsIDGetParams) (APIV1TransactionsIDGetRes, error)
+	// APIV1TransactionsPost invokes POST /api/v1/transactions operation.
 	//
 	// Создаёт транзакцию (покупку) и проверяет её по всем
 	// активным правилам антифрода.
@@ -276,18 +276,18 @@ type Invoker interface {
 	// - 404: пользователь с указанным userId не найден
 	// - 422: невалидные поля (amount <= 0, некорректная валюта и т.д.).
 	//
-	// POST /transactions
-	TransactionsPost(ctx context.Context, request *TransactionCreateRequest) (TransactionsPostRes, error)
-	// UsersGet invokes GET /users operation.
+	// POST /api/v1/transactions
+	APIV1TransactionsPost(ctx context.Context, request *TransactionCreateRequest) (APIV1TransactionsPostRes, error)
+	// APIV1UsersGet invokes GET /api/v1/users operation.
 	//
 	// Только ADMIN.
 	// Сценарии:
 	// - 200: страница пользователей
 	// - 422: некорректные page/size.
 	//
-	// GET /users
-	UsersGet(ctx context.Context, params UsersGetParams) (UsersGetRes, error)
-	// UsersIDDelete invokes DELETE /users/{id} operation.
+	// GET /api/v1/users
+	APIV1UsersGet(ctx context.Context, params APIV1UsersGetParams) (APIV1UsersGetRes, error)
+	// APIV1UsersIDDelete invokes DELETE /api/v1/users/{id} operation.
 	//
 	// **Важно:** Это soft-delete. Пользователь НЕ удаляется
 	// физически из базы данных,
@@ -305,9 +305,9 @@ type Invoker interface {
 	// **Восстановление:**
 	// - ADMIN может снова активировать через PUT /users/{id} с isActive=true.
 	//
-	// DELETE /users/{id}
-	UsersIDDelete(ctx context.Context, params UsersIDDeleteParams) (UsersIDDeleteRes, error)
-	// UsersIDGet invokes GET /users/{id} operation.
+	// DELETE /api/v1/users/{id}
+	APIV1UsersIDDelete(ctx context.Context, params APIV1UsersIDDeleteParams) (APIV1UsersIDDeleteRes, error)
+	// APIV1UsersIDGet invokes GET /api/v1/users/{id} operation.
 	//
 	// Доступ:
 	// - ADMIN: любой пользователь
@@ -317,9 +317,9 @@ type Invoker interface {
 	// - 403: попытка USER прочитать чужой профиль
 	// - 404: не найден.
 	//
-	// GET /users/{id}
-	UsersIDGet(ctx context.Context, params UsersIDGetParams) (UsersIDGetRes, error)
-	// UsersIDPut invokes PUT /users/{id} operation.
+	// GET /api/v1/users/{id}
+	APIV1UsersIDGet(ctx context.Context, params APIV1UsersIDGetParams) (APIV1UsersIDGetRes, error)
+	// APIV1UsersIDPut invokes PUT /api/v1/users/{id} operation.
 	//
 	// Полное обновление профиля. Необходимо передать все
 	// поля.
@@ -340,9 +340,9 @@ type Invoker interface {
 	// - region: до 32 символов или null
 	// - email изменить нельзя (игнорируется, если передан).
 	//
-	// PUT /users/{id}
-	UsersIDPut(ctx context.Context, request *UserUpdateRequest, params UsersIDPutParams) (UsersIDPutRes, error)
-	// UsersMeGet invokes GET /users/me operation.
+	// PUT /api/v1/users/{id}
+	APIV1UsersIDPut(ctx context.Context, request *UserUpdateRequest, params APIV1UsersIDPutParams) (APIV1UsersIDPutRes, error)
+	// APIV1UsersMeGet invokes GET /api/v1/users/me operation.
 	//
 	// Возвращает профиль пользователя, определённого по JWT
 	// токену.
@@ -350,9 +350,9 @@ type Invoker interface {
 	// своего ID.
 	// Доступно для любой роли (ADMIN, USER).
 	//
-	// GET /users/me
-	UsersMeGet(ctx context.Context) (UsersMeGetRes, error)
-	// UsersMePut invokes PUT /users/me operation.
+	// GET /api/v1/users/me
+	APIV1UsersMeGet(ctx context.Context) (APIV1UsersMeGetRes, error)
+	// APIV1UsersMePut invokes PUT /api/v1/users/me operation.
 	//
 	// Полное обновление профиля текущего пользователя.
 	// Необходимо передать все поля. Чтобы очистить поле,
@@ -366,9 +366,9 @@ type Invoker interface {
 	// ADMIN может менять любые поля своего профиля, включая role
 	// и isActive.
 	//
-	// PUT /users/me
-	UsersMePut(ctx context.Context, request *UserUpdateRequest) (UsersMePutRes, error)
-	// UsersPost invokes POST /users operation.
+	// PUT /api/v1/users/me
+	APIV1UsersMePut(ctx context.Context, request *UserUpdateRequest) (APIV1UsersMePutRes, error)
+	// APIV1UsersPost invokes POST /api/v1/users operation.
 	//
 	// Только ADMIN. В ответе нет токенов (создание "из админки").
 	// Сценарии:
@@ -377,8 +377,8 @@ type Invoker interface {
 	// - 422: не проходит валидация полей (пароль/роль/возраст
 	// и т.д.).
 	//
-	// POST /users
-	UsersPost(ctx context.Context, request *UserCreateRequest) (UsersPostRes, error)
+	// POST /api/v1/users
+	APIV1UsersPost(ctx context.Context, request *UserCreateRequest) (APIV1UsersPostRes, error)
 }
 
 // Client implements OAS client.
@@ -426,7 +426,7 @@ func (c *Client) requestURL(ctx context.Context) *url.URL {
 	return u
 }
 
-// AuthLoginPost invokes POST /auth/login operation.
+// APIV1AuthLoginPost invokes POST /api/v1/auth/login operation.
 //
 // Сценарии:
 // - 200: корректные credentials => accessToken.
@@ -435,16 +435,16 @@ func (c *Client) requestURL(ctx context.Context) *url.URL {
 // - 423: пользователь деактивирован (isActive=false).
 // - 422: формат email/пароля невалиден.
 //
-// POST /auth/login
-func (c *Client) AuthLoginPost(ctx context.Context, request *LoginRequest) (AuthLoginPostRes, error) {
-	res, err := c.sendAuthLoginPost(ctx, request)
+// POST /api/v1/auth/login
+func (c *Client) APIV1AuthLoginPost(ctx context.Context, request *LoginRequest) (APIV1AuthLoginPostRes, error) {
+	res, err := c.sendAPIV1AuthLoginPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendAuthLoginPost(ctx context.Context, request *LoginRequest) (res AuthLoginPostRes, err error) {
+func (c *Client) sendAPIV1AuthLoginPost(ctx context.Context, request *LoginRequest) (res APIV1AuthLoginPostRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/auth/login"),
+		semconv.HTTPRouteKey.String("/api/v1/auth/login"),
 	}
 
 	// Run stopwatch.
@@ -459,7 +459,7 @@ func (c *Client) sendAuthLoginPost(ctx context.Context, request *LoginRequest) (
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, AuthLoginPostOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, APIV1AuthLoginPostOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -477,7 +477,7 @@ func (c *Client) sendAuthLoginPost(ctx context.Context, request *LoginRequest) (
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/auth/login"
+	pathParts[0] = "/api/v1/auth/login"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
@@ -485,7 +485,7 @@ func (c *Client) sendAuthLoginPost(ctx context.Context, request *LoginRequest) (
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAuthLoginPostRequest(request, r); err != nil {
+	if err := encodeAPIV1AuthLoginPostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -497,7 +497,7 @@ func (c *Client) sendAuthLoginPost(ctx context.Context, request *LoginRequest) (
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeAuthLoginPostResponse(resp)
+	result, err := decodeAPIV1AuthLoginPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -505,7 +505,7 @@ func (c *Client) sendAuthLoginPost(ctx context.Context, request *LoginRequest) (
 	return result, nil
 }
 
-// AuthRegisterPost invokes POST /auth/register operation.
+// APIV1AuthRegisterPost invokes POST /api/v1/auth/register operation.
 //
 // Сценарии:
 // - 201: пользователь создан, роль USER по умолчанию,
@@ -513,16 +513,16 @@ func (c *Client) sendAuthLoginPost(ctx context.Context, request *LoginRequest) (
 // - 409: email уже используется.
 // - 422: не проходит валидация (email, пароль, возраст и т.д.).
 //
-// POST /auth/register
-func (c *Client) AuthRegisterPost(ctx context.Context, request *RegisterRequest) (AuthRegisterPostRes, error) {
-	res, err := c.sendAuthRegisterPost(ctx, request)
+// POST /api/v1/auth/register
+func (c *Client) APIV1AuthRegisterPost(ctx context.Context, request *RegisterRequest) (APIV1AuthRegisterPostRes, error) {
+	res, err := c.sendAPIV1AuthRegisterPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendAuthRegisterPost(ctx context.Context, request *RegisterRequest) (res AuthRegisterPostRes, err error) {
+func (c *Client) sendAPIV1AuthRegisterPost(ctx context.Context, request *RegisterRequest) (res APIV1AuthRegisterPostRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/auth/register"),
+		semconv.HTTPRouteKey.String("/api/v1/auth/register"),
 	}
 
 	// Run stopwatch.
@@ -537,7 +537,7 @@ func (c *Client) sendAuthRegisterPost(ctx context.Context, request *RegisterRequ
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, AuthRegisterPostOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, APIV1AuthRegisterPostOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -555,7 +555,7 @@ func (c *Client) sendAuthRegisterPost(ctx context.Context, request *RegisterRequ
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/auth/register"
+	pathParts[0] = "/api/v1/auth/register"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
@@ -563,7 +563,7 @@ func (c *Client) sendAuthRegisterPost(ctx context.Context, request *RegisterRequ
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeAuthRegisterPostRequest(request, r); err != nil {
+	if err := encodeAPIV1AuthRegisterPostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -575,7 +575,7 @@ func (c *Client) sendAuthRegisterPost(ctx context.Context, request *RegisterRequ
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeAuthRegisterPostResponse(resp)
+	result, err := decodeAPIV1AuthRegisterPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -583,22 +583,22 @@ func (c *Client) sendAuthRegisterPost(ctx context.Context, request *RegisterRequ
 	return result, nil
 }
 
-// FraudRulesGet invokes GET /fraud-rules operation.
+// APIV1FraudRulesGet invokes GET /api/v1/fraud-rules operation.
 //
 // Только ADMIN.
 // Сценарии:
 // - 200: список правил.
 //
-// GET /fraud-rules
-func (c *Client) FraudRulesGet(ctx context.Context) (FraudRulesGetRes, error) {
-	res, err := c.sendFraudRulesGet(ctx)
+// GET /api/v1/fraud-rules
+func (c *Client) APIV1FraudRulesGet(ctx context.Context) (APIV1FraudRulesGetRes, error) {
+	res, err := c.sendAPIV1FraudRulesGet(ctx)
 	return res, err
 }
 
-func (c *Client) sendFraudRulesGet(ctx context.Context) (res FraudRulesGetRes, err error) {
+func (c *Client) sendAPIV1FraudRulesGet(ctx context.Context) (res APIV1FraudRulesGetRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/fraud-rules"),
+		semconv.HTTPRouteKey.String("/api/v1/fraud-rules"),
 	}
 
 	// Run stopwatch.
@@ -613,7 +613,7 @@ func (c *Client) sendFraudRulesGet(ctx context.Context) (res FraudRulesGetRes, e
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, FraudRulesGetOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, APIV1FraudRulesGetOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -631,7 +631,7 @@ func (c *Client) sendFraudRulesGet(ctx context.Context) (res FraudRulesGetRes, e
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/fraud-rules"
+	pathParts[0] = "/api/v1/fraud-rules"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
@@ -645,7 +645,7 @@ func (c *Client) sendFraudRulesGet(ctx context.Context) (res FraudRulesGetRes, e
 		var satisfied bitset
 		{
 			stage = "Security:BearerAuth"
-			switch err := c.securityBearerAuth(ctx, FraudRulesGetOperation, r); {
+			switch err := c.securityBearerAuth(ctx, APIV1FraudRulesGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -681,7 +681,7 @@ func (c *Client) sendFraudRulesGet(ctx context.Context) (res FraudRulesGetRes, e
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeFraudRulesGetResponse(resp)
+	result, err := decodeAPIV1FraudRulesGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -689,7 +689,7 @@ func (c *Client) sendFraudRulesGet(ctx context.Context) (res FraudRulesGetRes, e
 	return result, nil
 }
 
-// FraudRulesIDDelete invokes DELETE /fraud-rules/{id} operation.
+// APIV1FraudRulesIDDelete invokes DELETE /api/v1/fraud-rules/{id} operation.
 //
 // **Важно:** Это soft-delete. Правило НЕ удаляется физически из
 // базы данных,
@@ -708,16 +708,16 @@ func (c *Client) sendFraudRulesGet(ctx context.Context) (res FraudRulesGetRes, e
 // - ADMIN может снова активировать через PUT /fraud-rules/{id} с
 // enabled=true.
 //
-// DELETE /fraud-rules/{id}
-func (c *Client) FraudRulesIDDelete(ctx context.Context, params FraudRulesIDDeleteParams) (FraudRulesIDDeleteRes, error) {
-	res, err := c.sendFraudRulesIDDelete(ctx, params)
+// DELETE /api/v1/fraud-rules/{id}
+func (c *Client) APIV1FraudRulesIDDelete(ctx context.Context, params APIV1FraudRulesIDDeleteParams) (APIV1FraudRulesIDDeleteRes, error) {
+	res, err := c.sendAPIV1FraudRulesIDDelete(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendFraudRulesIDDelete(ctx context.Context, params FraudRulesIDDeleteParams) (res FraudRulesIDDeleteRes, err error) {
+func (c *Client) sendAPIV1FraudRulesIDDelete(ctx context.Context, params APIV1FraudRulesIDDeleteParams) (res APIV1FraudRulesIDDeleteRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("DELETE"),
-		semconv.HTTPRouteKey.String("/fraud-rules/{id}"),
+		semconv.HTTPRouteKey.String("/api/v1/fraud-rules/{id}"),
 	}
 
 	// Run stopwatch.
@@ -732,7 +732,7 @@ func (c *Client) sendFraudRulesIDDelete(ctx context.Context, params FraudRulesID
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, FraudRulesIDDeleteOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, APIV1FraudRulesIDDeleteOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -750,7 +750,7 @@ func (c *Client) sendFraudRulesIDDelete(ctx context.Context, params FraudRulesID
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [2]string
-	pathParts[0] = "/fraud-rules/"
+	pathParts[0] = "/api/v1/fraud-rules/"
 	{
 		// Encode "id" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -782,7 +782,7 @@ func (c *Client) sendFraudRulesIDDelete(ctx context.Context, params FraudRulesID
 		var satisfied bitset
 		{
 			stage = "Security:BearerAuth"
-			switch err := c.securityBearerAuth(ctx, FraudRulesIDDeleteOperation, r); {
+			switch err := c.securityBearerAuth(ctx, APIV1FraudRulesIDDeleteOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -818,7 +818,7 @@ func (c *Client) sendFraudRulesIDDelete(ctx context.Context, params FraudRulesID
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeFraudRulesIDDeleteResponse(resp)
+	result, err := decodeAPIV1FraudRulesIDDeleteResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -826,7 +826,7 @@ func (c *Client) sendFraudRulesIDDelete(ctx context.Context, params FraudRulesID
 	return result, nil
 }
 
-// FraudRulesIDGet invokes GET /fraud-rules/{id} operation.
+// APIV1FraudRulesIDGet invokes GET /api/v1/fraud-rules/{id} operation.
 //
 // Возвращает полную информацию о правиле антифрода.
 // Только ADMIN имеет доступ к этому эндпоинту.
@@ -840,16 +840,16 @@ func (c *Client) sendFraudRulesIDDelete(ctx context.Context, params FraudRulesID
 // - priority: приоритет (меньше = выше, проверяется раньше)
 // - createdAt, updatedAt: временные метки.
 //
-// GET /fraud-rules/{id}
-func (c *Client) FraudRulesIDGet(ctx context.Context, params FraudRulesIDGetParams) (FraudRulesIDGetRes, error) {
-	res, err := c.sendFraudRulesIDGet(ctx, params)
+// GET /api/v1/fraud-rules/{id}
+func (c *Client) APIV1FraudRulesIDGet(ctx context.Context, params APIV1FraudRulesIDGetParams) (APIV1FraudRulesIDGetRes, error) {
+	res, err := c.sendAPIV1FraudRulesIDGet(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendFraudRulesIDGet(ctx context.Context, params FraudRulesIDGetParams) (res FraudRulesIDGetRes, err error) {
+func (c *Client) sendAPIV1FraudRulesIDGet(ctx context.Context, params APIV1FraudRulesIDGetParams) (res APIV1FraudRulesIDGetRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/fraud-rules/{id}"),
+		semconv.HTTPRouteKey.String("/api/v1/fraud-rules/{id}"),
 	}
 
 	// Run stopwatch.
@@ -864,7 +864,7 @@ func (c *Client) sendFraudRulesIDGet(ctx context.Context, params FraudRulesIDGet
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, FraudRulesIDGetOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, APIV1FraudRulesIDGetOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -882,7 +882,7 @@ func (c *Client) sendFraudRulesIDGet(ctx context.Context, params FraudRulesIDGet
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [2]string
-	pathParts[0] = "/fraud-rules/"
+	pathParts[0] = "/api/v1/fraud-rules/"
 	{
 		// Encode "id" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -914,7 +914,7 @@ func (c *Client) sendFraudRulesIDGet(ctx context.Context, params FraudRulesIDGet
 		var satisfied bitset
 		{
 			stage = "Security:BearerAuth"
-			switch err := c.securityBearerAuth(ctx, FraudRulesIDGetOperation, r); {
+			switch err := c.securityBearerAuth(ctx, APIV1FraudRulesIDGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -950,7 +950,7 @@ func (c *Client) sendFraudRulesIDGet(ctx context.Context, params FraudRulesIDGet
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeFraudRulesIDGetResponse(resp)
+	result, err := decodeAPIV1FraudRulesIDGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -958,21 +958,21 @@ func (c *Client) sendFraudRulesIDGet(ctx context.Context, params FraudRulesIDGet
 	return result, nil
 }
 
-// FraudRulesIDPut invokes PUT /fraud-rules/{id} operation.
+// APIV1FraudRulesIDPut invokes PUT /api/v1/fraud-rules/{id} operation.
 //
 // Только ADMIN. Полное обновление.
 // 422 возвращается при невалидном DSL/полях.
 //
-// PUT /fraud-rules/{id}
-func (c *Client) FraudRulesIDPut(ctx context.Context, request *FraudRuleUpdateRequest, params FraudRulesIDPutParams) (FraudRulesIDPutRes, error) {
-	res, err := c.sendFraudRulesIDPut(ctx, request, params)
+// PUT /api/v1/fraud-rules/{id}
+func (c *Client) APIV1FraudRulesIDPut(ctx context.Context, request *FraudRuleUpdateRequest, params APIV1FraudRulesIDPutParams) (APIV1FraudRulesIDPutRes, error) {
+	res, err := c.sendAPIV1FraudRulesIDPut(ctx, request, params)
 	return res, err
 }
 
-func (c *Client) sendFraudRulesIDPut(ctx context.Context, request *FraudRuleUpdateRequest, params FraudRulesIDPutParams) (res FraudRulesIDPutRes, err error) {
+func (c *Client) sendAPIV1FraudRulesIDPut(ctx context.Context, request *FraudRuleUpdateRequest, params APIV1FraudRulesIDPutParams) (res APIV1FraudRulesIDPutRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("PUT"),
-		semconv.HTTPRouteKey.String("/fraud-rules/{id}"),
+		semconv.HTTPRouteKey.String("/api/v1/fraud-rules/{id}"),
 	}
 
 	// Run stopwatch.
@@ -987,7 +987,7 @@ func (c *Client) sendFraudRulesIDPut(ctx context.Context, request *FraudRuleUpda
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, FraudRulesIDPutOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, APIV1FraudRulesIDPutOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -1005,7 +1005,7 @@ func (c *Client) sendFraudRulesIDPut(ctx context.Context, request *FraudRuleUpda
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [2]string
-	pathParts[0] = "/fraud-rules/"
+	pathParts[0] = "/api/v1/fraud-rules/"
 	{
 		// Encode "id" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -1031,7 +1031,7 @@ func (c *Client) sendFraudRulesIDPut(ctx context.Context, request *FraudRuleUpda
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeFraudRulesIDPutRequest(request, r); err != nil {
+	if err := encodeAPIV1FraudRulesIDPutRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -1040,7 +1040,7 @@ func (c *Client) sendFraudRulesIDPut(ctx context.Context, request *FraudRuleUpda
 		var satisfied bitset
 		{
 			stage = "Security:BearerAuth"
-			switch err := c.securityBearerAuth(ctx, FraudRulesIDPutOperation, r); {
+			switch err := c.securityBearerAuth(ctx, APIV1FraudRulesIDPutOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -1076,7 +1076,7 @@ func (c *Client) sendFraudRulesIDPut(ctx context.Context, request *FraudRuleUpda
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeFraudRulesIDPutResponse(resp)
+	result, err := decodeAPIV1FraudRulesIDPutResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -1084,7 +1084,7 @@ func (c *Client) sendFraudRulesIDPut(ctx context.Context, request *FraudRuleUpda
 	return result, nil
 }
 
-// FraudRulesPost invokes POST /fraud-rules operation.
+// APIV1FraudRulesPost invokes POST /api/v1/fraud-rules operation.
 //
 // Только ADMIN.
 // Валидация:
@@ -1098,16 +1098,16 @@ func (c *Client) sendFraudRulesIDPut(ctx context.Context, request *FraudRuleUpda
 // - 409: правило с таким именем уже есть (если включена
 // уникальность имени).
 //
-// POST /fraud-rules
-func (c *Client) FraudRulesPost(ctx context.Context, request *FraudRuleCreateRequest) (FraudRulesPostRes, error) {
-	res, err := c.sendFraudRulesPost(ctx, request)
+// POST /api/v1/fraud-rules
+func (c *Client) APIV1FraudRulesPost(ctx context.Context, request *FraudRuleCreateRequest) (APIV1FraudRulesPostRes, error) {
+	res, err := c.sendAPIV1FraudRulesPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendFraudRulesPost(ctx context.Context, request *FraudRuleCreateRequest) (res FraudRulesPostRes, err error) {
+func (c *Client) sendAPIV1FraudRulesPost(ctx context.Context, request *FraudRuleCreateRequest) (res APIV1FraudRulesPostRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/fraud-rules"),
+		semconv.HTTPRouteKey.String("/api/v1/fraud-rules"),
 	}
 
 	// Run stopwatch.
@@ -1122,7 +1122,7 @@ func (c *Client) sendFraudRulesPost(ctx context.Context, request *FraudRuleCreat
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, FraudRulesPostOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, APIV1FraudRulesPostOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -1140,7 +1140,7 @@ func (c *Client) sendFraudRulesPost(ctx context.Context, request *FraudRuleCreat
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/fraud-rules"
+	pathParts[0] = "/api/v1/fraud-rules"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
@@ -1148,7 +1148,7 @@ func (c *Client) sendFraudRulesPost(ctx context.Context, request *FraudRuleCreat
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeFraudRulesPostRequest(request, r); err != nil {
+	if err := encodeAPIV1FraudRulesPostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -1157,7 +1157,7 @@ func (c *Client) sendFraudRulesPost(ctx context.Context, request *FraudRuleCreat
 		var satisfied bitset
 		{
 			stage = "Security:BearerAuth"
-			switch err := c.securityBearerAuth(ctx, FraudRulesPostOperation, r); {
+			switch err := c.securityBearerAuth(ctx, APIV1FraudRulesPostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -1193,7 +1193,7 @@ func (c *Client) sendFraudRulesPost(ctx context.Context, request *FraudRuleCreat
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeFraudRulesPostResponse(resp)
+	result, err := decodeAPIV1FraudRulesPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -1201,23 +1201,23 @@ func (c *Client) sendFraudRulesPost(ctx context.Context, request *FraudRuleCreat
 	return result, nil
 }
 
-// FraudRulesValidatePost invokes POST /fraud-rules/validate operation.
+// APIV1FraudRulesValidatePost invokes POST /api/v1/fraud-rules/validate operation.
 //
 // Только ADMIN. Полезно для UI "проверить правило".
 // Сценарии:
 // - 200: валидно (isValid=true)
 // - 200: невалидно (isValid=false, errors заполнен).
 //
-// POST /fraud-rules/validate
-func (c *Client) FraudRulesValidatePost(ctx context.Context, request *DslValidateRequest) (FraudRulesValidatePostRes, error) {
-	res, err := c.sendFraudRulesValidatePost(ctx, request)
+// POST /api/v1/fraud-rules/validate
+func (c *Client) APIV1FraudRulesValidatePost(ctx context.Context, request *DslValidateRequest) (APIV1FraudRulesValidatePostRes, error) {
+	res, err := c.sendAPIV1FraudRulesValidatePost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendFraudRulesValidatePost(ctx context.Context, request *DslValidateRequest) (res FraudRulesValidatePostRes, err error) {
+func (c *Client) sendAPIV1FraudRulesValidatePost(ctx context.Context, request *DslValidateRequest) (res APIV1FraudRulesValidatePostRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/fraud-rules/validate"),
+		semconv.HTTPRouteKey.String("/api/v1/fraud-rules/validate"),
 	}
 
 	// Run stopwatch.
@@ -1232,7 +1232,7 @@ func (c *Client) sendFraudRulesValidatePost(ctx context.Context, request *DslVal
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, FraudRulesValidatePostOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, APIV1FraudRulesValidatePostOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -1250,7 +1250,7 @@ func (c *Client) sendFraudRulesValidatePost(ctx context.Context, request *DslVal
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/fraud-rules/validate"
+	pathParts[0] = "/api/v1/fraud-rules/validate"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
@@ -1258,7 +1258,7 @@ func (c *Client) sendFraudRulesValidatePost(ctx context.Context, request *DslVal
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeFraudRulesValidatePostRequest(request, r); err != nil {
+	if err := encodeAPIV1FraudRulesValidatePostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -1267,7 +1267,7 @@ func (c *Client) sendFraudRulesValidatePost(ctx context.Context, request *DslVal
 		var satisfied bitset
 		{
 			stage = "Security:BearerAuth"
-			switch err := c.securityBearerAuth(ctx, FraudRulesValidatePostOperation, r); {
+			switch err := c.securityBearerAuth(ctx, APIV1FraudRulesValidatePostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -1303,7 +1303,7 @@ func (c *Client) sendFraudRulesValidatePost(ctx context.Context, request *DslVal
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeFraudRulesValidatePostResponse(resp)
+	result, err := decodeAPIV1FraudRulesValidatePostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -1311,22 +1311,22 @@ func (c *Client) sendFraudRulesValidatePost(ctx context.Context, request *DslVal
 	return result, nil
 }
 
-// PingGet invokes GET /ping operation.
+// APIV1PingGet invokes GET /api/v1/ping operation.
 //
 // Проверка работоспособности сервиса.
 // Возвращает 200 OK если сервис готов обрабатывать
 // запросы.
 //
-// GET /ping
-func (c *Client) PingGet(ctx context.Context) (*PingGetOK, error) {
-	res, err := c.sendPingGet(ctx)
+// GET /api/v1/ping
+func (c *Client) APIV1PingGet(ctx context.Context) (*APIV1PingGetOK, error) {
+	res, err := c.sendAPIV1PingGet(ctx)
 	return res, err
 }
 
-func (c *Client) sendPingGet(ctx context.Context) (res *PingGetOK, err error) {
+func (c *Client) sendAPIV1PingGet(ctx context.Context) (res *APIV1PingGetOK, err error) {
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/ping"),
+		semconv.HTTPRouteKey.String("/api/v1/ping"),
 	}
 
 	// Run stopwatch.
@@ -1341,7 +1341,7 @@ func (c *Client) sendPingGet(ctx context.Context) (res *PingGetOK, err error) {
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, PingGetOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, APIV1PingGetOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -1359,7 +1359,7 @@ func (c *Client) sendPingGet(ctx context.Context) (res *PingGetOK, err error) {
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/ping"
+	pathParts[0] = "/api/v1/ping"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
@@ -1376,7 +1376,7 @@ func (c *Client) sendPingGet(ctx context.Context) (res *PingGetOK, err error) {
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodePingGetResponse(resp)
+	result, err := decodeAPIV1PingGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -1384,7 +1384,7 @@ func (c *Client) sendPingGet(ctx context.Context) (res *PingGetOK, err error) {
 	return result, nil
 }
 
-// StatsMerchantsRiskGet invokes GET /stats/merchants/risk operation.
+// APIV1StatsMerchantsRiskGet invokes GET /api/v1/stats/merchants/risk operation.
 //
 // Только ADMIN.
 // Метрики по merchantId/merchantCategoryCode:
@@ -1392,16 +1392,16 @@ func (c *Client) sendPingGet(ctx context.Context) (res *PingGetOK, err error) {
 // - declineRate
 // - fraudRate.
 //
-// GET /stats/merchants/risk
-func (c *Client) StatsMerchantsRiskGet(ctx context.Context, params StatsMerchantsRiskGetParams) (StatsMerchantsRiskGetRes, error) {
-	res, err := c.sendStatsMerchantsRiskGet(ctx, params)
+// GET /api/v1/stats/merchants/risk
+func (c *Client) APIV1StatsMerchantsRiskGet(ctx context.Context, params APIV1StatsMerchantsRiskGetParams) (APIV1StatsMerchantsRiskGetRes, error) {
+	res, err := c.sendAPIV1StatsMerchantsRiskGet(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendStatsMerchantsRiskGet(ctx context.Context, params StatsMerchantsRiskGetParams) (res StatsMerchantsRiskGetRes, err error) {
+func (c *Client) sendAPIV1StatsMerchantsRiskGet(ctx context.Context, params APIV1StatsMerchantsRiskGetParams) (res APIV1StatsMerchantsRiskGetRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/stats/merchants/risk"),
+		semconv.HTTPRouteKey.String("/api/v1/stats/merchants/risk"),
 	}
 
 	// Run stopwatch.
@@ -1416,7 +1416,7 @@ func (c *Client) sendStatsMerchantsRiskGet(ctx context.Context, params StatsMerc
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, StatsMerchantsRiskGetOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, APIV1StatsMerchantsRiskGetOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -1434,7 +1434,7 @@ func (c *Client) sendStatsMerchantsRiskGet(ctx context.Context, params StatsMerc
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/stats/merchants/risk"
+	pathParts[0] = "/api/v1/stats/merchants/risk"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeQueryParams"
@@ -1520,7 +1520,7 @@ func (c *Client) sendStatsMerchantsRiskGet(ctx context.Context, params StatsMerc
 		var satisfied bitset
 		{
 			stage = "Security:BearerAuth"
-			switch err := c.securityBearerAuth(ctx, StatsMerchantsRiskGetOperation, r); {
+			switch err := c.securityBearerAuth(ctx, APIV1StatsMerchantsRiskGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -1556,7 +1556,7 @@ func (c *Client) sendStatsMerchantsRiskGet(ctx context.Context, params StatsMerc
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeStatsMerchantsRiskGetResponse(resp)
+	result, err := decodeAPIV1StatsMerchantsRiskGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -1564,7 +1564,7 @@ func (c *Client) sendStatsMerchantsRiskGet(ctx context.Context, params StatsMerc
 	return result, nil
 }
 
-// StatsOverviewGet invokes GET /stats/overview operation.
+// APIV1StatsOverviewGet invokes GET /api/v1/stats/overview operation.
 //
 // Возвращает агрегированные метрики за указанный
 // период для дашборда.
@@ -1580,16 +1580,16 @@ func (c *Client) sendStatsMerchantsRiskGet(ctx context.Context, params StatsMerc
 // - declineRate: доля DECLINED транзакций (0..1)
 // - topRiskMerchants: топ-10 мерчантов по declineRate.
 //
-// GET /stats/overview
-func (c *Client) StatsOverviewGet(ctx context.Context, params StatsOverviewGetParams) (StatsOverviewGetRes, error) {
-	res, err := c.sendStatsOverviewGet(ctx, params)
+// GET /api/v1/stats/overview
+func (c *Client) APIV1StatsOverviewGet(ctx context.Context, params APIV1StatsOverviewGetParams) (APIV1StatsOverviewGetRes, error) {
+	res, err := c.sendAPIV1StatsOverviewGet(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendStatsOverviewGet(ctx context.Context, params StatsOverviewGetParams) (res StatsOverviewGetRes, err error) {
+func (c *Client) sendAPIV1StatsOverviewGet(ctx context.Context, params APIV1StatsOverviewGetParams) (res APIV1StatsOverviewGetRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/stats/overview"),
+		semconv.HTTPRouteKey.String("/api/v1/stats/overview"),
 	}
 
 	// Run stopwatch.
@@ -1604,7 +1604,7 @@ func (c *Client) sendStatsOverviewGet(ctx context.Context, params StatsOverviewG
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, StatsOverviewGetOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, APIV1StatsOverviewGetOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -1622,7 +1622,7 @@ func (c *Client) sendStatsOverviewGet(ctx context.Context, params StatsOverviewG
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/stats/overview"
+	pathParts[0] = "/api/v1/stats/overview"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeQueryParams"
@@ -1691,7 +1691,7 @@ func (c *Client) sendStatsOverviewGet(ctx context.Context, params StatsOverviewG
 		var satisfied bitset
 		{
 			stage = "Security:BearerAuth"
-			switch err := c.securityBearerAuth(ctx, StatsOverviewGetOperation, r); {
+			switch err := c.securityBearerAuth(ctx, APIV1StatsOverviewGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -1727,7 +1727,7 @@ func (c *Client) sendStatsOverviewGet(ctx context.Context, params StatsOverviewG
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeStatsOverviewGetResponse(resp)
+	result, err := decodeAPIV1StatsOverviewGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -1735,7 +1735,7 @@ func (c *Client) sendStatsOverviewGet(ctx context.Context, params StatsOverviewG
 	return result, nil
 }
 
-// StatsRulesMatchesGet invokes GET /stats/rules/matches operation.
+// APIV1StatsRulesMatchesGet invokes GET /api/v1/stats/rules/matches operation.
 //
 // Возвращает статистику по срабатываниям правил
 // антифрода за период.
@@ -1752,16 +1752,16 @@ func (c *Client) sendStatsOverviewGet(ctx context.Context, params StatsOverviewG
 // среди matched
 // Результаты отсортированы по matches DESC.
 //
-// GET /stats/rules/matches
-func (c *Client) StatsRulesMatchesGet(ctx context.Context, params StatsRulesMatchesGetParams) (StatsRulesMatchesGetRes, error) {
-	res, err := c.sendStatsRulesMatchesGet(ctx, params)
+// GET /api/v1/stats/rules/matches
+func (c *Client) APIV1StatsRulesMatchesGet(ctx context.Context, params APIV1StatsRulesMatchesGetParams) (APIV1StatsRulesMatchesGetRes, error) {
+	res, err := c.sendAPIV1StatsRulesMatchesGet(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendStatsRulesMatchesGet(ctx context.Context, params StatsRulesMatchesGetParams) (res StatsRulesMatchesGetRes, err error) {
+func (c *Client) sendAPIV1StatsRulesMatchesGet(ctx context.Context, params APIV1StatsRulesMatchesGetParams) (res APIV1StatsRulesMatchesGetRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/stats/rules/matches"),
+		semconv.HTTPRouteKey.String("/api/v1/stats/rules/matches"),
 	}
 
 	// Run stopwatch.
@@ -1776,7 +1776,7 @@ func (c *Client) sendStatsRulesMatchesGet(ctx context.Context, params StatsRules
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, StatsRulesMatchesGetOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, APIV1StatsRulesMatchesGetOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -1794,7 +1794,7 @@ func (c *Client) sendStatsRulesMatchesGet(ctx context.Context, params StatsRules
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/stats/rules/matches"
+	pathParts[0] = "/api/v1/stats/rules/matches"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeQueryParams"
@@ -1863,7 +1863,7 @@ func (c *Client) sendStatsRulesMatchesGet(ctx context.Context, params StatsRules
 		var satisfied bitset
 		{
 			stage = "Security:BearerAuth"
-			switch err := c.securityBearerAuth(ctx, StatsRulesMatchesGetOperation, r); {
+			switch err := c.securityBearerAuth(ctx, APIV1StatsRulesMatchesGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -1899,7 +1899,7 @@ func (c *Client) sendStatsRulesMatchesGet(ctx context.Context, params StatsRules
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeStatsRulesMatchesGetResponse(resp)
+	result, err := decodeAPIV1StatsRulesMatchesGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -1907,7 +1907,7 @@ func (c *Client) sendStatsRulesMatchesGet(ctx context.Context, params StatsRules
 	return result, nil
 }
 
-// StatsTransactionsTimeseriesGet invokes GET /stats/transactions/timeseries operation.
+// APIV1StatsTransactionsTimeseriesGet invokes GET /api/v1/stats/transactions/timeseries operation.
 //
 // Возвращает временной ряд метрик транзакций для
 // построения графиков.
@@ -1925,16 +1925,16 @@ func (c *Client) sendStatsRulesMatchesGet(ctx context.Context, params StatsRules
 // - gmv: сумма транзакций
 // - approvalRate, declineRate: доли по статусам.
 //
-// GET /stats/transactions/timeseries
-func (c *Client) StatsTransactionsTimeseriesGet(ctx context.Context, params StatsTransactionsTimeseriesGetParams) (StatsTransactionsTimeseriesGetRes, error) {
-	res, err := c.sendStatsTransactionsTimeseriesGet(ctx, params)
+// GET /api/v1/stats/transactions/timeseries
+func (c *Client) APIV1StatsTransactionsTimeseriesGet(ctx context.Context, params APIV1StatsTransactionsTimeseriesGetParams) (APIV1StatsTransactionsTimeseriesGetRes, error) {
+	res, err := c.sendAPIV1StatsTransactionsTimeseriesGet(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendStatsTransactionsTimeseriesGet(ctx context.Context, params StatsTransactionsTimeseriesGetParams) (res StatsTransactionsTimeseriesGetRes, err error) {
+func (c *Client) sendAPIV1StatsTransactionsTimeseriesGet(ctx context.Context, params APIV1StatsTransactionsTimeseriesGetParams) (res APIV1StatsTransactionsTimeseriesGetRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/stats/transactions/timeseries"),
+		semconv.HTTPRouteKey.String("/api/v1/stats/transactions/timeseries"),
 	}
 
 	// Run stopwatch.
@@ -1949,7 +1949,7 @@ func (c *Client) sendStatsTransactionsTimeseriesGet(ctx context.Context, params 
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, StatsTransactionsTimeseriesGetOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, APIV1StatsTransactionsTimeseriesGetOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -1967,7 +1967,7 @@ func (c *Client) sendStatsTransactionsTimeseriesGet(ctx context.Context, params 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/stats/transactions/timeseries"
+	pathParts[0] = "/api/v1/stats/transactions/timeseries"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeQueryParams"
@@ -2070,7 +2070,7 @@ func (c *Client) sendStatsTransactionsTimeseriesGet(ctx context.Context, params 
 		var satisfied bitset
 		{
 			stage = "Security:BearerAuth"
-			switch err := c.securityBearerAuth(ctx, StatsTransactionsTimeseriesGetOperation, r); {
+			switch err := c.securityBearerAuth(ctx, APIV1StatsTransactionsTimeseriesGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -2106,7 +2106,7 @@ func (c *Client) sendStatsTransactionsTimeseriesGet(ctx context.Context, params 
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeStatsTransactionsTimeseriesGetResponse(resp)
+	result, err := decodeAPIV1StatsTransactionsTimeseriesGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -2114,7 +2114,7 @@ func (c *Client) sendStatsTransactionsTimeseriesGet(ctx context.Context, params 
 	return result, nil
 }
 
-// StatsUsersIDRiskProfileGet invokes GET /stats/users/{id}/risk-profile operation.
+// APIV1StatsUsersIDRiskProfileGet invokes GET /api/v1/stats/users/{id}/risk-profile operation.
 //
 // Доступ:
 // - ADMIN: любой пользователь
@@ -2125,16 +2125,16 @@ func (c *Client) sendStatsTransactionsTimeseriesGet(ctx context.Context, params 
 // - declineRate_30d
 // - lastSeenAt.
 //
-// GET /stats/users/{id}/risk-profile
-func (c *Client) StatsUsersIDRiskProfileGet(ctx context.Context, params StatsUsersIDRiskProfileGetParams) (StatsUsersIDRiskProfileGetRes, error) {
-	res, err := c.sendStatsUsersIDRiskProfileGet(ctx, params)
+// GET /api/v1/stats/users/{id}/risk-profile
+func (c *Client) APIV1StatsUsersIDRiskProfileGet(ctx context.Context, params APIV1StatsUsersIDRiskProfileGetParams) (APIV1StatsUsersIDRiskProfileGetRes, error) {
+	res, err := c.sendAPIV1StatsUsersIDRiskProfileGet(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendStatsUsersIDRiskProfileGet(ctx context.Context, params StatsUsersIDRiskProfileGetParams) (res StatsUsersIDRiskProfileGetRes, err error) {
+func (c *Client) sendAPIV1StatsUsersIDRiskProfileGet(ctx context.Context, params APIV1StatsUsersIDRiskProfileGetParams) (res APIV1StatsUsersIDRiskProfileGetRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/stats/users/{id}/risk-profile"),
+		semconv.HTTPRouteKey.String("/api/v1/stats/users/{id}/risk-profile"),
 	}
 
 	// Run stopwatch.
@@ -2149,7 +2149,7 @@ func (c *Client) sendStatsUsersIDRiskProfileGet(ctx context.Context, params Stat
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, StatsUsersIDRiskProfileGetOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, APIV1StatsUsersIDRiskProfileGetOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -2167,7 +2167,7 @@ func (c *Client) sendStatsUsersIDRiskProfileGet(ctx context.Context, params Stat
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [3]string
-	pathParts[0] = "/stats/users/"
+	pathParts[0] = "/api/v1/stats/users/"
 	{
 		// Encode "id" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -2200,7 +2200,7 @@ func (c *Client) sendStatsUsersIDRiskProfileGet(ctx context.Context, params Stat
 		var satisfied bitset
 		{
 			stage = "Security:BearerAuth"
-			switch err := c.securityBearerAuth(ctx, StatsUsersIDRiskProfileGetOperation, r); {
+			switch err := c.securityBearerAuth(ctx, APIV1StatsUsersIDRiskProfileGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -2236,7 +2236,7 @@ func (c *Client) sendStatsUsersIDRiskProfileGet(ctx context.Context, params Stat
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeStatsUsersIDRiskProfileGetResponse(resp)
+	result, err := decodeAPIV1StatsUsersIDRiskProfileGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -2244,7 +2244,7 @@ func (c *Client) sendStatsUsersIDRiskProfileGet(ctx context.Context, params Stat
 	return result, nil
 }
 
-// TransactionsBatchPost invokes POST /transactions/batch operation.
+// APIV1TransactionsBatchPost invokes POST /api/v1/transactions/batch operation.
 //
 // Батч поддерживает частичный успех.
 // Сценарии:
@@ -2254,16 +2254,16 @@ func (c *Client) sendStatsUsersIDRiskProfileGet(ctx context.Context, params Stat
 // созданы из-за 422/403/409 и т.п.)
 // Для сопоставления используется index (0-based).
 //
-// POST /transactions/batch
-func (c *Client) TransactionsBatchPost(ctx context.Context, request *TransactionBatchCreateRequest) (TransactionsBatchPostRes, error) {
-	res, err := c.sendTransactionsBatchPost(ctx, request)
+// POST /api/v1/transactions/batch
+func (c *Client) APIV1TransactionsBatchPost(ctx context.Context, request *TransactionBatchCreateRequest) (APIV1TransactionsBatchPostRes, error) {
+	res, err := c.sendAPIV1TransactionsBatchPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendTransactionsBatchPost(ctx context.Context, request *TransactionBatchCreateRequest) (res TransactionsBatchPostRes, err error) {
+func (c *Client) sendAPIV1TransactionsBatchPost(ctx context.Context, request *TransactionBatchCreateRequest) (res APIV1TransactionsBatchPostRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/transactions/batch"),
+		semconv.HTTPRouteKey.String("/api/v1/transactions/batch"),
 	}
 
 	// Run stopwatch.
@@ -2278,7 +2278,7 @@ func (c *Client) sendTransactionsBatchPost(ctx context.Context, request *Transac
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, TransactionsBatchPostOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, APIV1TransactionsBatchPostOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -2296,7 +2296,7 @@ func (c *Client) sendTransactionsBatchPost(ctx context.Context, request *Transac
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/transactions/batch"
+	pathParts[0] = "/api/v1/transactions/batch"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
@@ -2304,7 +2304,7 @@ func (c *Client) sendTransactionsBatchPost(ctx context.Context, request *Transac
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeTransactionsBatchPostRequest(request, r); err != nil {
+	if err := encodeAPIV1TransactionsBatchPostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -2313,7 +2313,7 @@ func (c *Client) sendTransactionsBatchPost(ctx context.Context, request *Transac
 		var satisfied bitset
 		{
 			stage = "Security:BearerAuth"
-			switch err := c.securityBearerAuth(ctx, TransactionsBatchPostOperation, r); {
+			switch err := c.securityBearerAuth(ctx, APIV1TransactionsBatchPostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -2349,7 +2349,7 @@ func (c *Client) sendTransactionsBatchPost(ctx context.Context, request *Transac
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeTransactionsBatchPostResponse(resp)
+	result, err := decodeAPIV1TransactionsBatchPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -2357,7 +2357,7 @@ func (c *Client) sendTransactionsBatchPost(ctx context.Context, request *Transac
 	return result, nil
 }
 
-// TransactionsGet invokes GET /transactions operation.
+// APIV1TransactionsGet invokes GET /api/v1/transactions operation.
 //
 // Доступ:
 // - ADMIN: все транзакции
@@ -2368,16 +2368,16 @@ func (c *Client) sendTransactionsBatchPost(ctx context.Context, request *Transac
 // - from/to (RFC3339)
 // - page/size.
 //
-// GET /transactions
-func (c *Client) TransactionsGet(ctx context.Context, params TransactionsGetParams) (TransactionsGetRes, error) {
-	res, err := c.sendTransactionsGet(ctx, params)
+// GET /api/v1/transactions
+func (c *Client) APIV1TransactionsGet(ctx context.Context, params APIV1TransactionsGetParams) (APIV1TransactionsGetRes, error) {
+	res, err := c.sendAPIV1TransactionsGet(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendTransactionsGet(ctx context.Context, params TransactionsGetParams) (res TransactionsGetRes, err error) {
+func (c *Client) sendAPIV1TransactionsGet(ctx context.Context, params APIV1TransactionsGetParams) (res APIV1TransactionsGetRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/transactions"),
+		semconv.HTTPRouteKey.String("/api/v1/transactions"),
 	}
 
 	// Run stopwatch.
@@ -2392,7 +2392,7 @@ func (c *Client) sendTransactionsGet(ctx context.Context, params TransactionsGet
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, TransactionsGetOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, APIV1TransactionsGetOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -2410,7 +2410,7 @@ func (c *Client) sendTransactionsGet(ctx context.Context, params TransactionsGet
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/transactions"
+	pathParts[0] = "/api/v1/transactions"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeQueryParams"
@@ -2547,7 +2547,7 @@ func (c *Client) sendTransactionsGet(ctx context.Context, params TransactionsGet
 		var satisfied bitset
 		{
 			stage = "Security:BearerAuth"
-			switch err := c.securityBearerAuth(ctx, TransactionsGetOperation, r); {
+			switch err := c.securityBearerAuth(ctx, APIV1TransactionsGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -2583,7 +2583,7 @@ func (c *Client) sendTransactionsGet(ctx context.Context, params TransactionsGet
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeTransactionsGetResponse(resp)
+	result, err := decodeAPIV1TransactionsGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -2591,21 +2591,21 @@ func (c *Client) sendTransactionsGet(ctx context.Context, params TransactionsGet
 	return result, nil
 }
 
-// TransactionsIDGet invokes GET /transactions/{id} operation.
+// APIV1TransactionsIDGet invokes GET /api/v1/transactions/{id} operation.
 //
 // - ADMIN: любая транзакция
 // - USER: только свои.
 //
-// GET /transactions/{id}
-func (c *Client) TransactionsIDGet(ctx context.Context, params TransactionsIDGetParams) (TransactionsIDGetRes, error) {
-	res, err := c.sendTransactionsIDGet(ctx, params)
+// GET /api/v1/transactions/{id}
+func (c *Client) APIV1TransactionsIDGet(ctx context.Context, params APIV1TransactionsIDGetParams) (APIV1TransactionsIDGetRes, error) {
+	res, err := c.sendAPIV1TransactionsIDGet(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendTransactionsIDGet(ctx context.Context, params TransactionsIDGetParams) (res TransactionsIDGetRes, err error) {
+func (c *Client) sendAPIV1TransactionsIDGet(ctx context.Context, params APIV1TransactionsIDGetParams) (res APIV1TransactionsIDGetRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/transactions/{id}"),
+		semconv.HTTPRouteKey.String("/api/v1/transactions/{id}"),
 	}
 
 	// Run stopwatch.
@@ -2620,7 +2620,7 @@ func (c *Client) sendTransactionsIDGet(ctx context.Context, params TransactionsI
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, TransactionsIDGetOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, APIV1TransactionsIDGetOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -2638,7 +2638,7 @@ func (c *Client) sendTransactionsIDGet(ctx context.Context, params TransactionsI
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [2]string
-	pathParts[0] = "/transactions/"
+	pathParts[0] = "/api/v1/transactions/"
 	{
 		// Encode "id" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -2670,7 +2670,7 @@ func (c *Client) sendTransactionsIDGet(ctx context.Context, params TransactionsI
 		var satisfied bitset
 		{
 			stage = "Security:BearerAuth"
-			switch err := c.securityBearerAuth(ctx, TransactionsIDGetOperation, r); {
+			switch err := c.securityBearerAuth(ctx, APIV1TransactionsIDGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -2706,7 +2706,7 @@ func (c *Client) sendTransactionsIDGet(ctx context.Context, params TransactionsI
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeTransactionsIDGetResponse(resp)
+	result, err := decodeAPIV1TransactionsIDGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -2714,7 +2714,7 @@ func (c *Client) sendTransactionsIDGet(ctx context.Context, params TransactionsI
 	return result, nil
 }
 
-// TransactionsPost invokes POST /transactions operation.
+// APIV1TransactionsPost invokes POST /api/v1/transactions operation.
 //
 // Создаёт транзакцию (покупку) и проверяет её по всем
 // активным правилам антифрода.
@@ -2744,16 +2744,16 @@ func (c *Client) sendTransactionsIDGet(ctx context.Context, params TransactionsI
 // - 404: пользователь с указанным userId не найден
 // - 422: невалидные поля (amount <= 0, некорректная валюта и т.д.).
 //
-// POST /transactions
-func (c *Client) TransactionsPost(ctx context.Context, request *TransactionCreateRequest) (TransactionsPostRes, error) {
-	res, err := c.sendTransactionsPost(ctx, request)
+// POST /api/v1/transactions
+func (c *Client) APIV1TransactionsPost(ctx context.Context, request *TransactionCreateRequest) (APIV1TransactionsPostRes, error) {
+	res, err := c.sendAPIV1TransactionsPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendTransactionsPost(ctx context.Context, request *TransactionCreateRequest) (res TransactionsPostRes, err error) {
+func (c *Client) sendAPIV1TransactionsPost(ctx context.Context, request *TransactionCreateRequest) (res APIV1TransactionsPostRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/transactions"),
+		semconv.HTTPRouteKey.String("/api/v1/transactions"),
 	}
 
 	// Run stopwatch.
@@ -2768,7 +2768,7 @@ func (c *Client) sendTransactionsPost(ctx context.Context, request *TransactionC
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, TransactionsPostOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, APIV1TransactionsPostOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -2786,7 +2786,7 @@ func (c *Client) sendTransactionsPost(ctx context.Context, request *TransactionC
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/transactions"
+	pathParts[0] = "/api/v1/transactions"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
@@ -2794,7 +2794,7 @@ func (c *Client) sendTransactionsPost(ctx context.Context, request *TransactionC
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeTransactionsPostRequest(request, r); err != nil {
+	if err := encodeAPIV1TransactionsPostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -2803,7 +2803,7 @@ func (c *Client) sendTransactionsPost(ctx context.Context, request *TransactionC
 		var satisfied bitset
 		{
 			stage = "Security:BearerAuth"
-			switch err := c.securityBearerAuth(ctx, TransactionsPostOperation, r); {
+			switch err := c.securityBearerAuth(ctx, APIV1TransactionsPostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -2839,7 +2839,7 @@ func (c *Client) sendTransactionsPost(ctx context.Context, request *TransactionC
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeTransactionsPostResponse(resp)
+	result, err := decodeAPIV1TransactionsPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -2847,23 +2847,23 @@ func (c *Client) sendTransactionsPost(ctx context.Context, request *TransactionC
 	return result, nil
 }
 
-// UsersGet invokes GET /users operation.
+// APIV1UsersGet invokes GET /api/v1/users operation.
 //
 // Только ADMIN.
 // Сценарии:
 // - 200: страница пользователей
 // - 422: некорректные page/size.
 //
-// GET /users
-func (c *Client) UsersGet(ctx context.Context, params UsersGetParams) (UsersGetRes, error) {
-	res, err := c.sendUsersGet(ctx, params)
+// GET /api/v1/users
+func (c *Client) APIV1UsersGet(ctx context.Context, params APIV1UsersGetParams) (APIV1UsersGetRes, error) {
+	res, err := c.sendAPIV1UsersGet(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendUsersGet(ctx context.Context, params UsersGetParams) (res UsersGetRes, err error) {
+func (c *Client) sendAPIV1UsersGet(ctx context.Context, params APIV1UsersGetParams) (res APIV1UsersGetRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/users"),
+		semconv.HTTPRouteKey.String("/api/v1/users"),
 	}
 
 	// Run stopwatch.
@@ -2878,7 +2878,7 @@ func (c *Client) sendUsersGet(ctx context.Context, params UsersGetParams) (res U
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, UsersGetOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, APIV1UsersGetOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -2896,7 +2896,7 @@ func (c *Client) sendUsersGet(ctx context.Context, params UsersGetParams) (res U
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/users"
+	pathParts[0] = "/api/v1/users"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeQueryParams"
@@ -2948,7 +2948,7 @@ func (c *Client) sendUsersGet(ctx context.Context, params UsersGetParams) (res U
 		var satisfied bitset
 		{
 			stage = "Security:BearerAuth"
-			switch err := c.securityBearerAuth(ctx, UsersGetOperation, r); {
+			switch err := c.securityBearerAuth(ctx, APIV1UsersGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -2984,7 +2984,7 @@ func (c *Client) sendUsersGet(ctx context.Context, params UsersGetParams) (res U
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeUsersGetResponse(resp)
+	result, err := decodeAPIV1UsersGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -2992,7 +2992,7 @@ func (c *Client) sendUsersGet(ctx context.Context, params UsersGetParams) (res U
 	return result, nil
 }
 
-// UsersIDDelete invokes DELETE /users/{id} operation.
+// APIV1UsersIDDelete invokes DELETE /api/v1/users/{id} operation.
 //
 // **Важно:** Это soft-delete. Пользователь НЕ удаляется
 // физически из базы данных,
@@ -3010,16 +3010,16 @@ func (c *Client) sendUsersGet(ctx context.Context, params UsersGetParams) (res U
 // **Восстановление:**
 // - ADMIN может снова активировать через PUT /users/{id} с isActive=true.
 //
-// DELETE /users/{id}
-func (c *Client) UsersIDDelete(ctx context.Context, params UsersIDDeleteParams) (UsersIDDeleteRes, error) {
-	res, err := c.sendUsersIDDelete(ctx, params)
+// DELETE /api/v1/users/{id}
+func (c *Client) APIV1UsersIDDelete(ctx context.Context, params APIV1UsersIDDeleteParams) (APIV1UsersIDDeleteRes, error) {
+	res, err := c.sendAPIV1UsersIDDelete(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendUsersIDDelete(ctx context.Context, params UsersIDDeleteParams) (res UsersIDDeleteRes, err error) {
+func (c *Client) sendAPIV1UsersIDDelete(ctx context.Context, params APIV1UsersIDDeleteParams) (res APIV1UsersIDDeleteRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("DELETE"),
-		semconv.HTTPRouteKey.String("/users/{id}"),
+		semconv.HTTPRouteKey.String("/api/v1/users/{id}"),
 	}
 
 	// Run stopwatch.
@@ -3034,7 +3034,7 @@ func (c *Client) sendUsersIDDelete(ctx context.Context, params UsersIDDeletePara
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, UsersIDDeleteOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, APIV1UsersIDDeleteOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -3052,7 +3052,7 @@ func (c *Client) sendUsersIDDelete(ctx context.Context, params UsersIDDeletePara
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [2]string
-	pathParts[0] = "/users/"
+	pathParts[0] = "/api/v1/users/"
 	{
 		// Encode "id" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -3084,7 +3084,7 @@ func (c *Client) sendUsersIDDelete(ctx context.Context, params UsersIDDeletePara
 		var satisfied bitset
 		{
 			stage = "Security:BearerAuth"
-			switch err := c.securityBearerAuth(ctx, UsersIDDeleteOperation, r); {
+			switch err := c.securityBearerAuth(ctx, APIV1UsersIDDeleteOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -3120,7 +3120,7 @@ func (c *Client) sendUsersIDDelete(ctx context.Context, params UsersIDDeletePara
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeUsersIDDeleteResponse(resp)
+	result, err := decodeAPIV1UsersIDDeleteResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -3128,7 +3128,7 @@ func (c *Client) sendUsersIDDelete(ctx context.Context, params UsersIDDeletePara
 	return result, nil
 }
 
-// UsersIDGet invokes GET /users/{id} operation.
+// APIV1UsersIDGet invokes GET /api/v1/users/{id} operation.
 //
 // Доступ:
 // - ADMIN: любой пользователь
@@ -3138,16 +3138,16 @@ func (c *Client) sendUsersIDDelete(ctx context.Context, params UsersIDDeletePara
 // - 403: попытка USER прочитать чужой профиль
 // - 404: не найден.
 //
-// GET /users/{id}
-func (c *Client) UsersIDGet(ctx context.Context, params UsersIDGetParams) (UsersIDGetRes, error) {
-	res, err := c.sendUsersIDGet(ctx, params)
+// GET /api/v1/users/{id}
+func (c *Client) APIV1UsersIDGet(ctx context.Context, params APIV1UsersIDGetParams) (APIV1UsersIDGetRes, error) {
+	res, err := c.sendAPIV1UsersIDGet(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendUsersIDGet(ctx context.Context, params UsersIDGetParams) (res UsersIDGetRes, err error) {
+func (c *Client) sendAPIV1UsersIDGet(ctx context.Context, params APIV1UsersIDGetParams) (res APIV1UsersIDGetRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/users/{id}"),
+		semconv.HTTPRouteKey.String("/api/v1/users/{id}"),
 	}
 
 	// Run stopwatch.
@@ -3162,7 +3162,7 @@ func (c *Client) sendUsersIDGet(ctx context.Context, params UsersIDGetParams) (r
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, UsersIDGetOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, APIV1UsersIDGetOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -3180,7 +3180,7 @@ func (c *Client) sendUsersIDGet(ctx context.Context, params UsersIDGetParams) (r
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [2]string
-	pathParts[0] = "/users/"
+	pathParts[0] = "/api/v1/users/"
 	{
 		// Encode "id" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -3212,7 +3212,7 @@ func (c *Client) sendUsersIDGet(ctx context.Context, params UsersIDGetParams) (r
 		var satisfied bitset
 		{
 			stage = "Security:BearerAuth"
-			switch err := c.securityBearerAuth(ctx, UsersIDGetOperation, r); {
+			switch err := c.securityBearerAuth(ctx, APIV1UsersIDGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -3248,7 +3248,7 @@ func (c *Client) sendUsersIDGet(ctx context.Context, params UsersIDGetParams) (r
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeUsersIDGetResponse(resp)
+	result, err := decodeAPIV1UsersIDGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -3256,7 +3256,7 @@ func (c *Client) sendUsersIDGet(ctx context.Context, params UsersIDGetParams) (r
 	return result, nil
 }
 
-// UsersIDPut invokes PUT /users/{id} operation.
+// APIV1UsersIDPut invokes PUT /api/v1/users/{id} operation.
 //
 // Полное обновление профиля. Необходимо передать все
 // поля.
@@ -3277,16 +3277,16 @@ func (c *Client) sendUsersIDGet(ctx context.Context, params UsersIDGetParams) (r
 // - region: до 32 символов или null
 // - email изменить нельзя (игнорируется, если передан).
 //
-// PUT /users/{id}
-func (c *Client) UsersIDPut(ctx context.Context, request *UserUpdateRequest, params UsersIDPutParams) (UsersIDPutRes, error) {
-	res, err := c.sendUsersIDPut(ctx, request, params)
+// PUT /api/v1/users/{id}
+func (c *Client) APIV1UsersIDPut(ctx context.Context, request *UserUpdateRequest, params APIV1UsersIDPutParams) (APIV1UsersIDPutRes, error) {
+	res, err := c.sendAPIV1UsersIDPut(ctx, request, params)
 	return res, err
 }
 
-func (c *Client) sendUsersIDPut(ctx context.Context, request *UserUpdateRequest, params UsersIDPutParams) (res UsersIDPutRes, err error) {
+func (c *Client) sendAPIV1UsersIDPut(ctx context.Context, request *UserUpdateRequest, params APIV1UsersIDPutParams) (res APIV1UsersIDPutRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("PUT"),
-		semconv.HTTPRouteKey.String("/users/{id}"),
+		semconv.HTTPRouteKey.String("/api/v1/users/{id}"),
 	}
 
 	// Run stopwatch.
@@ -3301,7 +3301,7 @@ func (c *Client) sendUsersIDPut(ctx context.Context, request *UserUpdateRequest,
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, UsersIDPutOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, APIV1UsersIDPutOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -3319,7 +3319,7 @@ func (c *Client) sendUsersIDPut(ctx context.Context, request *UserUpdateRequest,
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [2]string
-	pathParts[0] = "/users/"
+	pathParts[0] = "/api/v1/users/"
 	{
 		// Encode "id" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -3345,7 +3345,7 @@ func (c *Client) sendUsersIDPut(ctx context.Context, request *UserUpdateRequest,
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeUsersIDPutRequest(request, r); err != nil {
+	if err := encodeAPIV1UsersIDPutRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -3354,7 +3354,7 @@ func (c *Client) sendUsersIDPut(ctx context.Context, request *UserUpdateRequest,
 		var satisfied bitset
 		{
 			stage = "Security:BearerAuth"
-			switch err := c.securityBearerAuth(ctx, UsersIDPutOperation, r); {
+			switch err := c.securityBearerAuth(ctx, APIV1UsersIDPutOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -3390,7 +3390,7 @@ func (c *Client) sendUsersIDPut(ctx context.Context, request *UserUpdateRequest,
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeUsersIDPutResponse(resp)
+	result, err := decodeAPIV1UsersIDPutResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -3398,7 +3398,7 @@ func (c *Client) sendUsersIDPut(ctx context.Context, request *UserUpdateRequest,
 	return result, nil
 }
 
-// UsersMeGet invokes GET /users/me operation.
+// APIV1UsersMeGet invokes GET /api/v1/users/me operation.
 //
 // Возвращает профиль пользователя, определённого по JWT
 // токену.
@@ -3406,16 +3406,16 @@ func (c *Client) sendUsersIDPut(ctx context.Context, request *UserUpdateRequest,
 // своего ID.
 // Доступно для любой роли (ADMIN, USER).
 //
-// GET /users/me
-func (c *Client) UsersMeGet(ctx context.Context) (UsersMeGetRes, error) {
-	res, err := c.sendUsersMeGet(ctx)
+// GET /api/v1/users/me
+func (c *Client) APIV1UsersMeGet(ctx context.Context) (APIV1UsersMeGetRes, error) {
+	res, err := c.sendAPIV1UsersMeGet(ctx)
 	return res, err
 }
 
-func (c *Client) sendUsersMeGet(ctx context.Context) (res UsersMeGetRes, err error) {
+func (c *Client) sendAPIV1UsersMeGet(ctx context.Context) (res APIV1UsersMeGetRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/users/me"),
+		semconv.HTTPRouteKey.String("/api/v1/users/me"),
 	}
 
 	// Run stopwatch.
@@ -3430,7 +3430,7 @@ func (c *Client) sendUsersMeGet(ctx context.Context) (res UsersMeGetRes, err err
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, UsersMeGetOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, APIV1UsersMeGetOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -3448,7 +3448,7 @@ func (c *Client) sendUsersMeGet(ctx context.Context) (res UsersMeGetRes, err err
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/users/me"
+	pathParts[0] = "/api/v1/users/me"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
@@ -3462,7 +3462,7 @@ func (c *Client) sendUsersMeGet(ctx context.Context) (res UsersMeGetRes, err err
 		var satisfied bitset
 		{
 			stage = "Security:BearerAuth"
-			switch err := c.securityBearerAuth(ctx, UsersMeGetOperation, r); {
+			switch err := c.securityBearerAuth(ctx, APIV1UsersMeGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -3498,7 +3498,7 @@ func (c *Client) sendUsersMeGet(ctx context.Context) (res UsersMeGetRes, err err
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeUsersMeGetResponse(resp)
+	result, err := decodeAPIV1UsersMeGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -3506,7 +3506,7 @@ func (c *Client) sendUsersMeGet(ctx context.Context) (res UsersMeGetRes, err err
 	return result, nil
 }
 
-// UsersMePut invokes PUT /users/me operation.
+// APIV1UsersMePut invokes PUT /api/v1/users/me operation.
 //
 // Полное обновление профиля текущего пользователя.
 // Необходимо передать все поля. Чтобы очистить поле,
@@ -3520,16 +3520,16 @@ func (c *Client) sendUsersMeGet(ctx context.Context) (res UsersMeGetRes, err err
 // ADMIN может менять любые поля своего профиля, включая role
 // и isActive.
 //
-// PUT /users/me
-func (c *Client) UsersMePut(ctx context.Context, request *UserUpdateRequest) (UsersMePutRes, error) {
-	res, err := c.sendUsersMePut(ctx, request)
+// PUT /api/v1/users/me
+func (c *Client) APIV1UsersMePut(ctx context.Context, request *UserUpdateRequest) (APIV1UsersMePutRes, error) {
+	res, err := c.sendAPIV1UsersMePut(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendUsersMePut(ctx context.Context, request *UserUpdateRequest) (res UsersMePutRes, err error) {
+func (c *Client) sendAPIV1UsersMePut(ctx context.Context, request *UserUpdateRequest) (res APIV1UsersMePutRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("PUT"),
-		semconv.HTTPRouteKey.String("/users/me"),
+		semconv.HTTPRouteKey.String("/api/v1/users/me"),
 	}
 
 	// Run stopwatch.
@@ -3544,7 +3544,7 @@ func (c *Client) sendUsersMePut(ctx context.Context, request *UserUpdateRequest)
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, UsersMePutOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, APIV1UsersMePutOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -3562,7 +3562,7 @@ func (c *Client) sendUsersMePut(ctx context.Context, request *UserUpdateRequest)
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/users/me"
+	pathParts[0] = "/api/v1/users/me"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
@@ -3570,7 +3570,7 @@ func (c *Client) sendUsersMePut(ctx context.Context, request *UserUpdateRequest)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeUsersMePutRequest(request, r); err != nil {
+	if err := encodeAPIV1UsersMePutRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -3579,7 +3579,7 @@ func (c *Client) sendUsersMePut(ctx context.Context, request *UserUpdateRequest)
 		var satisfied bitset
 		{
 			stage = "Security:BearerAuth"
-			switch err := c.securityBearerAuth(ctx, UsersMePutOperation, r); {
+			switch err := c.securityBearerAuth(ctx, APIV1UsersMePutOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -3615,7 +3615,7 @@ func (c *Client) sendUsersMePut(ctx context.Context, request *UserUpdateRequest)
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeUsersMePutResponse(resp)
+	result, err := decodeAPIV1UsersMePutResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -3623,7 +3623,7 @@ func (c *Client) sendUsersMePut(ctx context.Context, request *UserUpdateRequest)
 	return result, nil
 }
 
-// UsersPost invokes POST /users operation.
+// APIV1UsersPost invokes POST /api/v1/users operation.
 //
 // Только ADMIN. В ответе нет токенов (создание "из админки").
 // Сценарии:
@@ -3632,16 +3632,16 @@ func (c *Client) sendUsersMePut(ctx context.Context, request *UserUpdateRequest)
 // - 422: не проходит валидация полей (пароль/роль/возраст
 // и т.д.).
 //
-// POST /users
-func (c *Client) UsersPost(ctx context.Context, request *UserCreateRequest) (UsersPostRes, error) {
-	res, err := c.sendUsersPost(ctx, request)
+// POST /api/v1/users
+func (c *Client) APIV1UsersPost(ctx context.Context, request *UserCreateRequest) (APIV1UsersPostRes, error) {
+	res, err := c.sendAPIV1UsersPost(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendUsersPost(ctx context.Context, request *UserCreateRequest) (res UsersPostRes, err error) {
+func (c *Client) sendAPIV1UsersPost(ctx context.Context, request *UserCreateRequest) (res APIV1UsersPostRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/users"),
+		semconv.HTTPRouteKey.String("/api/v1/users"),
 	}
 
 	// Run stopwatch.
@@ -3656,7 +3656,7 @@ func (c *Client) sendUsersPost(ctx context.Context, request *UserCreateRequest) 
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, UsersPostOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, APIV1UsersPostOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -3674,7 +3674,7 @@ func (c *Client) sendUsersPost(ctx context.Context, request *UserCreateRequest) 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/users"
+	pathParts[0] = "/api/v1/users"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
@@ -3682,7 +3682,7 @@ func (c *Client) sendUsersPost(ctx context.Context, request *UserCreateRequest) 
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeUsersPostRequest(request, r); err != nil {
+	if err := encodeAPIV1UsersPostRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -3691,7 +3691,7 @@ func (c *Client) sendUsersPost(ctx context.Context, request *UserCreateRequest) 
 		var satisfied bitset
 		{
 			stage = "Security:BearerAuth"
-			switch err := c.securityBearerAuth(ctx, UsersPostOperation, r); {
+			switch err := c.securityBearerAuth(ctx, APIV1UsersPostOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -3727,7 +3727,7 @@ func (c *Client) sendUsersPost(ctx context.Context, request *UserCreateRequest) 
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeUsersPostResponse(resp)
+	result, err := decodeAPIV1UsersPostResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}

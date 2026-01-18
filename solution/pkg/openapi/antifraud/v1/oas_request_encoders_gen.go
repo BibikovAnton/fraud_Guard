@@ -11,7 +11,7 @@ import (
 	ht "github.com/ogen-go/ogen/http"
 )
 
-func encodeAuthLoginPostRequest(
+func encodeAPIV1AuthLoginPostRequest(
 	req *LoginRequest,
 	r *http.Request,
 ) error {
@@ -25,7 +25,7 @@ func encodeAuthLoginPostRequest(
 	return nil
 }
 
-func encodeAuthRegisterPostRequest(
+func encodeAPIV1AuthRegisterPostRequest(
 	req *RegisterRequest,
 	r *http.Request,
 ) error {
@@ -39,7 +39,7 @@ func encodeAuthRegisterPostRequest(
 	return nil
 }
 
-func encodeFraudRulesIDPutRequest(
+func encodeAPIV1FraudRulesIDPutRequest(
 	req *FraudRuleUpdateRequest,
 	r *http.Request,
 ) error {
@@ -53,7 +53,7 @@ func encodeFraudRulesIDPutRequest(
 	return nil
 }
 
-func encodeFraudRulesPostRequest(
+func encodeAPIV1FraudRulesPostRequest(
 	req *FraudRuleCreateRequest,
 	r *http.Request,
 ) error {
@@ -67,7 +67,7 @@ func encodeFraudRulesPostRequest(
 	return nil
 }
 
-func encodeFraudRulesValidatePostRequest(
+func encodeAPIV1FraudRulesValidatePostRequest(
 	req *DslValidateRequest,
 	r *http.Request,
 ) error {
@@ -81,7 +81,7 @@ func encodeFraudRulesValidatePostRequest(
 	return nil
 }
 
-func encodeTransactionsBatchPostRequest(
+func encodeAPIV1TransactionsBatchPostRequest(
 	req *TransactionBatchCreateRequest,
 	r *http.Request,
 ) error {
@@ -95,7 +95,7 @@ func encodeTransactionsBatchPostRequest(
 	return nil
 }
 
-func encodeTransactionsPostRequest(
+func encodeAPIV1TransactionsPostRequest(
 	req *TransactionCreateRequest,
 	r *http.Request,
 ) error {
@@ -109,7 +109,7 @@ func encodeTransactionsPostRequest(
 	return nil
 }
 
-func encodeUsersIDPutRequest(
+func encodeAPIV1UsersIDPutRequest(
 	req *UserUpdateRequest,
 	r *http.Request,
 ) error {
@@ -123,7 +123,7 @@ func encodeUsersIDPutRequest(
 	return nil
 }
 
-func encodeUsersMePutRequest(
+func encodeAPIV1UsersMePutRequest(
 	req *UserUpdateRequest,
 	r *http.Request,
 ) error {
@@ -137,7 +137,7 @@ func encodeUsersMePutRequest(
 	return nil
 }
 
-func encodeUsersPostRequest(
+func encodeAPIV1UsersPostRequest(
 	req *UserCreateRequest,
 	r *http.Request,
 ) error {

@@ -17,13 +17,13 @@ import (
 	"github.com/ogen-go/ogen/validate"
 )
 
-// FraudRulesIDDeleteParams is parameters of DELETE /fraud-rules/{id} operation.
-type FraudRulesIDDeleteParams struct {
+// APIV1FraudRulesIDDeleteParams is parameters of DELETE /api/v1/fraud-rules/{id} operation.
+type APIV1FraudRulesIDDeleteParams struct {
 	// Идентификатор правила (UUID).
 	ID uuid.UUID
 }
 
-func unpackFraudRulesIDDeleteParams(packed middleware.Parameters) (params FraudRulesIDDeleteParams) {
+func unpackAPIV1FraudRulesIDDeleteParams(packed middleware.Parameters) (params APIV1FraudRulesIDDeleteParams) {
 	{
 		key := middleware.ParameterKey{
 			Name: "id",
@@ -34,7 +34,7 @@ func unpackFraudRulesIDDeleteParams(packed middleware.Parameters) (params FraudR
 	return params
 }
 
-func decodeFraudRulesIDDeleteParams(args [1]string, argsEscaped bool, r *http.Request) (params FraudRulesIDDeleteParams, _ error) {
+func decodeAPIV1FraudRulesIDDeleteParams(args [1]string, argsEscaped bool, r *http.Request) (params APIV1FraudRulesIDDeleteParams, _ error) {
 	// Decode path: id.
 	if err := func() error {
 		param := args[0]
@@ -83,13 +83,13 @@ func decodeFraudRulesIDDeleteParams(args [1]string, argsEscaped bool, r *http.Re
 	return params, nil
 }
 
-// FraudRulesIDGetParams is parameters of GET /fraud-rules/{id} operation.
-type FraudRulesIDGetParams struct {
+// APIV1FraudRulesIDGetParams is parameters of GET /api/v1/fraud-rules/{id} operation.
+type APIV1FraudRulesIDGetParams struct {
 	// Идентификатор правила (UUID).
 	ID uuid.UUID
 }
 
-func unpackFraudRulesIDGetParams(packed middleware.Parameters) (params FraudRulesIDGetParams) {
+func unpackAPIV1FraudRulesIDGetParams(packed middleware.Parameters) (params APIV1FraudRulesIDGetParams) {
 	{
 		key := middleware.ParameterKey{
 			Name: "id",
@@ -100,7 +100,7 @@ func unpackFraudRulesIDGetParams(packed middleware.Parameters) (params FraudRule
 	return params
 }
 
-func decodeFraudRulesIDGetParams(args [1]string, argsEscaped bool, r *http.Request) (params FraudRulesIDGetParams, _ error) {
+func decodeAPIV1FraudRulesIDGetParams(args [1]string, argsEscaped bool, r *http.Request) (params APIV1FraudRulesIDGetParams, _ error) {
 	// Decode path: id.
 	if err := func() error {
 		param := args[0]
@@ -149,13 +149,13 @@ func decodeFraudRulesIDGetParams(args [1]string, argsEscaped bool, r *http.Reque
 	return params, nil
 }
 
-// FraudRulesIDPutParams is parameters of PUT /fraud-rules/{id} operation.
-type FraudRulesIDPutParams struct {
+// APIV1FraudRulesIDPutParams is parameters of PUT /api/v1/fraud-rules/{id} operation.
+type APIV1FraudRulesIDPutParams struct {
 	// Идентификатор правила (UUID).
 	ID uuid.UUID
 }
 
-func unpackFraudRulesIDPutParams(packed middleware.Parameters) (params FraudRulesIDPutParams) {
+func unpackAPIV1FraudRulesIDPutParams(packed middleware.Parameters) (params APIV1FraudRulesIDPutParams) {
 	{
 		key := middleware.ParameterKey{
 			Name: "id",
@@ -166,7 +166,7 @@ func unpackFraudRulesIDPutParams(packed middleware.Parameters) (params FraudRule
 	return params
 }
 
-func decodeFraudRulesIDPutParams(args [1]string, argsEscaped bool, r *http.Request) (params FraudRulesIDPutParams, _ error) {
+func decodeAPIV1FraudRulesIDPutParams(args [1]string, argsEscaped bool, r *http.Request) (params APIV1FraudRulesIDPutParams, _ error) {
 	// Decode path: id.
 	if err := func() error {
 		param := args[0]
@@ -215,8 +215,8 @@ func decodeFraudRulesIDPutParams(args [1]string, argsEscaped bool, r *http.Reque
 	return params, nil
 }
 
-// StatsMerchantsRiskGetParams is parameters of GET /stats/merchants/risk operation.
-type StatsMerchantsRiskGetParams struct {
+// APIV1StatsMerchantsRiskGetParams is parameters of GET /api/v1/stats/merchants/risk operation.
+type APIV1StatsMerchantsRiskGetParams struct {
 	// Начало периода (RFC3339, включительно).
 	// **Валидация:**
 	// - Должен быть меньше `to` (иначе 422)
@@ -237,7 +237,7 @@ type StatsMerchantsRiskGetParams struct {
 	Top                  OptInt
 }
 
-func unpackStatsMerchantsRiskGetParams(packed middleware.Parameters) (params StatsMerchantsRiskGetParams) {
+func unpackAPIV1StatsMerchantsRiskGetParams(packed middleware.Parameters) (params APIV1StatsMerchantsRiskGetParams) {
 	{
 		key := middleware.ParameterKey{
 			Name: "from",
@@ -277,7 +277,7 @@ func unpackStatsMerchantsRiskGetParams(packed middleware.Parameters) (params Sta
 	return params
 }
 
-func decodeStatsMerchantsRiskGetParams(args [0]string, argsEscaped bool, r *http.Request) (params StatsMerchantsRiskGetParams, _ error) {
+func decodeAPIV1StatsMerchantsRiskGetParams(args [0]string, argsEscaped bool, r *http.Request) (params APIV1StatsMerchantsRiskGetParams, _ error) {
 	q := uri.NewQueryDecoder(r.URL.Query())
 	// Decode query: from.
 	if err := func() error {
@@ -498,8 +498,8 @@ func decodeStatsMerchantsRiskGetParams(args [0]string, argsEscaped bool, r *http
 	return params, nil
 }
 
-// StatsOverviewGetParams is parameters of GET /stats/overview operation.
-type StatsOverviewGetParams struct {
+// APIV1StatsOverviewGetParams is parameters of GET /api/v1/stats/overview operation.
+type APIV1StatsOverviewGetParams struct {
 	// Начало периода (RFC3339, включительно).
 	// **Валидация:**
 	// - Должен быть меньше `to` (иначе 422)
@@ -520,7 +520,7 @@ type StatsOverviewGetParams struct {
 	Timezone OptString
 }
 
-func unpackStatsOverviewGetParams(packed middleware.Parameters) (params StatsOverviewGetParams) {
+func unpackAPIV1StatsOverviewGetParams(packed middleware.Parameters) (params APIV1StatsOverviewGetParams) {
 	{
 		key := middleware.ParameterKey{
 			Name: "from",
@@ -551,7 +551,7 @@ func unpackStatsOverviewGetParams(packed middleware.Parameters) (params StatsOve
 	return params
 }
 
-func decodeStatsOverviewGetParams(args [0]string, argsEscaped bool, r *http.Request) (params StatsOverviewGetParams, _ error) {
+func decodeAPIV1StatsOverviewGetParams(args [0]string, argsEscaped bool, r *http.Request) (params APIV1StatsOverviewGetParams, _ error) {
 	q := uri.NewQueryDecoder(r.URL.Query())
 	// Decode query: from.
 	if err := func() error {
@@ -684,8 +684,8 @@ func decodeStatsOverviewGetParams(args [0]string, argsEscaped bool, r *http.Requ
 	return params, nil
 }
 
-// StatsRulesMatchesGetParams is parameters of GET /stats/rules/matches operation.
-type StatsRulesMatchesGetParams struct {
+// APIV1StatsRulesMatchesGetParams is parameters of GET /api/v1/stats/rules/matches operation.
+type APIV1StatsRulesMatchesGetParams struct {
 	// Начало периода (RFC3339, включительно).
 	// **Валидация:**
 	// - Должен быть меньше `to` (иначе 422)
@@ -706,7 +706,7 @@ type StatsRulesMatchesGetParams struct {
 	Top OptInt
 }
 
-func unpackStatsRulesMatchesGetParams(packed middleware.Parameters) (params StatsRulesMatchesGetParams) {
+func unpackAPIV1StatsRulesMatchesGetParams(packed middleware.Parameters) (params APIV1StatsRulesMatchesGetParams) {
 	{
 		key := middleware.ParameterKey{
 			Name: "from",
@@ -737,7 +737,7 @@ func unpackStatsRulesMatchesGetParams(packed middleware.Parameters) (params Stat
 	return params
 }
 
-func decodeStatsRulesMatchesGetParams(args [0]string, argsEscaped bool, r *http.Request) (params StatsRulesMatchesGetParams, _ error) {
+func decodeAPIV1StatsRulesMatchesGetParams(args [0]string, argsEscaped bool, r *http.Request) (params APIV1StatsRulesMatchesGetParams, _ error) {
 	q := uri.NewQueryDecoder(r.URL.Query())
 	// Decode query: from.
 	if err := func() error {
@@ -894,8 +894,8 @@ func decodeStatsRulesMatchesGetParams(args [0]string, argsEscaped bool, r *http.
 	return params, nil
 }
 
-// StatsTransactionsTimeseriesGetParams is parameters of GET /stats/transactions/timeseries operation.
-type StatsTransactionsTimeseriesGetParams struct {
+// APIV1StatsTransactionsTimeseriesGetParams is parameters of GET /api/v1/stats/transactions/timeseries operation.
+type APIV1StatsTransactionsTimeseriesGetParams struct {
 	// Начало периода (RFC3339, включительно).
 	// **Валидация:**
 	// - Должен быть меньше `to` (иначе 422)
@@ -919,7 +919,7 @@ type StatsTransactionsTimeseriesGetParams struct {
 	Channel OptTransactionChannel
 }
 
-func unpackStatsTransactionsTimeseriesGetParams(packed middleware.Parameters) (params StatsTransactionsTimeseriesGetParams) {
+func unpackAPIV1StatsTransactionsTimeseriesGetParams(packed middleware.Parameters) (params APIV1StatsTransactionsTimeseriesGetParams) {
 	{
 		key := middleware.ParameterKey{
 			Name: "from",
@@ -968,7 +968,7 @@ func unpackStatsTransactionsTimeseriesGetParams(packed middleware.Parameters) (p
 	return params
 }
 
-func decodeStatsTransactionsTimeseriesGetParams(args [0]string, argsEscaped bool, r *http.Request) (params StatsTransactionsTimeseriesGetParams, _ error) {
+func decodeAPIV1StatsTransactionsTimeseriesGetParams(args [0]string, argsEscaped bool, r *http.Request) (params APIV1StatsTransactionsTimeseriesGetParams, _ error) {
 	q := uri.NewQueryDecoder(r.URL.Query())
 	// Decode query: from.
 	if err := func() error {
@@ -1218,13 +1218,13 @@ func decodeStatsTransactionsTimeseriesGetParams(args [0]string, argsEscaped bool
 	return params, nil
 }
 
-// StatsUsersIDRiskProfileGetParams is parameters of GET /stats/users/{id}/risk-profile operation.
-type StatsUsersIDRiskProfileGetParams struct {
+// APIV1StatsUsersIDRiskProfileGetParams is parameters of GET /api/v1/stats/users/{id}/risk-profile operation.
+type APIV1StatsUsersIDRiskProfileGetParams struct {
 	// Идентификатор пользователя (UUID).
 	ID uuid.UUID
 }
 
-func unpackStatsUsersIDRiskProfileGetParams(packed middleware.Parameters) (params StatsUsersIDRiskProfileGetParams) {
+func unpackAPIV1StatsUsersIDRiskProfileGetParams(packed middleware.Parameters) (params APIV1StatsUsersIDRiskProfileGetParams) {
 	{
 		key := middleware.ParameterKey{
 			Name: "id",
@@ -1235,7 +1235,7 @@ func unpackStatsUsersIDRiskProfileGetParams(packed middleware.Parameters) (param
 	return params
 }
 
-func decodeStatsUsersIDRiskProfileGetParams(args [1]string, argsEscaped bool, r *http.Request) (params StatsUsersIDRiskProfileGetParams, _ error) {
+func decodeAPIV1StatsUsersIDRiskProfileGetParams(args [1]string, argsEscaped bool, r *http.Request) (params APIV1StatsUsersIDRiskProfileGetParams, _ error) {
 	// Decode path: id.
 	if err := func() error {
 		param := args[0]
@@ -1284,8 +1284,8 @@ func decodeStatsUsersIDRiskProfileGetParams(args [1]string, argsEscaped bool, r 
 	return params, nil
 }
 
-// TransactionsGetParams is parameters of GET /transactions operation.
-type TransactionsGetParams struct {
+// APIV1TransactionsGetParams is parameters of GET /api/v1/transactions operation.
+type APIV1TransactionsGetParams struct {
 	// Фильтр по пользователю (только ADMIN).
 	UserId  OptUUID
 	Status  OptTransactionStatus
@@ -1310,7 +1310,7 @@ type TransactionsGetParams struct {
 	Size OptInt
 }
 
-func unpackTransactionsGetParams(packed middleware.Parameters) (params TransactionsGetParams) {
+func unpackAPIV1TransactionsGetParams(packed middleware.Parameters) (params APIV1TransactionsGetParams) {
 	{
 		key := middleware.ParameterKey{
 			Name: "userId",
@@ -1377,7 +1377,7 @@ func unpackTransactionsGetParams(packed middleware.Parameters) (params Transacti
 	return params
 }
 
-func decodeTransactionsGetParams(args [0]string, argsEscaped bool, r *http.Request) (params TransactionsGetParams, _ error) {
+func decodeAPIV1TransactionsGetParams(args [0]string, argsEscaped bool, r *http.Request) (params APIV1TransactionsGetParams, _ error) {
 	q := uri.NewQueryDecoder(r.URL.Query())
 	// Decode query: userId.
 	if err := func() error {
@@ -1742,13 +1742,13 @@ func decodeTransactionsGetParams(args [0]string, argsEscaped bool, r *http.Reque
 	return params, nil
 }
 
-// TransactionsIDGetParams is parameters of GET /transactions/{id} operation.
-type TransactionsIDGetParams struct {
+// APIV1TransactionsIDGetParams is parameters of GET /api/v1/transactions/{id} operation.
+type APIV1TransactionsIDGetParams struct {
 	// Идентификатор транзакции (UUID).
 	ID uuid.UUID
 }
 
-func unpackTransactionsIDGetParams(packed middleware.Parameters) (params TransactionsIDGetParams) {
+func unpackAPIV1TransactionsIDGetParams(packed middleware.Parameters) (params APIV1TransactionsIDGetParams) {
 	{
 		key := middleware.ParameterKey{
 			Name: "id",
@@ -1759,7 +1759,7 @@ func unpackTransactionsIDGetParams(packed middleware.Parameters) (params Transac
 	return params
 }
 
-func decodeTransactionsIDGetParams(args [1]string, argsEscaped bool, r *http.Request) (params TransactionsIDGetParams, _ error) {
+func decodeAPIV1TransactionsIDGetParams(args [1]string, argsEscaped bool, r *http.Request) (params APIV1TransactionsIDGetParams, _ error) {
 	// Decode path: id.
 	if err := func() error {
 		param := args[0]
@@ -1808,13 +1808,13 @@ func decodeTransactionsIDGetParams(args [1]string, argsEscaped bool, r *http.Req
 	return params, nil
 }
 
-// UsersGetParams is parameters of GET /users operation.
-type UsersGetParams struct {
+// APIV1UsersGetParams is parameters of GET /api/v1/users operation.
+type APIV1UsersGetParams struct {
 	Page OptInt
 	Size OptInt
 }
 
-func unpackUsersGetParams(packed middleware.Parameters) (params UsersGetParams) {
+func unpackAPIV1UsersGetParams(packed middleware.Parameters) (params APIV1UsersGetParams) {
 	{
 		key := middleware.ParameterKey{
 			Name: "page",
@@ -1836,7 +1836,7 @@ func unpackUsersGetParams(packed middleware.Parameters) (params UsersGetParams) 
 	return params
 }
 
-func decodeUsersGetParams(args [0]string, argsEscaped bool, r *http.Request) (params UsersGetParams, _ error) {
+func decodeAPIV1UsersGetParams(args [0]string, argsEscaped bool, r *http.Request) (params APIV1UsersGetParams, _ error) {
 	q := uri.NewQueryDecoder(r.URL.Query())
 	// Set default value for query: page.
 	{
@@ -1981,13 +1981,13 @@ func decodeUsersGetParams(args [0]string, argsEscaped bool, r *http.Request) (pa
 	return params, nil
 }
 
-// UsersIDDeleteParams is parameters of DELETE /users/{id} operation.
-type UsersIDDeleteParams struct {
+// APIV1UsersIDDeleteParams is parameters of DELETE /api/v1/users/{id} operation.
+type APIV1UsersIDDeleteParams struct {
 	// Идентификатор пользователя (UUID).
 	ID uuid.UUID
 }
 
-func unpackUsersIDDeleteParams(packed middleware.Parameters) (params UsersIDDeleteParams) {
+func unpackAPIV1UsersIDDeleteParams(packed middleware.Parameters) (params APIV1UsersIDDeleteParams) {
 	{
 		key := middleware.ParameterKey{
 			Name: "id",
@@ -1998,7 +1998,7 @@ func unpackUsersIDDeleteParams(packed middleware.Parameters) (params UsersIDDele
 	return params
 }
 
-func decodeUsersIDDeleteParams(args [1]string, argsEscaped bool, r *http.Request) (params UsersIDDeleteParams, _ error) {
+func decodeAPIV1UsersIDDeleteParams(args [1]string, argsEscaped bool, r *http.Request) (params APIV1UsersIDDeleteParams, _ error) {
 	// Decode path: id.
 	if err := func() error {
 		param := args[0]
@@ -2047,13 +2047,13 @@ func decodeUsersIDDeleteParams(args [1]string, argsEscaped bool, r *http.Request
 	return params, nil
 }
 
-// UsersIDGetParams is parameters of GET /users/{id} operation.
-type UsersIDGetParams struct {
+// APIV1UsersIDGetParams is parameters of GET /api/v1/users/{id} operation.
+type APIV1UsersIDGetParams struct {
 	// Идентификатор пользователя (UUID).
 	ID uuid.UUID
 }
 
-func unpackUsersIDGetParams(packed middleware.Parameters) (params UsersIDGetParams) {
+func unpackAPIV1UsersIDGetParams(packed middleware.Parameters) (params APIV1UsersIDGetParams) {
 	{
 		key := middleware.ParameterKey{
 			Name: "id",
@@ -2064,7 +2064,7 @@ func unpackUsersIDGetParams(packed middleware.Parameters) (params UsersIDGetPara
 	return params
 }
 
-func decodeUsersIDGetParams(args [1]string, argsEscaped bool, r *http.Request) (params UsersIDGetParams, _ error) {
+func decodeAPIV1UsersIDGetParams(args [1]string, argsEscaped bool, r *http.Request) (params APIV1UsersIDGetParams, _ error) {
 	// Decode path: id.
 	if err := func() error {
 		param := args[0]
@@ -2113,13 +2113,13 @@ func decodeUsersIDGetParams(args [1]string, argsEscaped bool, r *http.Request) (
 	return params, nil
 }
 
-// UsersIDPutParams is parameters of PUT /users/{id} operation.
-type UsersIDPutParams struct {
+// APIV1UsersIDPutParams is parameters of PUT /api/v1/users/{id} operation.
+type APIV1UsersIDPutParams struct {
 	// Идентификатор пользователя (UUID).
 	ID uuid.UUID
 }
 
-func unpackUsersIDPutParams(packed middleware.Parameters) (params UsersIDPutParams) {
+func unpackAPIV1UsersIDPutParams(packed middleware.Parameters) (params APIV1UsersIDPutParams) {
 	{
 		key := middleware.ParameterKey{
 			Name: "id",
@@ -2130,7 +2130,7 @@ func unpackUsersIDPutParams(packed middleware.Parameters) (params UsersIDPutPara
 	return params
 }
 
-func decodeUsersIDPutParams(args [1]string, argsEscaped bool, r *http.Request) (params UsersIDPutParams, _ error) {
+func decodeAPIV1UsersIDPutParams(args [1]string, argsEscaped bool, r *http.Request) (params APIV1UsersIDPutParams, _ error) {
 	// Decode path: id.
 	if err := func() error {
 		param := args[0]

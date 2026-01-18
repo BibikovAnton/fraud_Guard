@@ -29,7 +29,7 @@ func (c *codeRecorder) WriteHeader(status int) {
 	c.ResponseWriter.WriteHeader(status)
 }
 
-// handleAuthLoginPostRequest handles POST /auth/login operation.
+// handleAPIV1AuthLoginPostRequest handles POST /api/v1/auth/login operation.
 //
 // Сценарии:
 // - 200: корректные credentials => accessToken.
@@ -38,17 +38,17 @@ func (c *codeRecorder) WriteHeader(status int) {
 // - 423: пользователь деактивирован (isActive=false).
 // - 422: формат email/пароля невалиден.
 //
-// POST /auth/login
-func (s *Server) handleAuthLoginPostRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+// POST /api/v1/auth/login
+func (s *Server) handleAPIV1AuthLoginPostRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/auth/login"),
+		semconv.HTTPRouteKey.String("/api/v1/auth/login"),
 	}
 
 	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), AuthLoginPostOperation,
+	ctx, span := s.cfg.Tracer.Start(r.Context(), APIV1AuthLoginPostOperation,
 		trace.WithAttributes(otelAttrs...),
 		serverSpanKind,
 	)
@@ -103,11 +103,11 @@ func (s *Server) handleAuthLoginPostRequest(args [0]string, argsEscaped bool, w 
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
-			Name: AuthLoginPostOperation,
+			Name: APIV1AuthLoginPostOperation,
 			ID:   "",
 		}
 	)
-	request, close, err := s.decodeAuthLoginPostRequest(r)
+	request, close, err := s.decodeAPIV1AuthLoginPostRequest(r)
 	if err != nil {
 		err = &ogenerrors.DecodeRequestError{
 			OperationContext: opErrContext,
@@ -123,11 +123,11 @@ func (s *Server) handleAuthLoginPostRequest(args [0]string, argsEscaped bool, w 
 		}
 	}()
 
-	var response AuthLoginPostRes
+	var response APIV1AuthLoginPostRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
-			OperationName:    AuthLoginPostOperation,
+			OperationName:    APIV1AuthLoginPostOperation,
 			OperationSummary: "Авторизация пользователя",
 			OperationID:      "",
 			Body:             request,
@@ -138,7 +138,7 @@ func (s *Server) handleAuthLoginPostRequest(args [0]string, argsEscaped bool, w 
 		type (
 			Request  = *LoginRequest
 			Params   = struct{}
-			Response = AuthLoginPostRes
+			Response = APIV1AuthLoginPostRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -149,12 +149,12 @@ func (s *Server) handleAuthLoginPostRequest(args [0]string, argsEscaped bool, w 
 			mreq,
 			nil,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.AuthLoginPost(ctx, request)
+				response, err = s.h.APIV1AuthLoginPost(ctx, request)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.AuthLoginPost(ctx, request)
+		response, err = s.h.APIV1AuthLoginPost(ctx, request)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -162,7 +162,7 @@ func (s *Server) handleAuthLoginPostRequest(args [0]string, argsEscaped bool, w 
 		return
 	}
 
-	if err := encodeAuthLoginPostResponse(response, w, span); err != nil {
+	if err := encodeAPIV1AuthLoginPostResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)
@@ -171,7 +171,7 @@ func (s *Server) handleAuthLoginPostRequest(args [0]string, argsEscaped bool, w 
 	}
 }
 
-// handleAuthRegisterPostRequest handles POST /auth/register operation.
+// handleAPIV1AuthRegisterPostRequest handles POST /api/v1/auth/register operation.
 //
 // Сценарии:
 // - 201: пользователь создан, роль USER по умолчанию,
@@ -179,17 +179,17 @@ func (s *Server) handleAuthLoginPostRequest(args [0]string, argsEscaped bool, w 
 // - 409: email уже используется.
 // - 422: не проходит валидация (email, пароль, возраст и т.д.).
 //
-// POST /auth/register
-func (s *Server) handleAuthRegisterPostRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+// POST /api/v1/auth/register
+func (s *Server) handleAPIV1AuthRegisterPostRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/auth/register"),
+		semconv.HTTPRouteKey.String("/api/v1/auth/register"),
 	}
 
 	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), AuthRegisterPostOperation,
+	ctx, span := s.cfg.Tracer.Start(r.Context(), APIV1AuthRegisterPostOperation,
 		trace.WithAttributes(otelAttrs...),
 		serverSpanKind,
 	)
@@ -244,11 +244,11 @@ func (s *Server) handleAuthRegisterPostRequest(args [0]string, argsEscaped bool,
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
-			Name: AuthRegisterPostOperation,
+			Name: APIV1AuthRegisterPostOperation,
 			ID:   "",
 		}
 	)
-	request, close, err := s.decodeAuthRegisterPostRequest(r)
+	request, close, err := s.decodeAPIV1AuthRegisterPostRequest(r)
 	if err != nil {
 		err = &ogenerrors.DecodeRequestError{
 			OperationContext: opErrContext,
@@ -264,11 +264,11 @@ func (s *Server) handleAuthRegisterPostRequest(args [0]string, argsEscaped bool,
 		}
 	}()
 
-	var response AuthRegisterPostRes
+	var response APIV1AuthRegisterPostRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
-			OperationName:    AuthRegisterPostOperation,
+			OperationName:    APIV1AuthRegisterPostOperation,
 			OperationSummary: "Регистрация нового пользователя",
 			OperationID:      "",
 			Body:             request,
@@ -279,7 +279,7 @@ func (s *Server) handleAuthRegisterPostRequest(args [0]string, argsEscaped bool,
 		type (
 			Request  = *RegisterRequest
 			Params   = struct{}
-			Response = AuthRegisterPostRes
+			Response = APIV1AuthRegisterPostRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -290,12 +290,12 @@ func (s *Server) handleAuthRegisterPostRequest(args [0]string, argsEscaped bool,
 			mreq,
 			nil,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.AuthRegisterPost(ctx, request)
+				response, err = s.h.APIV1AuthRegisterPost(ctx, request)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.AuthRegisterPost(ctx, request)
+		response, err = s.h.APIV1AuthRegisterPost(ctx, request)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -303,7 +303,7 @@ func (s *Server) handleAuthRegisterPostRequest(args [0]string, argsEscaped bool,
 		return
 	}
 
-	if err := encodeAuthRegisterPostResponse(response, w, span); err != nil {
+	if err := encodeAPIV1AuthRegisterPostResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)
@@ -312,23 +312,23 @@ func (s *Server) handleAuthRegisterPostRequest(args [0]string, argsEscaped bool,
 	}
 }
 
-// handleFraudRulesGetRequest handles GET /fraud-rules operation.
+// handleAPIV1FraudRulesGetRequest handles GET /api/v1/fraud-rules operation.
 //
 // Только ADMIN.
 // Сценарии:
 // - 200: список правил.
 //
-// GET /fraud-rules
-func (s *Server) handleFraudRulesGetRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+// GET /api/v1/fraud-rules
+func (s *Server) handleAPIV1FraudRulesGetRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/fraud-rules"),
+		semconv.HTTPRouteKey.String("/api/v1/fraud-rules"),
 	}
 
 	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), FraudRulesGetOperation,
+	ctx, span := s.cfg.Tracer.Start(r.Context(), APIV1FraudRulesGetOperation,
 		trace.WithAttributes(otelAttrs...),
 		serverSpanKind,
 	)
@@ -383,7 +383,7 @@ func (s *Server) handleFraudRulesGetRequest(args [0]string, argsEscaped bool, w 
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
-			Name: FraudRulesGetOperation,
+			Name: APIV1FraudRulesGetOperation,
 			ID:   "",
 		}
 	)
@@ -391,7 +391,7 @@ func (s *Server) handleFraudRulesGetRequest(args [0]string, argsEscaped bool, w 
 		type bitset = [1]uint8
 		var satisfied bitset
 		{
-			sctx, ok, err := s.securityBearerAuth(ctx, FraudRulesGetOperation, r)
+			sctx, ok, err := s.securityBearerAuth(ctx, APIV1FraudRulesGetOperation, r)
 			if err != nil {
 				err = &ogenerrors.SecurityError{
 					OperationContext: opErrContext,
@@ -432,11 +432,11 @@ func (s *Server) handleFraudRulesGetRequest(args [0]string, argsEscaped bool, w 
 		}
 	}
 
-	var response FraudRulesGetRes
+	var response APIV1FraudRulesGetRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
-			OperationName:    FraudRulesGetOperation,
+			OperationName:    APIV1FraudRulesGetOperation,
 			OperationSummary: "Список правил фрода",
 			OperationID:      "",
 			Body:             nil,
@@ -447,7 +447,7 @@ func (s *Server) handleFraudRulesGetRequest(args [0]string, argsEscaped bool, w 
 		type (
 			Request  = struct{}
 			Params   = struct{}
-			Response = FraudRulesGetRes
+			Response = APIV1FraudRulesGetRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -458,12 +458,12 @@ func (s *Server) handleFraudRulesGetRequest(args [0]string, argsEscaped bool, w 
 			mreq,
 			nil,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.FraudRulesGet(ctx)
+				response, err = s.h.APIV1FraudRulesGet(ctx)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.FraudRulesGet(ctx)
+		response, err = s.h.APIV1FraudRulesGet(ctx)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -471,7 +471,7 @@ func (s *Server) handleFraudRulesGetRequest(args [0]string, argsEscaped bool, w 
 		return
 	}
 
-	if err := encodeFraudRulesGetResponse(response, w, span); err != nil {
+	if err := encodeAPIV1FraudRulesGetResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)
@@ -480,7 +480,7 @@ func (s *Server) handleFraudRulesGetRequest(args [0]string, argsEscaped bool, w 
 	}
 }
 
-// handleFraudRulesIDDeleteRequest handles DELETE /fraud-rules/{id} operation.
+// handleAPIV1FraudRulesIDDeleteRequest handles DELETE /api/v1/fraud-rules/{id} operation.
 //
 // **Важно:** Это soft-delete. Правило НЕ удаляется физически из
 // базы данных,
@@ -499,17 +499,17 @@ func (s *Server) handleFraudRulesGetRequest(args [0]string, argsEscaped bool, w 
 // - ADMIN может снова активировать через PUT /fraud-rules/{id} с
 // enabled=true.
 //
-// DELETE /fraud-rules/{id}
-func (s *Server) handleFraudRulesIDDeleteRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+// DELETE /api/v1/fraud-rules/{id}
+func (s *Server) handleAPIV1FraudRulesIDDeleteRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("DELETE"),
-		semconv.HTTPRouteKey.String("/fraud-rules/{id}"),
+		semconv.HTTPRouteKey.String("/api/v1/fraud-rules/{id}"),
 	}
 
 	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), FraudRulesIDDeleteOperation,
+	ctx, span := s.cfg.Tracer.Start(r.Context(), APIV1FraudRulesIDDeleteOperation,
 		trace.WithAttributes(otelAttrs...),
 		serverSpanKind,
 	)
@@ -564,7 +564,7 @@ func (s *Server) handleFraudRulesIDDeleteRequest(args [1]string, argsEscaped boo
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
-			Name: FraudRulesIDDeleteOperation,
+			Name: APIV1FraudRulesIDDeleteOperation,
 			ID:   "",
 		}
 	)
@@ -572,7 +572,7 @@ func (s *Server) handleFraudRulesIDDeleteRequest(args [1]string, argsEscaped boo
 		type bitset = [1]uint8
 		var satisfied bitset
 		{
-			sctx, ok, err := s.securityBearerAuth(ctx, FraudRulesIDDeleteOperation, r)
+			sctx, ok, err := s.securityBearerAuth(ctx, APIV1FraudRulesIDDeleteOperation, r)
 			if err != nil {
 				err = &ogenerrors.SecurityError{
 					OperationContext: opErrContext,
@@ -612,7 +612,7 @@ func (s *Server) handleFraudRulesIDDeleteRequest(args [1]string, argsEscaped boo
 			return
 		}
 	}
-	params, err := decodeFraudRulesIDDeleteParams(args, argsEscaped, r)
+	params, err := decodeAPIV1FraudRulesIDDeleteParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -623,11 +623,11 @@ func (s *Server) handleFraudRulesIDDeleteRequest(args [1]string, argsEscaped boo
 		return
 	}
 
-	var response FraudRulesIDDeleteRes
+	var response APIV1FraudRulesIDDeleteRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
-			OperationName:    FraudRulesIDDeleteOperation,
+			OperationName:    APIV1FraudRulesIDDeleteOperation,
 			OperationSummary: "Деактивация правила фрода",
 			OperationID:      "",
 			Body:             nil,
@@ -642,8 +642,8 @@ func (s *Server) handleFraudRulesIDDeleteRequest(args [1]string, argsEscaped boo
 
 		type (
 			Request  = struct{}
-			Params   = FraudRulesIDDeleteParams
-			Response = FraudRulesIDDeleteRes
+			Params   = APIV1FraudRulesIDDeleteParams
+			Response = APIV1FraudRulesIDDeleteRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -652,14 +652,14 @@ func (s *Server) handleFraudRulesIDDeleteRequest(args [1]string, argsEscaped boo
 		](
 			m,
 			mreq,
-			unpackFraudRulesIDDeleteParams,
+			unpackAPIV1FraudRulesIDDeleteParams,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.FraudRulesIDDelete(ctx, params)
+				response, err = s.h.APIV1FraudRulesIDDelete(ctx, params)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.FraudRulesIDDelete(ctx, params)
+		response, err = s.h.APIV1FraudRulesIDDelete(ctx, params)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -667,7 +667,7 @@ func (s *Server) handleFraudRulesIDDeleteRequest(args [1]string, argsEscaped boo
 		return
 	}
 
-	if err := encodeFraudRulesIDDeleteResponse(response, w, span); err != nil {
+	if err := encodeAPIV1FraudRulesIDDeleteResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)
@@ -676,7 +676,7 @@ func (s *Server) handleFraudRulesIDDeleteRequest(args [1]string, argsEscaped boo
 	}
 }
 
-// handleFraudRulesIDGetRequest handles GET /fraud-rules/{id} operation.
+// handleAPIV1FraudRulesIDGetRequest handles GET /api/v1/fraud-rules/{id} operation.
 //
 // Возвращает полную информацию о правиле антифрода.
 // Только ADMIN имеет доступ к этому эндпоинту.
@@ -690,17 +690,17 @@ func (s *Server) handleFraudRulesIDDeleteRequest(args [1]string, argsEscaped boo
 // - priority: приоритет (меньше = выше, проверяется раньше)
 // - createdAt, updatedAt: временные метки.
 //
-// GET /fraud-rules/{id}
-func (s *Server) handleFraudRulesIDGetRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+// GET /api/v1/fraud-rules/{id}
+func (s *Server) handleAPIV1FraudRulesIDGetRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/fraud-rules/{id}"),
+		semconv.HTTPRouteKey.String("/api/v1/fraud-rules/{id}"),
 	}
 
 	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), FraudRulesIDGetOperation,
+	ctx, span := s.cfg.Tracer.Start(r.Context(), APIV1FraudRulesIDGetOperation,
 		trace.WithAttributes(otelAttrs...),
 		serverSpanKind,
 	)
@@ -755,7 +755,7 @@ func (s *Server) handleFraudRulesIDGetRequest(args [1]string, argsEscaped bool, 
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
-			Name: FraudRulesIDGetOperation,
+			Name: APIV1FraudRulesIDGetOperation,
 			ID:   "",
 		}
 	)
@@ -763,7 +763,7 @@ func (s *Server) handleFraudRulesIDGetRequest(args [1]string, argsEscaped bool, 
 		type bitset = [1]uint8
 		var satisfied bitset
 		{
-			sctx, ok, err := s.securityBearerAuth(ctx, FraudRulesIDGetOperation, r)
+			sctx, ok, err := s.securityBearerAuth(ctx, APIV1FraudRulesIDGetOperation, r)
 			if err != nil {
 				err = &ogenerrors.SecurityError{
 					OperationContext: opErrContext,
@@ -803,7 +803,7 @@ func (s *Server) handleFraudRulesIDGetRequest(args [1]string, argsEscaped bool, 
 			return
 		}
 	}
-	params, err := decodeFraudRulesIDGetParams(args, argsEscaped, r)
+	params, err := decodeAPIV1FraudRulesIDGetParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -814,11 +814,11 @@ func (s *Server) handleFraudRulesIDGetRequest(args [1]string, argsEscaped bool, 
 		return
 	}
 
-	var response FraudRulesIDGetRes
+	var response APIV1FraudRulesIDGetRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
-			OperationName:    FraudRulesIDGetOperation,
+			OperationName:    APIV1FraudRulesIDGetOperation,
 			OperationSummary: "Получить правило фрода по ID",
 			OperationID:      "",
 			Body:             nil,
@@ -833,8 +833,8 @@ func (s *Server) handleFraudRulesIDGetRequest(args [1]string, argsEscaped bool, 
 
 		type (
 			Request  = struct{}
-			Params   = FraudRulesIDGetParams
-			Response = FraudRulesIDGetRes
+			Params   = APIV1FraudRulesIDGetParams
+			Response = APIV1FraudRulesIDGetRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -843,14 +843,14 @@ func (s *Server) handleFraudRulesIDGetRequest(args [1]string, argsEscaped bool, 
 		](
 			m,
 			mreq,
-			unpackFraudRulesIDGetParams,
+			unpackAPIV1FraudRulesIDGetParams,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.FraudRulesIDGet(ctx, params)
+				response, err = s.h.APIV1FraudRulesIDGet(ctx, params)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.FraudRulesIDGet(ctx, params)
+		response, err = s.h.APIV1FraudRulesIDGet(ctx, params)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -858,7 +858,7 @@ func (s *Server) handleFraudRulesIDGetRequest(args [1]string, argsEscaped bool, 
 		return
 	}
 
-	if err := encodeFraudRulesIDGetResponse(response, w, span); err != nil {
+	if err := encodeAPIV1FraudRulesIDGetResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)
@@ -867,22 +867,22 @@ func (s *Server) handleFraudRulesIDGetRequest(args [1]string, argsEscaped bool, 
 	}
 }
 
-// handleFraudRulesIDPutRequest handles PUT /fraud-rules/{id} operation.
+// handleAPIV1FraudRulesIDPutRequest handles PUT /api/v1/fraud-rules/{id} operation.
 //
 // Только ADMIN. Полное обновление.
 // 422 возвращается при невалидном DSL/полях.
 //
-// PUT /fraud-rules/{id}
-func (s *Server) handleFraudRulesIDPutRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+// PUT /api/v1/fraud-rules/{id}
+func (s *Server) handleAPIV1FraudRulesIDPutRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("PUT"),
-		semconv.HTTPRouteKey.String("/fraud-rules/{id}"),
+		semconv.HTTPRouteKey.String("/api/v1/fraud-rules/{id}"),
 	}
 
 	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), FraudRulesIDPutOperation,
+	ctx, span := s.cfg.Tracer.Start(r.Context(), APIV1FraudRulesIDPutOperation,
 		trace.WithAttributes(otelAttrs...),
 		serverSpanKind,
 	)
@@ -937,7 +937,7 @@ func (s *Server) handleFraudRulesIDPutRequest(args [1]string, argsEscaped bool, 
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
-			Name: FraudRulesIDPutOperation,
+			Name: APIV1FraudRulesIDPutOperation,
 			ID:   "",
 		}
 	)
@@ -945,7 +945,7 @@ func (s *Server) handleFraudRulesIDPutRequest(args [1]string, argsEscaped bool, 
 		type bitset = [1]uint8
 		var satisfied bitset
 		{
-			sctx, ok, err := s.securityBearerAuth(ctx, FraudRulesIDPutOperation, r)
+			sctx, ok, err := s.securityBearerAuth(ctx, APIV1FraudRulesIDPutOperation, r)
 			if err != nil {
 				err = &ogenerrors.SecurityError{
 					OperationContext: opErrContext,
@@ -985,7 +985,7 @@ func (s *Server) handleFraudRulesIDPutRequest(args [1]string, argsEscaped bool, 
 			return
 		}
 	}
-	params, err := decodeFraudRulesIDPutParams(args, argsEscaped, r)
+	params, err := decodeAPIV1FraudRulesIDPutParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -995,7 +995,7 @@ func (s *Server) handleFraudRulesIDPutRequest(args [1]string, argsEscaped bool, 
 		s.cfg.ErrorHandler(ctx, w, r, err)
 		return
 	}
-	request, close, err := s.decodeFraudRulesIDPutRequest(r)
+	request, close, err := s.decodeAPIV1FraudRulesIDPutRequest(r)
 	if err != nil {
 		err = &ogenerrors.DecodeRequestError{
 			OperationContext: opErrContext,
@@ -1011,11 +1011,11 @@ func (s *Server) handleFraudRulesIDPutRequest(args [1]string, argsEscaped bool, 
 		}
 	}()
 
-	var response FraudRulesIDPutRes
+	var response APIV1FraudRulesIDPutRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
-			OperationName:    FraudRulesIDPutOperation,
+			OperationName:    APIV1FraudRulesIDPutOperation,
 			OperationSummary: "Обновить правило фрода",
 			OperationID:      "",
 			Body:             request,
@@ -1030,8 +1030,8 @@ func (s *Server) handleFraudRulesIDPutRequest(args [1]string, argsEscaped bool, 
 
 		type (
 			Request  = *FraudRuleUpdateRequest
-			Params   = FraudRulesIDPutParams
-			Response = FraudRulesIDPutRes
+			Params   = APIV1FraudRulesIDPutParams
+			Response = APIV1FraudRulesIDPutRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -1040,14 +1040,14 @@ func (s *Server) handleFraudRulesIDPutRequest(args [1]string, argsEscaped bool, 
 		](
 			m,
 			mreq,
-			unpackFraudRulesIDPutParams,
+			unpackAPIV1FraudRulesIDPutParams,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.FraudRulesIDPut(ctx, request, params)
+				response, err = s.h.APIV1FraudRulesIDPut(ctx, request, params)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.FraudRulesIDPut(ctx, request, params)
+		response, err = s.h.APIV1FraudRulesIDPut(ctx, request, params)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -1055,7 +1055,7 @@ func (s *Server) handleFraudRulesIDPutRequest(args [1]string, argsEscaped bool, 
 		return
 	}
 
-	if err := encodeFraudRulesIDPutResponse(response, w, span); err != nil {
+	if err := encodeAPIV1FraudRulesIDPutResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)
@@ -1064,7 +1064,7 @@ func (s *Server) handleFraudRulesIDPutRequest(args [1]string, argsEscaped bool, 
 	}
 }
 
-// handleFraudRulesPostRequest handles POST /fraud-rules operation.
+// handleAPIV1FraudRulesPostRequest handles POST /api/v1/fraud-rules operation.
 //
 // Только ADMIN.
 // Валидация:
@@ -1078,17 +1078,17 @@ func (s *Server) handleFraudRulesIDPutRequest(args [1]string, argsEscaped bool, 
 // - 409: правило с таким именем уже есть (если включена
 // уникальность имени).
 //
-// POST /fraud-rules
-func (s *Server) handleFraudRulesPostRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+// POST /api/v1/fraud-rules
+func (s *Server) handleAPIV1FraudRulesPostRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/fraud-rules"),
+		semconv.HTTPRouteKey.String("/api/v1/fraud-rules"),
 	}
 
 	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), FraudRulesPostOperation,
+	ctx, span := s.cfg.Tracer.Start(r.Context(), APIV1FraudRulesPostOperation,
 		trace.WithAttributes(otelAttrs...),
 		serverSpanKind,
 	)
@@ -1143,7 +1143,7 @@ func (s *Server) handleFraudRulesPostRequest(args [0]string, argsEscaped bool, w
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
-			Name: FraudRulesPostOperation,
+			Name: APIV1FraudRulesPostOperation,
 			ID:   "",
 		}
 	)
@@ -1151,7 +1151,7 @@ func (s *Server) handleFraudRulesPostRequest(args [0]string, argsEscaped bool, w
 		type bitset = [1]uint8
 		var satisfied bitset
 		{
-			sctx, ok, err := s.securityBearerAuth(ctx, FraudRulesPostOperation, r)
+			sctx, ok, err := s.securityBearerAuth(ctx, APIV1FraudRulesPostOperation, r)
 			if err != nil {
 				err = &ogenerrors.SecurityError{
 					OperationContext: opErrContext,
@@ -1191,7 +1191,7 @@ func (s *Server) handleFraudRulesPostRequest(args [0]string, argsEscaped bool, w
 			return
 		}
 	}
-	request, close, err := s.decodeFraudRulesPostRequest(r)
+	request, close, err := s.decodeAPIV1FraudRulesPostRequest(r)
 	if err != nil {
 		err = &ogenerrors.DecodeRequestError{
 			OperationContext: opErrContext,
@@ -1207,11 +1207,11 @@ func (s *Server) handleFraudRulesPostRequest(args [0]string, argsEscaped bool, w
 		}
 	}()
 
-	var response FraudRulesPostRes
+	var response APIV1FraudRulesPostRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
-			OperationName:    FraudRulesPostOperation,
+			OperationName:    APIV1FraudRulesPostOperation,
 			OperationSummary: "Создать правило фрода",
 			OperationID:      "",
 			Body:             request,
@@ -1222,7 +1222,7 @@ func (s *Server) handleFraudRulesPostRequest(args [0]string, argsEscaped bool, w
 		type (
 			Request  = *FraudRuleCreateRequest
 			Params   = struct{}
-			Response = FraudRulesPostRes
+			Response = APIV1FraudRulesPostRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -1233,12 +1233,12 @@ func (s *Server) handleFraudRulesPostRequest(args [0]string, argsEscaped bool, w
 			mreq,
 			nil,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.FraudRulesPost(ctx, request)
+				response, err = s.h.APIV1FraudRulesPost(ctx, request)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.FraudRulesPost(ctx, request)
+		response, err = s.h.APIV1FraudRulesPost(ctx, request)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -1246,7 +1246,7 @@ func (s *Server) handleFraudRulesPostRequest(args [0]string, argsEscaped bool, w
 		return
 	}
 
-	if err := encodeFraudRulesPostResponse(response, w, span); err != nil {
+	if err := encodeAPIV1FraudRulesPostResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)
@@ -1255,24 +1255,24 @@ func (s *Server) handleFraudRulesPostRequest(args [0]string, argsEscaped bool, w
 	}
 }
 
-// handleFraudRulesValidatePostRequest handles POST /fraud-rules/validate operation.
+// handleAPIV1FraudRulesValidatePostRequest handles POST /api/v1/fraud-rules/validate operation.
 //
 // Только ADMIN. Полезно для UI "проверить правило".
 // Сценарии:
 // - 200: валидно (isValid=true)
 // - 200: невалидно (isValid=false, errors заполнен).
 //
-// POST /fraud-rules/validate
-func (s *Server) handleFraudRulesValidatePostRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+// POST /api/v1/fraud-rules/validate
+func (s *Server) handleAPIV1FraudRulesValidatePostRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/fraud-rules/validate"),
+		semconv.HTTPRouteKey.String("/api/v1/fraud-rules/validate"),
 	}
 
 	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), FraudRulesValidatePostOperation,
+	ctx, span := s.cfg.Tracer.Start(r.Context(), APIV1FraudRulesValidatePostOperation,
 		trace.WithAttributes(otelAttrs...),
 		serverSpanKind,
 	)
@@ -1327,7 +1327,7 @@ func (s *Server) handleFraudRulesValidatePostRequest(args [0]string, argsEscaped
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
-			Name: FraudRulesValidatePostOperation,
+			Name: APIV1FraudRulesValidatePostOperation,
 			ID:   "",
 		}
 	)
@@ -1335,7 +1335,7 @@ func (s *Server) handleFraudRulesValidatePostRequest(args [0]string, argsEscaped
 		type bitset = [1]uint8
 		var satisfied bitset
 		{
-			sctx, ok, err := s.securityBearerAuth(ctx, FraudRulesValidatePostOperation, r)
+			sctx, ok, err := s.securityBearerAuth(ctx, APIV1FraudRulesValidatePostOperation, r)
 			if err != nil {
 				err = &ogenerrors.SecurityError{
 					OperationContext: opErrContext,
@@ -1375,7 +1375,7 @@ func (s *Server) handleFraudRulesValidatePostRequest(args [0]string, argsEscaped
 			return
 		}
 	}
-	request, close, err := s.decodeFraudRulesValidatePostRequest(r)
+	request, close, err := s.decodeAPIV1FraudRulesValidatePostRequest(r)
 	if err != nil {
 		err = &ogenerrors.DecodeRequestError{
 			OperationContext: opErrContext,
@@ -1391,11 +1391,11 @@ func (s *Server) handleFraudRulesValidatePostRequest(args [0]string, argsEscaped
 		}
 	}()
 
-	var response FraudRulesValidatePostRes
+	var response APIV1FraudRulesValidatePostRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
-			OperationName:    FraudRulesValidatePostOperation,
+			OperationName:    APIV1FraudRulesValidatePostOperation,
 			OperationSummary: "Валидация DSL выражения (без сохранения правила)",
 			OperationID:      "",
 			Body:             request,
@@ -1406,7 +1406,7 @@ func (s *Server) handleFraudRulesValidatePostRequest(args [0]string, argsEscaped
 		type (
 			Request  = *DslValidateRequest
 			Params   = struct{}
-			Response = FraudRulesValidatePostRes
+			Response = APIV1FraudRulesValidatePostRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -1417,12 +1417,12 @@ func (s *Server) handleFraudRulesValidatePostRequest(args [0]string, argsEscaped
 			mreq,
 			nil,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.FraudRulesValidatePost(ctx, request)
+				response, err = s.h.APIV1FraudRulesValidatePost(ctx, request)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.FraudRulesValidatePost(ctx, request)
+		response, err = s.h.APIV1FraudRulesValidatePost(ctx, request)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -1430,7 +1430,7 @@ func (s *Server) handleFraudRulesValidatePostRequest(args [0]string, argsEscaped
 		return
 	}
 
-	if err := encodeFraudRulesValidatePostResponse(response, w, span); err != nil {
+	if err := encodeAPIV1FraudRulesValidatePostResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)
@@ -1439,23 +1439,23 @@ func (s *Server) handleFraudRulesValidatePostRequest(args [0]string, argsEscaped
 	}
 }
 
-// handlePingGetRequest handles GET /ping operation.
+// handleAPIV1PingGetRequest handles GET /api/v1/ping operation.
 //
 // Проверка работоспособности сервиса.
 // Возвращает 200 OK если сервис готов обрабатывать
 // запросы.
 //
-// GET /ping
-func (s *Server) handlePingGetRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+// GET /api/v1/ping
+func (s *Server) handleAPIV1PingGetRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/ping"),
+		semconv.HTTPRouteKey.String("/api/v1/ping"),
 	}
 
 	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), PingGetOperation,
+	ctx, span := s.cfg.Tracer.Start(r.Context(), APIV1PingGetOperation,
 		trace.WithAttributes(otelAttrs...),
 		serverSpanKind,
 	)
@@ -1511,11 +1511,11 @@ func (s *Server) handlePingGetRequest(args [0]string, argsEscaped bool, w http.R
 		err error
 	)
 
-	var response *PingGetOK
+	var response *APIV1PingGetOK
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
-			OperationName:    PingGetOperation,
+			OperationName:    APIV1PingGetOperation,
 			OperationSummary: "Health check",
 			OperationID:      "",
 			Body:             nil,
@@ -1526,7 +1526,7 @@ func (s *Server) handlePingGetRequest(args [0]string, argsEscaped bool, w http.R
 		type (
 			Request  = struct{}
 			Params   = struct{}
-			Response = *PingGetOK
+			Response = *APIV1PingGetOK
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -1537,12 +1537,12 @@ func (s *Server) handlePingGetRequest(args [0]string, argsEscaped bool, w http.R
 			mreq,
 			nil,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.PingGet(ctx)
+				response, err = s.h.APIV1PingGet(ctx)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.PingGet(ctx)
+		response, err = s.h.APIV1PingGet(ctx)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -1550,7 +1550,7 @@ func (s *Server) handlePingGetRequest(args [0]string, argsEscaped bool, w http.R
 		return
 	}
 
-	if err := encodePingGetResponse(response, w, span); err != nil {
+	if err := encodeAPIV1PingGetResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)
@@ -1559,7 +1559,7 @@ func (s *Server) handlePingGetRequest(args [0]string, argsEscaped bool, w http.R
 	}
 }
 
-// handleStatsMerchantsRiskGetRequest handles GET /stats/merchants/risk operation.
+// handleAPIV1StatsMerchantsRiskGetRequest handles GET /api/v1/stats/merchants/risk operation.
 //
 // Только ADMIN.
 // Метрики по merchantId/merchantCategoryCode:
@@ -1567,17 +1567,17 @@ func (s *Server) handlePingGetRequest(args [0]string, argsEscaped bool, w http.R
 // - declineRate
 // - fraudRate.
 //
-// GET /stats/merchants/risk
-func (s *Server) handleStatsMerchantsRiskGetRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+// GET /api/v1/stats/merchants/risk
+func (s *Server) handleAPIV1StatsMerchantsRiskGetRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/stats/merchants/risk"),
+		semconv.HTTPRouteKey.String("/api/v1/stats/merchants/risk"),
 	}
 
 	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), StatsMerchantsRiskGetOperation,
+	ctx, span := s.cfg.Tracer.Start(r.Context(), APIV1StatsMerchantsRiskGetOperation,
 		trace.WithAttributes(otelAttrs...),
 		serverSpanKind,
 	)
@@ -1632,7 +1632,7 @@ func (s *Server) handleStatsMerchantsRiskGetRequest(args [0]string, argsEscaped 
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
-			Name: StatsMerchantsRiskGetOperation,
+			Name: APIV1StatsMerchantsRiskGetOperation,
 			ID:   "",
 		}
 	)
@@ -1640,7 +1640,7 @@ func (s *Server) handleStatsMerchantsRiskGetRequest(args [0]string, argsEscaped 
 		type bitset = [1]uint8
 		var satisfied bitset
 		{
-			sctx, ok, err := s.securityBearerAuth(ctx, StatsMerchantsRiskGetOperation, r)
+			sctx, ok, err := s.securityBearerAuth(ctx, APIV1StatsMerchantsRiskGetOperation, r)
 			if err != nil {
 				err = &ogenerrors.SecurityError{
 					OperationContext: opErrContext,
@@ -1680,7 +1680,7 @@ func (s *Server) handleStatsMerchantsRiskGetRequest(args [0]string, argsEscaped 
 			return
 		}
 	}
-	params, err := decodeStatsMerchantsRiskGetParams(args, argsEscaped, r)
+	params, err := decodeAPIV1StatsMerchantsRiskGetParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -1691,11 +1691,11 @@ func (s *Server) handleStatsMerchantsRiskGetRequest(args [0]string, argsEscaped 
 		return
 	}
 
-	var response StatsMerchantsRiskGetRes
+	var response APIV1StatsMerchantsRiskGetRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
-			OperationName:    StatsMerchantsRiskGetOperation,
+			OperationName:    APIV1StatsMerchantsRiskGetOperation,
 			OperationSummary: "Риск-метрики по мерчантам",
 			OperationID:      "",
 			Body:             nil,
@@ -1722,8 +1722,8 @@ func (s *Server) handleStatsMerchantsRiskGetRequest(args [0]string, argsEscaped 
 
 		type (
 			Request  = struct{}
-			Params   = StatsMerchantsRiskGetParams
-			Response = StatsMerchantsRiskGetRes
+			Params   = APIV1StatsMerchantsRiskGetParams
+			Response = APIV1StatsMerchantsRiskGetRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -1732,14 +1732,14 @@ func (s *Server) handleStatsMerchantsRiskGetRequest(args [0]string, argsEscaped 
 		](
 			m,
 			mreq,
-			unpackStatsMerchantsRiskGetParams,
+			unpackAPIV1StatsMerchantsRiskGetParams,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.StatsMerchantsRiskGet(ctx, params)
+				response, err = s.h.APIV1StatsMerchantsRiskGet(ctx, params)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.StatsMerchantsRiskGet(ctx, params)
+		response, err = s.h.APIV1StatsMerchantsRiskGet(ctx, params)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -1747,7 +1747,7 @@ func (s *Server) handleStatsMerchantsRiskGetRequest(args [0]string, argsEscaped 
 		return
 	}
 
-	if err := encodeStatsMerchantsRiskGetResponse(response, w, span); err != nil {
+	if err := encodeAPIV1StatsMerchantsRiskGetResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)
@@ -1756,7 +1756,7 @@ func (s *Server) handleStatsMerchantsRiskGetRequest(args [0]string, argsEscaped 
 	}
 }
 
-// handleStatsOverviewGetRequest handles GET /stats/overview operation.
+// handleAPIV1StatsOverviewGetRequest handles GET /api/v1/stats/overview operation.
 //
 // Возвращает агрегированные метрики за указанный
 // период для дашборда.
@@ -1772,17 +1772,17 @@ func (s *Server) handleStatsMerchantsRiskGetRequest(args [0]string, argsEscaped 
 // - declineRate: доля DECLINED транзакций (0..1)
 // - topRiskMerchants: топ-10 мерчантов по declineRate.
 //
-// GET /stats/overview
-func (s *Server) handleStatsOverviewGetRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+// GET /api/v1/stats/overview
+func (s *Server) handleAPIV1StatsOverviewGetRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/stats/overview"),
+		semconv.HTTPRouteKey.String("/api/v1/stats/overview"),
 	}
 
 	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), StatsOverviewGetOperation,
+	ctx, span := s.cfg.Tracer.Start(r.Context(), APIV1StatsOverviewGetOperation,
 		trace.WithAttributes(otelAttrs...),
 		serverSpanKind,
 	)
@@ -1837,7 +1837,7 @@ func (s *Server) handleStatsOverviewGetRequest(args [0]string, argsEscaped bool,
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
-			Name: StatsOverviewGetOperation,
+			Name: APIV1StatsOverviewGetOperation,
 			ID:   "",
 		}
 	)
@@ -1845,7 +1845,7 @@ func (s *Server) handleStatsOverviewGetRequest(args [0]string, argsEscaped bool,
 		type bitset = [1]uint8
 		var satisfied bitset
 		{
-			sctx, ok, err := s.securityBearerAuth(ctx, StatsOverviewGetOperation, r)
+			sctx, ok, err := s.securityBearerAuth(ctx, APIV1StatsOverviewGetOperation, r)
 			if err != nil {
 				err = &ogenerrors.SecurityError{
 					OperationContext: opErrContext,
@@ -1885,7 +1885,7 @@ func (s *Server) handleStatsOverviewGetRequest(args [0]string, argsEscaped bool,
 			return
 		}
 	}
-	params, err := decodeStatsOverviewGetParams(args, argsEscaped, r)
+	params, err := decodeAPIV1StatsOverviewGetParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -1896,11 +1896,11 @@ func (s *Server) handleStatsOverviewGetRequest(args [0]string, argsEscaped bool,
 		return
 	}
 
-	var response StatsOverviewGetRes
+	var response APIV1StatsOverviewGetRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
-			OperationName:    StatsOverviewGetOperation,
+			OperationName:    APIV1StatsOverviewGetOperation,
 			OperationSummary: "Обзор ключевых метрик (дашборд)",
 			OperationID:      "",
 			Body:             nil,
@@ -1923,8 +1923,8 @@ func (s *Server) handleStatsOverviewGetRequest(args [0]string, argsEscaped bool,
 
 		type (
 			Request  = struct{}
-			Params   = StatsOverviewGetParams
-			Response = StatsOverviewGetRes
+			Params   = APIV1StatsOverviewGetParams
+			Response = APIV1StatsOverviewGetRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -1933,14 +1933,14 @@ func (s *Server) handleStatsOverviewGetRequest(args [0]string, argsEscaped bool,
 		](
 			m,
 			mreq,
-			unpackStatsOverviewGetParams,
+			unpackAPIV1StatsOverviewGetParams,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.StatsOverviewGet(ctx, params)
+				response, err = s.h.APIV1StatsOverviewGet(ctx, params)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.StatsOverviewGet(ctx, params)
+		response, err = s.h.APIV1StatsOverviewGet(ctx, params)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -1948,7 +1948,7 @@ func (s *Server) handleStatsOverviewGetRequest(args [0]string, argsEscaped bool,
 		return
 	}
 
-	if err := encodeStatsOverviewGetResponse(response, w, span); err != nil {
+	if err := encodeAPIV1StatsOverviewGetResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)
@@ -1957,7 +1957,7 @@ func (s *Server) handleStatsOverviewGetRequest(args [0]string, argsEscaped bool,
 	}
 }
 
-// handleStatsRulesMatchesGetRequest handles GET /stats/rules/matches operation.
+// handleAPIV1StatsRulesMatchesGetRequest handles GET /api/v1/stats/rules/matches operation.
 //
 // Возвращает статистику по срабатываниям правил
 // антифрода за период.
@@ -1974,17 +1974,17 @@ func (s *Server) handleStatsOverviewGetRequest(args [0]string, argsEscaped bool,
 // среди matched
 // Результаты отсортированы по matches DESC.
 //
-// GET /stats/rules/matches
-func (s *Server) handleStatsRulesMatchesGetRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+// GET /api/v1/stats/rules/matches
+func (s *Server) handleAPIV1StatsRulesMatchesGetRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/stats/rules/matches"),
+		semconv.HTTPRouteKey.String("/api/v1/stats/rules/matches"),
 	}
 
 	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), StatsRulesMatchesGetOperation,
+	ctx, span := s.cfg.Tracer.Start(r.Context(), APIV1StatsRulesMatchesGetOperation,
 		trace.WithAttributes(otelAttrs...),
 		serverSpanKind,
 	)
@@ -2039,7 +2039,7 @@ func (s *Server) handleStatsRulesMatchesGetRequest(args [0]string, argsEscaped b
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
-			Name: StatsRulesMatchesGetOperation,
+			Name: APIV1StatsRulesMatchesGetOperation,
 			ID:   "",
 		}
 	)
@@ -2047,7 +2047,7 @@ func (s *Server) handleStatsRulesMatchesGetRequest(args [0]string, argsEscaped b
 		type bitset = [1]uint8
 		var satisfied bitset
 		{
-			sctx, ok, err := s.securityBearerAuth(ctx, StatsRulesMatchesGetOperation, r)
+			sctx, ok, err := s.securityBearerAuth(ctx, APIV1StatsRulesMatchesGetOperation, r)
 			if err != nil {
 				err = &ogenerrors.SecurityError{
 					OperationContext: opErrContext,
@@ -2087,7 +2087,7 @@ func (s *Server) handleStatsRulesMatchesGetRequest(args [0]string, argsEscaped b
 			return
 		}
 	}
-	params, err := decodeStatsRulesMatchesGetParams(args, argsEscaped, r)
+	params, err := decodeAPIV1StatsRulesMatchesGetParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -2098,11 +2098,11 @@ func (s *Server) handleStatsRulesMatchesGetRequest(args [0]string, argsEscaped b
 		return
 	}
 
-	var response StatsRulesMatchesGetRes
+	var response APIV1StatsRulesMatchesGetRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
-			OperationName:    StatsRulesMatchesGetOperation,
+			OperationName:    APIV1StatsRulesMatchesGetOperation,
 			OperationSummary: "Статистика срабатываний правил",
 			OperationID:      "",
 			Body:             nil,
@@ -2125,8 +2125,8 @@ func (s *Server) handleStatsRulesMatchesGetRequest(args [0]string, argsEscaped b
 
 		type (
 			Request  = struct{}
-			Params   = StatsRulesMatchesGetParams
-			Response = StatsRulesMatchesGetRes
+			Params   = APIV1StatsRulesMatchesGetParams
+			Response = APIV1StatsRulesMatchesGetRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -2135,14 +2135,14 @@ func (s *Server) handleStatsRulesMatchesGetRequest(args [0]string, argsEscaped b
 		](
 			m,
 			mreq,
-			unpackStatsRulesMatchesGetParams,
+			unpackAPIV1StatsRulesMatchesGetParams,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.StatsRulesMatchesGet(ctx, params)
+				response, err = s.h.APIV1StatsRulesMatchesGet(ctx, params)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.StatsRulesMatchesGet(ctx, params)
+		response, err = s.h.APIV1StatsRulesMatchesGet(ctx, params)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -2150,7 +2150,7 @@ func (s *Server) handleStatsRulesMatchesGetRequest(args [0]string, argsEscaped b
 		return
 	}
 
-	if err := encodeStatsRulesMatchesGetResponse(response, w, span); err != nil {
+	if err := encodeAPIV1StatsRulesMatchesGetResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)
@@ -2159,7 +2159,7 @@ func (s *Server) handleStatsRulesMatchesGetRequest(args [0]string, argsEscaped b
 	}
 }
 
-// handleStatsTransactionsTimeseriesGetRequest handles GET /stats/transactions/timeseries operation.
+// handleAPIV1StatsTransactionsTimeseriesGetRequest handles GET /api/v1/stats/transactions/timeseries operation.
 //
 // Возвращает временной ряд метрик транзакций для
 // построения графиков.
@@ -2177,17 +2177,17 @@ func (s *Server) handleStatsRulesMatchesGetRequest(args [0]string, argsEscaped b
 // - gmv: сумма транзакций
 // - approvalRate, declineRate: доли по статусам.
 //
-// GET /stats/transactions/timeseries
-func (s *Server) handleStatsTransactionsTimeseriesGetRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+// GET /api/v1/stats/transactions/timeseries
+func (s *Server) handleAPIV1StatsTransactionsTimeseriesGetRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/stats/transactions/timeseries"),
+		semconv.HTTPRouteKey.String("/api/v1/stats/transactions/timeseries"),
 	}
 
 	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), StatsTransactionsTimeseriesGetOperation,
+	ctx, span := s.cfg.Tracer.Start(r.Context(), APIV1StatsTransactionsTimeseriesGetOperation,
 		trace.WithAttributes(otelAttrs...),
 		serverSpanKind,
 	)
@@ -2242,7 +2242,7 @@ func (s *Server) handleStatsTransactionsTimeseriesGetRequest(args [0]string, arg
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
-			Name: StatsTransactionsTimeseriesGetOperation,
+			Name: APIV1StatsTransactionsTimeseriesGetOperation,
 			ID:   "",
 		}
 	)
@@ -2250,7 +2250,7 @@ func (s *Server) handleStatsTransactionsTimeseriesGetRequest(args [0]string, arg
 		type bitset = [1]uint8
 		var satisfied bitset
 		{
-			sctx, ok, err := s.securityBearerAuth(ctx, StatsTransactionsTimeseriesGetOperation, r)
+			sctx, ok, err := s.securityBearerAuth(ctx, APIV1StatsTransactionsTimeseriesGetOperation, r)
 			if err != nil {
 				err = &ogenerrors.SecurityError{
 					OperationContext: opErrContext,
@@ -2290,7 +2290,7 @@ func (s *Server) handleStatsTransactionsTimeseriesGetRequest(args [0]string, arg
 			return
 		}
 	}
-	params, err := decodeStatsTransactionsTimeseriesGetParams(args, argsEscaped, r)
+	params, err := decodeAPIV1StatsTransactionsTimeseriesGetParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -2301,11 +2301,11 @@ func (s *Server) handleStatsTransactionsTimeseriesGetRequest(args [0]string, arg
 		return
 	}
 
-	var response StatsTransactionsTimeseriesGetRes
+	var response APIV1StatsTransactionsTimeseriesGetRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
-			OperationName:    StatsTransactionsTimeseriesGetOperation,
+			OperationName:    APIV1StatsTransactionsTimeseriesGetOperation,
 			OperationSummary: "Таймсерия по транзакциям",
 			OperationID:      "",
 			Body:             nil,
@@ -2336,8 +2336,8 @@ func (s *Server) handleStatsTransactionsTimeseriesGetRequest(args [0]string, arg
 
 		type (
 			Request  = struct{}
-			Params   = StatsTransactionsTimeseriesGetParams
-			Response = StatsTransactionsTimeseriesGetRes
+			Params   = APIV1StatsTransactionsTimeseriesGetParams
+			Response = APIV1StatsTransactionsTimeseriesGetRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -2346,14 +2346,14 @@ func (s *Server) handleStatsTransactionsTimeseriesGetRequest(args [0]string, arg
 		](
 			m,
 			mreq,
-			unpackStatsTransactionsTimeseriesGetParams,
+			unpackAPIV1StatsTransactionsTimeseriesGetParams,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.StatsTransactionsTimeseriesGet(ctx, params)
+				response, err = s.h.APIV1StatsTransactionsTimeseriesGet(ctx, params)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.StatsTransactionsTimeseriesGet(ctx, params)
+		response, err = s.h.APIV1StatsTransactionsTimeseriesGet(ctx, params)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -2361,7 +2361,7 @@ func (s *Server) handleStatsTransactionsTimeseriesGetRequest(args [0]string, arg
 		return
 	}
 
-	if err := encodeStatsTransactionsTimeseriesGetResponse(response, w, span); err != nil {
+	if err := encodeAPIV1StatsTransactionsTimeseriesGetResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)
@@ -2370,7 +2370,7 @@ func (s *Server) handleStatsTransactionsTimeseriesGetRequest(args [0]string, arg
 	}
 }
 
-// handleStatsUsersIDRiskProfileGetRequest handles GET /stats/users/{id}/risk-profile operation.
+// handleAPIV1StatsUsersIDRiskProfileGetRequest handles GET /api/v1/stats/users/{id}/risk-profile operation.
 //
 // Доступ:
 // - ADMIN: любой пользователь
@@ -2381,17 +2381,17 @@ func (s *Server) handleStatsTransactionsTimeseriesGetRequest(args [0]string, arg
 // - declineRate_30d
 // - lastSeenAt.
 //
-// GET /stats/users/{id}/risk-profile
-func (s *Server) handleStatsUsersIDRiskProfileGetRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+// GET /api/v1/stats/users/{id}/risk-profile
+func (s *Server) handleAPIV1StatsUsersIDRiskProfileGetRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/stats/users/{id}/risk-profile"),
+		semconv.HTTPRouteKey.String("/api/v1/stats/users/{id}/risk-profile"),
 	}
 
 	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), StatsUsersIDRiskProfileGetOperation,
+	ctx, span := s.cfg.Tracer.Start(r.Context(), APIV1StatsUsersIDRiskProfileGetOperation,
 		trace.WithAttributes(otelAttrs...),
 		serverSpanKind,
 	)
@@ -2446,7 +2446,7 @@ func (s *Server) handleStatsUsersIDRiskProfileGetRequest(args [1]string, argsEsc
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
-			Name: StatsUsersIDRiskProfileGetOperation,
+			Name: APIV1StatsUsersIDRiskProfileGetOperation,
 			ID:   "",
 		}
 	)
@@ -2454,7 +2454,7 @@ func (s *Server) handleStatsUsersIDRiskProfileGetRequest(args [1]string, argsEsc
 		type bitset = [1]uint8
 		var satisfied bitset
 		{
-			sctx, ok, err := s.securityBearerAuth(ctx, StatsUsersIDRiskProfileGetOperation, r)
+			sctx, ok, err := s.securityBearerAuth(ctx, APIV1StatsUsersIDRiskProfileGetOperation, r)
 			if err != nil {
 				err = &ogenerrors.SecurityError{
 					OperationContext: opErrContext,
@@ -2494,7 +2494,7 @@ func (s *Server) handleStatsUsersIDRiskProfileGetRequest(args [1]string, argsEsc
 			return
 		}
 	}
-	params, err := decodeStatsUsersIDRiskProfileGetParams(args, argsEscaped, r)
+	params, err := decodeAPIV1StatsUsersIDRiskProfileGetParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -2505,11 +2505,11 @@ func (s *Server) handleStatsUsersIDRiskProfileGetRequest(args [1]string, argsEsc
 		return
 	}
 
-	var response StatsUsersIDRiskProfileGetRes
+	var response APIV1StatsUsersIDRiskProfileGetRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
-			OperationName:    StatsUsersIDRiskProfileGetOperation,
+			OperationName:    APIV1StatsUsersIDRiskProfileGetOperation,
 			OperationSummary: "Риск-профиль пользователя (в т.ч. для USER — только свой)",
 			OperationID:      "",
 			Body:             nil,
@@ -2524,8 +2524,8 @@ func (s *Server) handleStatsUsersIDRiskProfileGetRequest(args [1]string, argsEsc
 
 		type (
 			Request  = struct{}
-			Params   = StatsUsersIDRiskProfileGetParams
-			Response = StatsUsersIDRiskProfileGetRes
+			Params   = APIV1StatsUsersIDRiskProfileGetParams
+			Response = APIV1StatsUsersIDRiskProfileGetRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -2534,14 +2534,14 @@ func (s *Server) handleStatsUsersIDRiskProfileGetRequest(args [1]string, argsEsc
 		](
 			m,
 			mreq,
-			unpackStatsUsersIDRiskProfileGetParams,
+			unpackAPIV1StatsUsersIDRiskProfileGetParams,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.StatsUsersIDRiskProfileGet(ctx, params)
+				response, err = s.h.APIV1StatsUsersIDRiskProfileGet(ctx, params)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.StatsUsersIDRiskProfileGet(ctx, params)
+		response, err = s.h.APIV1StatsUsersIDRiskProfileGet(ctx, params)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -2549,7 +2549,7 @@ func (s *Server) handleStatsUsersIDRiskProfileGetRequest(args [1]string, argsEsc
 		return
 	}
 
-	if err := encodeStatsUsersIDRiskProfileGetResponse(response, w, span); err != nil {
+	if err := encodeAPIV1StatsUsersIDRiskProfileGetResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)
@@ -2558,7 +2558,7 @@ func (s *Server) handleStatsUsersIDRiskProfileGetRequest(args [1]string, argsEsc
 	}
 }
 
-// handleTransactionsBatchPostRequest handles POST /transactions/batch operation.
+// handleAPIV1TransactionsBatchPostRequest handles POST /api/v1/transactions/batch operation.
 //
 // Батч поддерживает частичный успех.
 // Сценарии:
@@ -2568,17 +2568,17 @@ func (s *Server) handleStatsUsersIDRiskProfileGetRequest(args [1]string, argsEsc
 // созданы из-за 422/403/409 и т.п.)
 // Для сопоставления используется index (0-based).
 //
-// POST /transactions/batch
-func (s *Server) handleTransactionsBatchPostRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+// POST /api/v1/transactions/batch
+func (s *Server) handleAPIV1TransactionsBatchPostRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/transactions/batch"),
+		semconv.HTTPRouteKey.String("/api/v1/transactions/batch"),
 	}
 
 	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), TransactionsBatchPostOperation,
+	ctx, span := s.cfg.Tracer.Start(r.Context(), APIV1TransactionsBatchPostOperation,
 		trace.WithAttributes(otelAttrs...),
 		serverSpanKind,
 	)
@@ -2633,7 +2633,7 @@ func (s *Server) handleTransactionsBatchPostRequest(args [0]string, argsEscaped 
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
-			Name: TransactionsBatchPostOperation,
+			Name: APIV1TransactionsBatchPostOperation,
 			ID:   "",
 		}
 	)
@@ -2641,7 +2641,7 @@ func (s *Server) handleTransactionsBatchPostRequest(args [0]string, argsEscaped 
 		type bitset = [1]uint8
 		var satisfied bitset
 		{
-			sctx, ok, err := s.securityBearerAuth(ctx, TransactionsBatchPostOperation, r)
+			sctx, ok, err := s.securityBearerAuth(ctx, APIV1TransactionsBatchPostOperation, r)
 			if err != nil {
 				err = &ogenerrors.SecurityError{
 					OperationContext: opErrContext,
@@ -2681,7 +2681,7 @@ func (s *Server) handleTransactionsBatchPostRequest(args [0]string, argsEscaped 
 			return
 		}
 	}
-	request, close, err := s.decodeTransactionsBatchPostRequest(r)
+	request, close, err := s.decodeAPIV1TransactionsBatchPostRequest(r)
 	if err != nil {
 		err = &ogenerrors.DecodeRequestError{
 			OperationContext: opErrContext,
@@ -2697,11 +2697,11 @@ func (s *Server) handleTransactionsBatchPostRequest(args [0]string, argsEscaped 
 		}
 	}()
 
-	var response TransactionsBatchPostRes
+	var response APIV1TransactionsBatchPostRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
-			OperationName:    TransactionsBatchPostOperation,
+			OperationName:    APIV1TransactionsBatchPostOperation,
 			OperationSummary: "Создать батч транзакций",
 			OperationID:      "",
 			Body:             request,
@@ -2712,7 +2712,7 @@ func (s *Server) handleTransactionsBatchPostRequest(args [0]string, argsEscaped 
 		type (
 			Request  = *TransactionBatchCreateRequest
 			Params   = struct{}
-			Response = TransactionsBatchPostRes
+			Response = APIV1TransactionsBatchPostRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -2723,12 +2723,12 @@ func (s *Server) handleTransactionsBatchPostRequest(args [0]string, argsEscaped 
 			mreq,
 			nil,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.TransactionsBatchPost(ctx, request)
+				response, err = s.h.APIV1TransactionsBatchPost(ctx, request)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.TransactionsBatchPost(ctx, request)
+		response, err = s.h.APIV1TransactionsBatchPost(ctx, request)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -2736,7 +2736,7 @@ func (s *Server) handleTransactionsBatchPostRequest(args [0]string, argsEscaped 
 		return
 	}
 
-	if err := encodeTransactionsBatchPostResponse(response, w, span); err != nil {
+	if err := encodeAPIV1TransactionsBatchPostResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)
@@ -2745,7 +2745,7 @@ func (s *Server) handleTransactionsBatchPostRequest(args [0]string, argsEscaped 
 	}
 }
 
-// handleTransactionsGetRequest handles GET /transactions operation.
+// handleAPIV1TransactionsGetRequest handles GET /api/v1/transactions operation.
 //
 // Доступ:
 // - ADMIN: все транзакции
@@ -2756,17 +2756,17 @@ func (s *Server) handleTransactionsBatchPostRequest(args [0]string, argsEscaped 
 // - from/to (RFC3339)
 // - page/size.
 //
-// GET /transactions
-func (s *Server) handleTransactionsGetRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+// GET /api/v1/transactions
+func (s *Server) handleAPIV1TransactionsGetRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/transactions"),
+		semconv.HTTPRouteKey.String("/api/v1/transactions"),
 	}
 
 	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), TransactionsGetOperation,
+	ctx, span := s.cfg.Tracer.Start(r.Context(), APIV1TransactionsGetOperation,
 		trace.WithAttributes(otelAttrs...),
 		serverSpanKind,
 	)
@@ -2821,7 +2821,7 @@ func (s *Server) handleTransactionsGetRequest(args [0]string, argsEscaped bool, 
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
-			Name: TransactionsGetOperation,
+			Name: APIV1TransactionsGetOperation,
 			ID:   "",
 		}
 	)
@@ -2829,7 +2829,7 @@ func (s *Server) handleTransactionsGetRequest(args [0]string, argsEscaped bool, 
 		type bitset = [1]uint8
 		var satisfied bitset
 		{
-			sctx, ok, err := s.securityBearerAuth(ctx, TransactionsGetOperation, r)
+			sctx, ok, err := s.securityBearerAuth(ctx, APIV1TransactionsGetOperation, r)
 			if err != nil {
 				err = &ogenerrors.SecurityError{
 					OperationContext: opErrContext,
@@ -2869,7 +2869,7 @@ func (s *Server) handleTransactionsGetRequest(args [0]string, argsEscaped bool, 
 			return
 		}
 	}
-	params, err := decodeTransactionsGetParams(args, argsEscaped, r)
+	params, err := decodeAPIV1TransactionsGetParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -2880,11 +2880,11 @@ func (s *Server) handleTransactionsGetRequest(args [0]string, argsEscaped bool, 
 		return
 	}
 
-	var response TransactionsGetRes
+	var response APIV1TransactionsGetRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
-			OperationName:    TransactionsGetOperation,
+			OperationName:    APIV1TransactionsGetOperation,
 			OperationSummary: "Список транзакций",
 			OperationID:      "",
 			Body:             nil,
@@ -2923,8 +2923,8 @@ func (s *Server) handleTransactionsGetRequest(args [0]string, argsEscaped bool, 
 
 		type (
 			Request  = struct{}
-			Params   = TransactionsGetParams
-			Response = TransactionsGetRes
+			Params   = APIV1TransactionsGetParams
+			Response = APIV1TransactionsGetRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -2933,14 +2933,14 @@ func (s *Server) handleTransactionsGetRequest(args [0]string, argsEscaped bool, 
 		](
 			m,
 			mreq,
-			unpackTransactionsGetParams,
+			unpackAPIV1TransactionsGetParams,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.TransactionsGet(ctx, params)
+				response, err = s.h.APIV1TransactionsGet(ctx, params)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.TransactionsGet(ctx, params)
+		response, err = s.h.APIV1TransactionsGet(ctx, params)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -2948,7 +2948,7 @@ func (s *Server) handleTransactionsGetRequest(args [0]string, argsEscaped bool, 
 		return
 	}
 
-	if err := encodeTransactionsGetResponse(response, w, span); err != nil {
+	if err := encodeAPIV1TransactionsGetResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)
@@ -2957,22 +2957,22 @@ func (s *Server) handleTransactionsGetRequest(args [0]string, argsEscaped bool, 
 	}
 }
 
-// handleTransactionsIDGetRequest handles GET /transactions/{id} operation.
+// handleAPIV1TransactionsIDGetRequest handles GET /api/v1/transactions/{id} operation.
 //
 // - ADMIN: любая транзакция
 // - USER: только свои.
 //
-// GET /transactions/{id}
-func (s *Server) handleTransactionsIDGetRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+// GET /api/v1/transactions/{id}
+func (s *Server) handleAPIV1TransactionsIDGetRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/transactions/{id}"),
+		semconv.HTTPRouteKey.String("/api/v1/transactions/{id}"),
 	}
 
 	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), TransactionsIDGetOperation,
+	ctx, span := s.cfg.Tracer.Start(r.Context(), APIV1TransactionsIDGetOperation,
 		trace.WithAttributes(otelAttrs...),
 		serverSpanKind,
 	)
@@ -3027,7 +3027,7 @@ func (s *Server) handleTransactionsIDGetRequest(args [1]string, argsEscaped bool
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
-			Name: TransactionsIDGetOperation,
+			Name: APIV1TransactionsIDGetOperation,
 			ID:   "",
 		}
 	)
@@ -3035,7 +3035,7 @@ func (s *Server) handleTransactionsIDGetRequest(args [1]string, argsEscaped bool
 		type bitset = [1]uint8
 		var satisfied bitset
 		{
-			sctx, ok, err := s.securityBearerAuth(ctx, TransactionsIDGetOperation, r)
+			sctx, ok, err := s.securityBearerAuth(ctx, APIV1TransactionsIDGetOperation, r)
 			if err != nil {
 				err = &ogenerrors.SecurityError{
 					OperationContext: opErrContext,
@@ -3075,7 +3075,7 @@ func (s *Server) handleTransactionsIDGetRequest(args [1]string, argsEscaped bool
 			return
 		}
 	}
-	params, err := decodeTransactionsIDGetParams(args, argsEscaped, r)
+	params, err := decodeAPIV1TransactionsIDGetParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -3086,11 +3086,11 @@ func (s *Server) handleTransactionsIDGetRequest(args [1]string, argsEscaped bool
 		return
 	}
 
-	var response TransactionsIDGetRes
+	var response APIV1TransactionsIDGetRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
-			OperationName:    TransactionsIDGetOperation,
+			OperationName:    APIV1TransactionsIDGetOperation,
 			OperationSummary: "Получить транзакцию",
 			OperationID:      "",
 			Body:             nil,
@@ -3105,8 +3105,8 @@ func (s *Server) handleTransactionsIDGetRequest(args [1]string, argsEscaped bool
 
 		type (
 			Request  = struct{}
-			Params   = TransactionsIDGetParams
-			Response = TransactionsIDGetRes
+			Params   = APIV1TransactionsIDGetParams
+			Response = APIV1TransactionsIDGetRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -3115,14 +3115,14 @@ func (s *Server) handleTransactionsIDGetRequest(args [1]string, argsEscaped bool
 		](
 			m,
 			mreq,
-			unpackTransactionsIDGetParams,
+			unpackAPIV1TransactionsIDGetParams,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.TransactionsIDGet(ctx, params)
+				response, err = s.h.APIV1TransactionsIDGet(ctx, params)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.TransactionsIDGet(ctx, params)
+		response, err = s.h.APIV1TransactionsIDGet(ctx, params)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -3130,7 +3130,7 @@ func (s *Server) handleTransactionsIDGetRequest(args [1]string, argsEscaped bool
 		return
 	}
 
-	if err := encodeTransactionsIDGetResponse(response, w, span); err != nil {
+	if err := encodeAPIV1TransactionsIDGetResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)
@@ -3139,7 +3139,7 @@ func (s *Server) handleTransactionsIDGetRequest(args [1]string, argsEscaped bool
 	}
 }
 
-// handleTransactionsPostRequest handles POST /transactions operation.
+// handleAPIV1TransactionsPostRequest handles POST /api/v1/transactions operation.
 //
 // Создаёт транзакцию (покупку) и проверяет её по всем
 // активным правилам антифрода.
@@ -3169,17 +3169,17 @@ func (s *Server) handleTransactionsIDGetRequest(args [1]string, argsEscaped bool
 // - 404: пользователь с указанным userId не найден
 // - 422: невалидные поля (amount <= 0, некорректная валюта и т.д.).
 //
-// POST /transactions
-func (s *Server) handleTransactionsPostRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+// POST /api/v1/transactions
+func (s *Server) handleAPIV1TransactionsPostRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/transactions"),
+		semconv.HTTPRouteKey.String("/api/v1/transactions"),
 	}
 
 	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), TransactionsPostOperation,
+	ctx, span := s.cfg.Tracer.Start(r.Context(), APIV1TransactionsPostOperation,
 		trace.WithAttributes(otelAttrs...),
 		serverSpanKind,
 	)
@@ -3234,7 +3234,7 @@ func (s *Server) handleTransactionsPostRequest(args [0]string, argsEscaped bool,
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
-			Name: TransactionsPostOperation,
+			Name: APIV1TransactionsPostOperation,
 			ID:   "",
 		}
 	)
@@ -3242,7 +3242,7 @@ func (s *Server) handleTransactionsPostRequest(args [0]string, argsEscaped bool,
 		type bitset = [1]uint8
 		var satisfied bitset
 		{
-			sctx, ok, err := s.securityBearerAuth(ctx, TransactionsPostOperation, r)
+			sctx, ok, err := s.securityBearerAuth(ctx, APIV1TransactionsPostOperation, r)
 			if err != nil {
 				err = &ogenerrors.SecurityError{
 					OperationContext: opErrContext,
@@ -3282,7 +3282,7 @@ func (s *Server) handleTransactionsPostRequest(args [0]string, argsEscaped bool,
 			return
 		}
 	}
-	request, close, err := s.decodeTransactionsPostRequest(r)
+	request, close, err := s.decodeAPIV1TransactionsPostRequest(r)
 	if err != nil {
 		err = &ogenerrors.DecodeRequestError{
 			OperationContext: opErrContext,
@@ -3298,11 +3298,11 @@ func (s *Server) handleTransactionsPostRequest(args [0]string, argsEscaped bool,
 		}
 	}()
 
-	var response TransactionsPostRes
+	var response APIV1TransactionsPostRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
-			OperationName:    TransactionsPostOperation,
+			OperationName:    APIV1TransactionsPostOperation,
 			OperationSummary: "Создать транзакцию и выполнить антифрод-проверку",
 			OperationID:      "",
 			Body:             request,
@@ -3313,7 +3313,7 @@ func (s *Server) handleTransactionsPostRequest(args [0]string, argsEscaped bool,
 		type (
 			Request  = *TransactionCreateRequest
 			Params   = struct{}
-			Response = TransactionsPostRes
+			Response = APIV1TransactionsPostRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -3324,12 +3324,12 @@ func (s *Server) handleTransactionsPostRequest(args [0]string, argsEscaped bool,
 			mreq,
 			nil,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.TransactionsPost(ctx, request)
+				response, err = s.h.APIV1TransactionsPost(ctx, request)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.TransactionsPost(ctx, request)
+		response, err = s.h.APIV1TransactionsPost(ctx, request)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -3337,7 +3337,7 @@ func (s *Server) handleTransactionsPostRequest(args [0]string, argsEscaped bool,
 		return
 	}
 
-	if err := encodeTransactionsPostResponse(response, w, span); err != nil {
+	if err := encodeAPIV1TransactionsPostResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)
@@ -3346,24 +3346,24 @@ func (s *Server) handleTransactionsPostRequest(args [0]string, argsEscaped bool,
 	}
 }
 
-// handleUsersGetRequest handles GET /users operation.
+// handleAPIV1UsersGetRequest handles GET /api/v1/users operation.
 //
 // Только ADMIN.
 // Сценарии:
 // - 200: страница пользователей
 // - 422: некорректные page/size.
 //
-// GET /users
-func (s *Server) handleUsersGetRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+// GET /api/v1/users
+func (s *Server) handleAPIV1UsersGetRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/users"),
+		semconv.HTTPRouteKey.String("/api/v1/users"),
 	}
 
 	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), UsersGetOperation,
+	ctx, span := s.cfg.Tracer.Start(r.Context(), APIV1UsersGetOperation,
 		trace.WithAttributes(otelAttrs...),
 		serverSpanKind,
 	)
@@ -3418,7 +3418,7 @@ func (s *Server) handleUsersGetRequest(args [0]string, argsEscaped bool, w http.
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
-			Name: UsersGetOperation,
+			Name: APIV1UsersGetOperation,
 			ID:   "",
 		}
 	)
@@ -3426,7 +3426,7 @@ func (s *Server) handleUsersGetRequest(args [0]string, argsEscaped bool, w http.
 		type bitset = [1]uint8
 		var satisfied bitset
 		{
-			sctx, ok, err := s.securityBearerAuth(ctx, UsersGetOperation, r)
+			sctx, ok, err := s.securityBearerAuth(ctx, APIV1UsersGetOperation, r)
 			if err != nil {
 				err = &ogenerrors.SecurityError{
 					OperationContext: opErrContext,
@@ -3466,7 +3466,7 @@ func (s *Server) handleUsersGetRequest(args [0]string, argsEscaped bool, w http.
 			return
 		}
 	}
-	params, err := decodeUsersGetParams(args, argsEscaped, r)
+	params, err := decodeAPIV1UsersGetParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -3477,11 +3477,11 @@ func (s *Server) handleUsersGetRequest(args [0]string, argsEscaped bool, w http.
 		return
 	}
 
-	var response UsersGetRes
+	var response APIV1UsersGetRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
-			OperationName:    UsersGetOperation,
+			OperationName:    APIV1UsersGetOperation,
 			OperationSummary: "Список пользователей",
 			OperationID:      "",
 			Body:             nil,
@@ -3500,8 +3500,8 @@ func (s *Server) handleUsersGetRequest(args [0]string, argsEscaped bool, w http.
 
 		type (
 			Request  = struct{}
-			Params   = UsersGetParams
-			Response = UsersGetRes
+			Params   = APIV1UsersGetParams
+			Response = APIV1UsersGetRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -3510,14 +3510,14 @@ func (s *Server) handleUsersGetRequest(args [0]string, argsEscaped bool, w http.
 		](
 			m,
 			mreq,
-			unpackUsersGetParams,
+			unpackAPIV1UsersGetParams,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.UsersGet(ctx, params)
+				response, err = s.h.APIV1UsersGet(ctx, params)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.UsersGet(ctx, params)
+		response, err = s.h.APIV1UsersGet(ctx, params)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -3525,7 +3525,7 @@ func (s *Server) handleUsersGetRequest(args [0]string, argsEscaped bool, w http.
 		return
 	}
 
-	if err := encodeUsersGetResponse(response, w, span); err != nil {
+	if err := encodeAPIV1UsersGetResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)
@@ -3534,7 +3534,7 @@ func (s *Server) handleUsersGetRequest(args [0]string, argsEscaped bool, w http.
 	}
 }
 
-// handleUsersIDDeleteRequest handles DELETE /users/{id} operation.
+// handleAPIV1UsersIDDeleteRequest handles DELETE /api/v1/users/{id} operation.
 //
 // **Важно:** Это soft-delete. Пользователь НЕ удаляется
 // физически из базы данных,
@@ -3552,17 +3552,17 @@ func (s *Server) handleUsersGetRequest(args [0]string, argsEscaped bool, w http.
 // **Восстановление:**
 // - ADMIN может снова активировать через PUT /users/{id} с isActive=true.
 //
-// DELETE /users/{id}
-func (s *Server) handleUsersIDDeleteRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+// DELETE /api/v1/users/{id}
+func (s *Server) handleAPIV1UsersIDDeleteRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("DELETE"),
-		semconv.HTTPRouteKey.String("/users/{id}"),
+		semconv.HTTPRouteKey.String("/api/v1/users/{id}"),
 	}
 
 	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), UsersIDDeleteOperation,
+	ctx, span := s.cfg.Tracer.Start(r.Context(), APIV1UsersIDDeleteOperation,
 		trace.WithAttributes(otelAttrs...),
 		serverSpanKind,
 	)
@@ -3617,7 +3617,7 @@ func (s *Server) handleUsersIDDeleteRequest(args [1]string, argsEscaped bool, w 
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
-			Name: UsersIDDeleteOperation,
+			Name: APIV1UsersIDDeleteOperation,
 			ID:   "",
 		}
 	)
@@ -3625,7 +3625,7 @@ func (s *Server) handleUsersIDDeleteRequest(args [1]string, argsEscaped bool, w 
 		type bitset = [1]uint8
 		var satisfied bitset
 		{
-			sctx, ok, err := s.securityBearerAuth(ctx, UsersIDDeleteOperation, r)
+			sctx, ok, err := s.securityBearerAuth(ctx, APIV1UsersIDDeleteOperation, r)
 			if err != nil {
 				err = &ogenerrors.SecurityError{
 					OperationContext: opErrContext,
@@ -3665,7 +3665,7 @@ func (s *Server) handleUsersIDDeleteRequest(args [1]string, argsEscaped bool, w 
 			return
 		}
 	}
-	params, err := decodeUsersIDDeleteParams(args, argsEscaped, r)
+	params, err := decodeAPIV1UsersIDDeleteParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -3676,11 +3676,11 @@ func (s *Server) handleUsersIDDeleteRequest(args [1]string, argsEscaped bool, w 
 		return
 	}
 
-	var response UsersIDDeleteRes
+	var response APIV1UsersIDDeleteRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
-			OperationName:    UsersIDDeleteOperation,
+			OperationName:    APIV1UsersIDDeleteOperation,
 			OperationSummary: "Деактивация пользователя",
 			OperationID:      "",
 			Body:             nil,
@@ -3695,8 +3695,8 @@ func (s *Server) handleUsersIDDeleteRequest(args [1]string, argsEscaped bool, w 
 
 		type (
 			Request  = struct{}
-			Params   = UsersIDDeleteParams
-			Response = UsersIDDeleteRes
+			Params   = APIV1UsersIDDeleteParams
+			Response = APIV1UsersIDDeleteRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -3705,14 +3705,14 @@ func (s *Server) handleUsersIDDeleteRequest(args [1]string, argsEscaped bool, w 
 		](
 			m,
 			mreq,
-			unpackUsersIDDeleteParams,
+			unpackAPIV1UsersIDDeleteParams,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.UsersIDDelete(ctx, params)
+				response, err = s.h.APIV1UsersIDDelete(ctx, params)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.UsersIDDelete(ctx, params)
+		response, err = s.h.APIV1UsersIDDelete(ctx, params)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -3720,7 +3720,7 @@ func (s *Server) handleUsersIDDeleteRequest(args [1]string, argsEscaped bool, w 
 		return
 	}
 
-	if err := encodeUsersIDDeleteResponse(response, w, span); err != nil {
+	if err := encodeAPIV1UsersIDDeleteResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)
@@ -3729,7 +3729,7 @@ func (s *Server) handleUsersIDDeleteRequest(args [1]string, argsEscaped bool, w 
 	}
 }
 
-// handleUsersIDGetRequest handles GET /users/{id} operation.
+// handleAPIV1UsersIDGetRequest handles GET /api/v1/users/{id} operation.
 //
 // Доступ:
 // - ADMIN: любой пользователь
@@ -3739,17 +3739,17 @@ func (s *Server) handleUsersIDDeleteRequest(args [1]string, argsEscaped bool, w 
 // - 403: попытка USER прочитать чужой профиль
 // - 404: не найден.
 //
-// GET /users/{id}
-func (s *Server) handleUsersIDGetRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+// GET /api/v1/users/{id}
+func (s *Server) handleAPIV1UsersIDGetRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/users/{id}"),
+		semconv.HTTPRouteKey.String("/api/v1/users/{id}"),
 	}
 
 	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), UsersIDGetOperation,
+	ctx, span := s.cfg.Tracer.Start(r.Context(), APIV1UsersIDGetOperation,
 		trace.WithAttributes(otelAttrs...),
 		serverSpanKind,
 	)
@@ -3804,7 +3804,7 @@ func (s *Server) handleUsersIDGetRequest(args [1]string, argsEscaped bool, w htt
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
-			Name: UsersIDGetOperation,
+			Name: APIV1UsersIDGetOperation,
 			ID:   "",
 		}
 	)
@@ -3812,7 +3812,7 @@ func (s *Server) handleUsersIDGetRequest(args [1]string, argsEscaped bool, w htt
 		type bitset = [1]uint8
 		var satisfied bitset
 		{
-			sctx, ok, err := s.securityBearerAuth(ctx, UsersIDGetOperation, r)
+			sctx, ok, err := s.securityBearerAuth(ctx, APIV1UsersIDGetOperation, r)
 			if err != nil {
 				err = &ogenerrors.SecurityError{
 					OperationContext: opErrContext,
@@ -3852,7 +3852,7 @@ func (s *Server) handleUsersIDGetRequest(args [1]string, argsEscaped bool, w htt
 			return
 		}
 	}
-	params, err := decodeUsersIDGetParams(args, argsEscaped, r)
+	params, err := decodeAPIV1UsersIDGetParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -3863,11 +3863,11 @@ func (s *Server) handleUsersIDGetRequest(args [1]string, argsEscaped bool, w htt
 		return
 	}
 
-	var response UsersIDGetRes
+	var response APIV1UsersIDGetRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
-			OperationName:    UsersIDGetOperation,
+			OperationName:    APIV1UsersIDGetOperation,
 			OperationSummary: "Получение профиля пользователя",
 			OperationID:      "",
 			Body:             nil,
@@ -3882,8 +3882,8 @@ func (s *Server) handleUsersIDGetRequest(args [1]string, argsEscaped bool, w htt
 
 		type (
 			Request  = struct{}
-			Params   = UsersIDGetParams
-			Response = UsersIDGetRes
+			Params   = APIV1UsersIDGetParams
+			Response = APIV1UsersIDGetRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -3892,14 +3892,14 @@ func (s *Server) handleUsersIDGetRequest(args [1]string, argsEscaped bool, w htt
 		](
 			m,
 			mreq,
-			unpackUsersIDGetParams,
+			unpackAPIV1UsersIDGetParams,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.UsersIDGet(ctx, params)
+				response, err = s.h.APIV1UsersIDGet(ctx, params)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.UsersIDGet(ctx, params)
+		response, err = s.h.APIV1UsersIDGet(ctx, params)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -3907,7 +3907,7 @@ func (s *Server) handleUsersIDGetRequest(args [1]string, argsEscaped bool, w htt
 		return
 	}
 
-	if err := encodeUsersIDGetResponse(response, w, span); err != nil {
+	if err := encodeAPIV1UsersIDGetResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)
@@ -3916,7 +3916,7 @@ func (s *Server) handleUsersIDGetRequest(args [1]string, argsEscaped bool, w htt
 	}
 }
 
-// handleUsersIDPutRequest handles PUT /users/{id} operation.
+// handleAPIV1UsersIDPutRequest handles PUT /api/v1/users/{id} operation.
 //
 // Полное обновление профиля. Необходимо передать все
 // поля.
@@ -3937,17 +3937,17 @@ func (s *Server) handleUsersIDGetRequest(args [1]string, argsEscaped bool, w htt
 // - region: до 32 символов или null
 // - email изменить нельзя (игнорируется, если передан).
 //
-// PUT /users/{id}
-func (s *Server) handleUsersIDPutRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+// PUT /api/v1/users/{id}
+func (s *Server) handleAPIV1UsersIDPutRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("PUT"),
-		semconv.HTTPRouteKey.String("/users/{id}"),
+		semconv.HTTPRouteKey.String("/api/v1/users/{id}"),
 	}
 
 	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), UsersIDPutOperation,
+	ctx, span := s.cfg.Tracer.Start(r.Context(), APIV1UsersIDPutOperation,
 		trace.WithAttributes(otelAttrs...),
 		serverSpanKind,
 	)
@@ -4002,7 +4002,7 @@ func (s *Server) handleUsersIDPutRequest(args [1]string, argsEscaped bool, w htt
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
-			Name: UsersIDPutOperation,
+			Name: APIV1UsersIDPutOperation,
 			ID:   "",
 		}
 	)
@@ -4010,7 +4010,7 @@ func (s *Server) handleUsersIDPutRequest(args [1]string, argsEscaped bool, w htt
 		type bitset = [1]uint8
 		var satisfied bitset
 		{
-			sctx, ok, err := s.securityBearerAuth(ctx, UsersIDPutOperation, r)
+			sctx, ok, err := s.securityBearerAuth(ctx, APIV1UsersIDPutOperation, r)
 			if err != nil {
 				err = &ogenerrors.SecurityError{
 					OperationContext: opErrContext,
@@ -4050,7 +4050,7 @@ func (s *Server) handleUsersIDPutRequest(args [1]string, argsEscaped bool, w htt
 			return
 		}
 	}
-	params, err := decodeUsersIDPutParams(args, argsEscaped, r)
+	params, err := decodeAPIV1UsersIDPutParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -4060,7 +4060,7 @@ func (s *Server) handleUsersIDPutRequest(args [1]string, argsEscaped bool, w htt
 		s.cfg.ErrorHandler(ctx, w, r, err)
 		return
 	}
-	request, close, err := s.decodeUsersIDPutRequest(r)
+	request, close, err := s.decodeAPIV1UsersIDPutRequest(r)
 	if err != nil {
 		err = &ogenerrors.DecodeRequestError{
 			OperationContext: opErrContext,
@@ -4076,11 +4076,11 @@ func (s *Server) handleUsersIDPutRequest(args [1]string, argsEscaped bool, w htt
 		}
 	}()
 
-	var response UsersIDPutRes
+	var response APIV1UsersIDPutRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
-			OperationName:    UsersIDPutOperation,
+			OperationName:    APIV1UsersIDPutOperation,
 			OperationSummary: "Полное обновление профиля пользователя",
 			OperationID:      "",
 			Body:             request,
@@ -4095,8 +4095,8 @@ func (s *Server) handleUsersIDPutRequest(args [1]string, argsEscaped bool, w htt
 
 		type (
 			Request  = *UserUpdateRequest
-			Params   = UsersIDPutParams
-			Response = UsersIDPutRes
+			Params   = APIV1UsersIDPutParams
+			Response = APIV1UsersIDPutRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -4105,14 +4105,14 @@ func (s *Server) handleUsersIDPutRequest(args [1]string, argsEscaped bool, w htt
 		](
 			m,
 			mreq,
-			unpackUsersIDPutParams,
+			unpackAPIV1UsersIDPutParams,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.UsersIDPut(ctx, request, params)
+				response, err = s.h.APIV1UsersIDPut(ctx, request, params)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.UsersIDPut(ctx, request, params)
+		response, err = s.h.APIV1UsersIDPut(ctx, request, params)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -4120,7 +4120,7 @@ func (s *Server) handleUsersIDPutRequest(args [1]string, argsEscaped bool, w htt
 		return
 	}
 
-	if err := encodeUsersIDPutResponse(response, w, span); err != nil {
+	if err := encodeAPIV1UsersIDPutResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)
@@ -4129,7 +4129,7 @@ func (s *Server) handleUsersIDPutRequest(args [1]string, argsEscaped bool, w htt
 	}
 }
 
-// handleUsersMeGetRequest handles GET /users/me operation.
+// handleAPIV1UsersMeGetRequest handles GET /api/v1/users/me operation.
 //
 // Возвращает профиль пользователя, определённого по JWT
 // токену.
@@ -4137,17 +4137,17 @@ func (s *Server) handleUsersIDPutRequest(args [1]string, argsEscaped bool, w htt
 // своего ID.
 // Доступно для любой роли (ADMIN, USER).
 //
-// GET /users/me
-func (s *Server) handleUsersMeGetRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+// GET /api/v1/users/me
+func (s *Server) handleAPIV1UsersMeGetRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/users/me"),
+		semconv.HTTPRouteKey.String("/api/v1/users/me"),
 	}
 
 	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), UsersMeGetOperation,
+	ctx, span := s.cfg.Tracer.Start(r.Context(), APIV1UsersMeGetOperation,
 		trace.WithAttributes(otelAttrs...),
 		serverSpanKind,
 	)
@@ -4202,7 +4202,7 @@ func (s *Server) handleUsersMeGetRequest(args [0]string, argsEscaped bool, w htt
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
-			Name: UsersMeGetOperation,
+			Name: APIV1UsersMeGetOperation,
 			ID:   "",
 		}
 	)
@@ -4210,7 +4210,7 @@ func (s *Server) handleUsersMeGetRequest(args [0]string, argsEscaped bool, w htt
 		type bitset = [1]uint8
 		var satisfied bitset
 		{
-			sctx, ok, err := s.securityBearerAuth(ctx, UsersMeGetOperation, r)
+			sctx, ok, err := s.securityBearerAuth(ctx, APIV1UsersMeGetOperation, r)
 			if err != nil {
 				err = &ogenerrors.SecurityError{
 					OperationContext: opErrContext,
@@ -4251,11 +4251,11 @@ func (s *Server) handleUsersMeGetRequest(args [0]string, argsEscaped bool, w htt
 		}
 	}
 
-	var response UsersMeGetRes
+	var response APIV1UsersMeGetRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
-			OperationName:    UsersMeGetOperation,
+			OperationName:    APIV1UsersMeGetOperation,
 			OperationSummary: "Получить профиль текущего пользователя",
 			OperationID:      "",
 			Body:             nil,
@@ -4266,7 +4266,7 @@ func (s *Server) handleUsersMeGetRequest(args [0]string, argsEscaped bool, w htt
 		type (
 			Request  = struct{}
 			Params   = struct{}
-			Response = UsersMeGetRes
+			Response = APIV1UsersMeGetRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -4277,12 +4277,12 @@ func (s *Server) handleUsersMeGetRequest(args [0]string, argsEscaped bool, w htt
 			mreq,
 			nil,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.UsersMeGet(ctx)
+				response, err = s.h.APIV1UsersMeGet(ctx)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.UsersMeGet(ctx)
+		response, err = s.h.APIV1UsersMeGet(ctx)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -4290,7 +4290,7 @@ func (s *Server) handleUsersMeGetRequest(args [0]string, argsEscaped bool, w htt
 		return
 	}
 
-	if err := encodeUsersMeGetResponse(response, w, span); err != nil {
+	if err := encodeAPIV1UsersMeGetResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)
@@ -4299,7 +4299,7 @@ func (s *Server) handleUsersMeGetRequest(args [0]string, argsEscaped bool, w htt
 	}
 }
 
-// handleUsersMePutRequest handles PUT /users/me operation.
+// handleAPIV1UsersMePutRequest handles PUT /api/v1/users/me operation.
 //
 // Полное обновление профиля текущего пользователя.
 // Необходимо передать все поля. Чтобы очистить поле,
@@ -4313,17 +4313,17 @@ func (s *Server) handleUsersMeGetRequest(args [0]string, argsEscaped bool, w htt
 // ADMIN может менять любые поля своего профиля, включая role
 // и isActive.
 //
-// PUT /users/me
-func (s *Server) handleUsersMePutRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+// PUT /api/v1/users/me
+func (s *Server) handleAPIV1UsersMePutRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("PUT"),
-		semconv.HTTPRouteKey.String("/users/me"),
+		semconv.HTTPRouteKey.String("/api/v1/users/me"),
 	}
 
 	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), UsersMePutOperation,
+	ctx, span := s.cfg.Tracer.Start(r.Context(), APIV1UsersMePutOperation,
 		trace.WithAttributes(otelAttrs...),
 		serverSpanKind,
 	)
@@ -4378,7 +4378,7 @@ func (s *Server) handleUsersMePutRequest(args [0]string, argsEscaped bool, w htt
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
-			Name: UsersMePutOperation,
+			Name: APIV1UsersMePutOperation,
 			ID:   "",
 		}
 	)
@@ -4386,7 +4386,7 @@ func (s *Server) handleUsersMePutRequest(args [0]string, argsEscaped bool, w htt
 		type bitset = [1]uint8
 		var satisfied bitset
 		{
-			sctx, ok, err := s.securityBearerAuth(ctx, UsersMePutOperation, r)
+			sctx, ok, err := s.securityBearerAuth(ctx, APIV1UsersMePutOperation, r)
 			if err != nil {
 				err = &ogenerrors.SecurityError{
 					OperationContext: opErrContext,
@@ -4426,7 +4426,7 @@ func (s *Server) handleUsersMePutRequest(args [0]string, argsEscaped bool, w htt
 			return
 		}
 	}
-	request, close, err := s.decodeUsersMePutRequest(r)
+	request, close, err := s.decodeAPIV1UsersMePutRequest(r)
 	if err != nil {
 		err = &ogenerrors.DecodeRequestError{
 			OperationContext: opErrContext,
@@ -4442,11 +4442,11 @@ func (s *Server) handleUsersMePutRequest(args [0]string, argsEscaped bool, w htt
 		}
 	}()
 
-	var response UsersMePutRes
+	var response APIV1UsersMePutRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
-			OperationName:    UsersMePutOperation,
+			OperationName:    APIV1UsersMePutOperation,
 			OperationSummary: "Обновить профиль текущего пользователя",
 			OperationID:      "",
 			Body:             request,
@@ -4457,7 +4457,7 @@ func (s *Server) handleUsersMePutRequest(args [0]string, argsEscaped bool, w htt
 		type (
 			Request  = *UserUpdateRequest
 			Params   = struct{}
-			Response = UsersMePutRes
+			Response = APIV1UsersMePutRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -4468,12 +4468,12 @@ func (s *Server) handleUsersMePutRequest(args [0]string, argsEscaped bool, w htt
 			mreq,
 			nil,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.UsersMePut(ctx, request)
+				response, err = s.h.APIV1UsersMePut(ctx, request)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.UsersMePut(ctx, request)
+		response, err = s.h.APIV1UsersMePut(ctx, request)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -4481,7 +4481,7 @@ func (s *Server) handleUsersMePutRequest(args [0]string, argsEscaped bool, w htt
 		return
 	}
 
-	if err := encodeUsersMePutResponse(response, w, span); err != nil {
+	if err := encodeAPIV1UsersMePutResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)
@@ -4490,7 +4490,7 @@ func (s *Server) handleUsersMePutRequest(args [0]string, argsEscaped bool, w htt
 	}
 }
 
-// handleUsersPostRequest handles POST /users operation.
+// handleAPIV1UsersPostRequest handles POST /api/v1/users operation.
 //
 // Только ADMIN. В ответе нет токенов (создание "из админки").
 // Сценарии:
@@ -4499,17 +4499,17 @@ func (s *Server) handleUsersMePutRequest(args [0]string, argsEscaped bool, w htt
 // - 422: не проходит валидация полей (пароль/роль/возраст
 // и т.д.).
 //
-// POST /users
-func (s *Server) handleUsersPostRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+// POST /api/v1/users
+func (s *Server) handleAPIV1UsersPostRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/users"),
+		semconv.HTTPRouteKey.String("/api/v1/users"),
 	}
 
 	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), UsersPostOperation,
+	ctx, span := s.cfg.Tracer.Start(r.Context(), APIV1UsersPostOperation,
 		trace.WithAttributes(otelAttrs...),
 		serverSpanKind,
 	)
@@ -4564,7 +4564,7 @@ func (s *Server) handleUsersPostRequest(args [0]string, argsEscaped bool, w http
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
-			Name: UsersPostOperation,
+			Name: APIV1UsersPostOperation,
 			ID:   "",
 		}
 	)
@@ -4572,7 +4572,7 @@ func (s *Server) handleUsersPostRequest(args [0]string, argsEscaped bool, w http
 		type bitset = [1]uint8
 		var satisfied bitset
 		{
-			sctx, ok, err := s.securityBearerAuth(ctx, UsersPostOperation, r)
+			sctx, ok, err := s.securityBearerAuth(ctx, APIV1UsersPostOperation, r)
 			if err != nil {
 				err = &ogenerrors.SecurityError{
 					OperationContext: opErrContext,
@@ -4612,7 +4612,7 @@ func (s *Server) handleUsersPostRequest(args [0]string, argsEscaped bool, w http
 			return
 		}
 	}
-	request, close, err := s.decodeUsersPostRequest(r)
+	request, close, err := s.decodeAPIV1UsersPostRequest(r)
 	if err != nil {
 		err = &ogenerrors.DecodeRequestError{
 			OperationContext: opErrContext,
@@ -4628,11 +4628,11 @@ func (s *Server) handleUsersPostRequest(args [0]string, argsEscaped bool, w http
 		}
 	}()
 
-	var response UsersPostRes
+	var response APIV1UsersPostRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
-			OperationName:    UsersPostOperation,
+			OperationName:    APIV1UsersPostOperation,
 			OperationSummary: "Создание пользователя админом",
 			OperationID:      "",
 			Body:             request,
@@ -4643,7 +4643,7 @@ func (s *Server) handleUsersPostRequest(args [0]string, argsEscaped bool, w http
 		type (
 			Request  = *UserCreateRequest
 			Params   = struct{}
-			Response = UsersPostRes
+			Response = APIV1UsersPostRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -4654,12 +4654,12 @@ func (s *Server) handleUsersPostRequest(args [0]string, argsEscaped bool, w http
 			mreq,
 			nil,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.UsersPost(ctx, request)
+				response, err = s.h.APIV1UsersPost(ctx, request)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.UsersPost(ctx, request)
+		response, err = s.h.APIV1UsersPost(ctx, request)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -4667,7 +4667,7 @@ func (s *Server) handleUsersPostRequest(args [0]string, argsEscaped bool, w http
 		return
 	}
 
-	if err := encodeUsersPostResponse(response, w, span); err != nil {
+	if err := encodeAPIV1UsersPostResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)

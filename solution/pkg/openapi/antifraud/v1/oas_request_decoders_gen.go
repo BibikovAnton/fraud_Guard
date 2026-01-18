@@ -14,7 +14,7 @@ import (
 	"github.com/ogen-go/ogen/validate"
 )
 
-func (s *Server) decodeAuthLoginPostRequest(r *http.Request) (
+func (s *Server) decodeAPIV1AuthLoginPostRequest(r *http.Request) (
 	req *LoginRequest,
 	close func() error,
 	rerr error,
@@ -85,7 +85,7 @@ func (s *Server) decodeAuthLoginPostRequest(r *http.Request) (
 	}
 }
 
-func (s *Server) decodeAuthRegisterPostRequest(r *http.Request) (
+func (s *Server) decodeAPIV1AuthRegisterPostRequest(r *http.Request) (
 	req *RegisterRequest,
 	close func() error,
 	rerr error,
@@ -156,7 +156,7 @@ func (s *Server) decodeAuthRegisterPostRequest(r *http.Request) (
 	}
 }
 
-func (s *Server) decodeFraudRulesIDPutRequest(r *http.Request) (
+func (s *Server) decodeAPIV1FraudRulesIDPutRequest(r *http.Request) (
 	req *FraudRuleUpdateRequest,
 	close func() error,
 	rerr error,
@@ -227,7 +227,7 @@ func (s *Server) decodeFraudRulesIDPutRequest(r *http.Request) (
 	}
 }
 
-func (s *Server) decodeFraudRulesPostRequest(r *http.Request) (
+func (s *Server) decodeAPIV1FraudRulesPostRequest(r *http.Request) (
 	req *FraudRuleCreateRequest,
 	close func() error,
 	rerr error,
@@ -298,7 +298,7 @@ func (s *Server) decodeFraudRulesPostRequest(r *http.Request) (
 	}
 }
 
-func (s *Server) decodeFraudRulesValidatePostRequest(r *http.Request) (
+func (s *Server) decodeAPIV1FraudRulesValidatePostRequest(r *http.Request) (
 	req *DslValidateRequest,
 	close func() error,
 	rerr error,
@@ -369,7 +369,7 @@ func (s *Server) decodeFraudRulesValidatePostRequest(r *http.Request) (
 	}
 }
 
-func (s *Server) decodeTransactionsBatchPostRequest(r *http.Request) (
+func (s *Server) decodeAPIV1TransactionsBatchPostRequest(r *http.Request) (
 	req *TransactionBatchCreateRequest,
 	close func() error,
 	rerr error,
@@ -440,7 +440,7 @@ func (s *Server) decodeTransactionsBatchPostRequest(r *http.Request) (
 	}
 }
 
-func (s *Server) decodeTransactionsPostRequest(r *http.Request) (
+func (s *Server) decodeAPIV1TransactionsPostRequest(r *http.Request) (
 	req *TransactionCreateRequest,
 	close func() error,
 	rerr error,
@@ -511,7 +511,7 @@ func (s *Server) decodeTransactionsPostRequest(r *http.Request) (
 	}
 }
 
-func (s *Server) decodeUsersIDPutRequest(r *http.Request) (
+func (s *Server) decodeAPIV1UsersIDPutRequest(r *http.Request) (
 	req *UserUpdateRequest,
 	close func() error,
 	rerr error,
@@ -582,7 +582,7 @@ func (s *Server) decodeUsersIDPutRequest(r *http.Request) (
 	}
 }
 
-func (s *Server) decodeUsersMePutRequest(r *http.Request) (
+func (s *Server) decodeAPIV1UsersMePutRequest(r *http.Request) (
 	req *UserUpdateRequest,
 	close func() error,
 	rerr error,
@@ -653,7 +653,7 @@ func (s *Server) decodeUsersMePutRequest(r *http.Request) (
 	}
 }
 
-func (s *Server) decodeUsersPostRequest(r *http.Request) (
+func (s *Server) decodeAPIV1UsersPostRequest(r *http.Request) (
 	req *UserCreateRequest,
 	close func() error,
 	rerr error,

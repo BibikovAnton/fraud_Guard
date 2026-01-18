@@ -14,7 +14,7 @@ import (
 	"github.com/ogen-go/ogen/validate"
 )
 
-func decodeAuthLoginPostResponse(resp *http.Response) (res AuthLoginPostRes, _ error) {
+func decodeAPIV1AuthLoginPostResponse(resp *http.Response) (res APIV1AuthLoginPostRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -74,7 +74,7 @@ func decodeAuthLoginPostResponse(resp *http.Response) (res AuthLoginPostRes, _ e
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response AuthLoginPostBadRequest
+			var response APIV1AuthLoginPostBadRequest
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -118,7 +118,7 @@ func decodeAuthLoginPostResponse(resp *http.Response) (res AuthLoginPostRes, _ e
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response AuthLoginPostUnauthorized
+			var response APIV1AuthLoginPostUnauthorized
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -206,7 +206,7 @@ func decodeAuthLoginPostResponse(resp *http.Response) (res AuthLoginPostRes, _ e
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response AuthLoginPostLocked
+			var response APIV1AuthLoginPostLocked
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -240,7 +240,7 @@ func decodeAuthLoginPostResponse(resp *http.Response) (res AuthLoginPostRes, _ e
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeAuthRegisterPostResponse(resp *http.Response) (res AuthRegisterPostRes, _ error) {
+func decodeAPIV1AuthRegisterPostResponse(resp *http.Response) (res APIV1AuthRegisterPostRes, _ error) {
 	switch resp.StatusCode {
 	case 201:
 		// Code 201.
@@ -300,7 +300,7 @@ func decodeAuthRegisterPostResponse(resp *http.Response) (res AuthRegisterPostRe
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response AuthRegisterPostBadRequest
+			var response APIV1AuthRegisterPostBadRequest
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -344,7 +344,7 @@ func decodeAuthRegisterPostResponse(resp *http.Response) (res AuthRegisterPostRe
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response AuthRegisterPostConflict
+			var response APIV1AuthRegisterPostConflict
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -422,7 +422,7 @@ func decodeAuthRegisterPostResponse(resp *http.Response) (res AuthRegisterPostRe
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeFraudRulesGetResponse(resp *http.Response) (res FraudRulesGetRes, _ error) {
+func decodeAPIV1FraudRulesGetResponse(resp *http.Response) (res APIV1FraudRulesGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -438,7 +438,7 @@ func decodeFraudRulesGetResponse(resp *http.Response) (res FraudRulesGetRes, _ e
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response FraudRulesGetOKApplicationJSON
+			var response APIV1FraudRulesGetOKApplicationJSON
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -482,7 +482,7 @@ func decodeFraudRulesGetResponse(resp *http.Response) (res FraudRulesGetRes, _ e
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response FraudRulesGetUnauthorized
+			var response APIV1FraudRulesGetUnauthorized
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -526,7 +526,7 @@ func decodeFraudRulesGetResponse(resp *http.Response) (res FraudRulesGetRes, _ e
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response FraudRulesGetForbidden
+			var response APIV1FraudRulesGetForbidden
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -560,11 +560,11 @@ func decodeFraudRulesGetResponse(resp *http.Response) (res FraudRulesGetRes, _ e
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeFraudRulesIDDeleteResponse(resp *http.Response) (res FraudRulesIDDeleteRes, _ error) {
+func decodeAPIV1FraudRulesIDDeleteResponse(resp *http.Response) (res APIV1FraudRulesIDDeleteRes, _ error) {
 	switch resp.StatusCode {
 	case 204:
 		// Code 204.
-		return &FraudRulesIDDeleteNoContent{}, nil
+		return &APIV1FraudRulesIDDeleteNoContent{}, nil
 	case 401:
 		// Code 401.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -579,7 +579,7 @@ func decodeFraudRulesIDDeleteResponse(resp *http.Response) (res FraudRulesIDDele
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response FraudRulesIDDeleteUnauthorized
+			var response APIV1FraudRulesIDDeleteUnauthorized
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -623,7 +623,7 @@ func decodeFraudRulesIDDeleteResponse(resp *http.Response) (res FraudRulesIDDele
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response FraudRulesIDDeleteForbidden
+			var response APIV1FraudRulesIDDeleteForbidden
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -667,7 +667,7 @@ func decodeFraudRulesIDDeleteResponse(resp *http.Response) (res FraudRulesIDDele
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response FraudRulesIDDeleteNotFound
+			var response APIV1FraudRulesIDDeleteNotFound
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -701,7 +701,7 @@ func decodeFraudRulesIDDeleteResponse(resp *http.Response) (res FraudRulesIDDele
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeFraudRulesIDGetResponse(resp *http.Response) (res FraudRulesIDGetRes, _ error) {
+func decodeAPIV1FraudRulesIDGetResponse(resp *http.Response) (res APIV1FraudRulesIDGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -761,7 +761,7 @@ func decodeFraudRulesIDGetResponse(resp *http.Response) (res FraudRulesIDGetRes,
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response FraudRulesIDGetUnauthorized
+			var response APIV1FraudRulesIDGetUnauthorized
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -805,7 +805,7 @@ func decodeFraudRulesIDGetResponse(resp *http.Response) (res FraudRulesIDGetRes,
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response FraudRulesIDGetForbidden
+			var response APIV1FraudRulesIDGetForbidden
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -849,7 +849,7 @@ func decodeFraudRulesIDGetResponse(resp *http.Response) (res FraudRulesIDGetRes,
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response FraudRulesIDGetNotFound
+			var response APIV1FraudRulesIDGetNotFound
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -883,7 +883,7 @@ func decodeFraudRulesIDGetResponse(resp *http.Response) (res FraudRulesIDGetRes,
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeFraudRulesIDPutResponse(resp *http.Response) (res FraudRulesIDPutRes, _ error) {
+func decodeAPIV1FraudRulesIDPutResponse(resp *http.Response) (res APIV1FraudRulesIDPutRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -943,7 +943,7 @@ func decodeFraudRulesIDPutResponse(resp *http.Response) (res FraudRulesIDPutRes,
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response FraudRulesIDPutUnauthorized
+			var response APIV1FraudRulesIDPutUnauthorized
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -987,7 +987,7 @@ func decodeFraudRulesIDPutResponse(resp *http.Response) (res FraudRulesIDPutRes,
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response FraudRulesIDPutForbidden
+			var response APIV1FraudRulesIDPutForbidden
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -1031,7 +1031,7 @@ func decodeFraudRulesIDPutResponse(resp *http.Response) (res FraudRulesIDPutRes,
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response FraudRulesIDPutNotFound
+			var response APIV1FraudRulesIDPutNotFound
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -1109,7 +1109,7 @@ func decodeFraudRulesIDPutResponse(resp *http.Response) (res FraudRulesIDPutRes,
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeFraudRulesPostResponse(resp *http.Response) (res FraudRulesPostRes, _ error) {
+func decodeAPIV1FraudRulesPostResponse(resp *http.Response) (res APIV1FraudRulesPostRes, _ error) {
 	switch resp.StatusCode {
 	case 201:
 		// Code 201.
@@ -1169,7 +1169,7 @@ func decodeFraudRulesPostResponse(resp *http.Response) (res FraudRulesPostRes, _
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response FraudRulesPostUnauthorized
+			var response APIV1FraudRulesPostUnauthorized
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -1213,7 +1213,7 @@ func decodeFraudRulesPostResponse(resp *http.Response) (res FraudRulesPostRes, _
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response FraudRulesPostForbidden
+			var response APIV1FraudRulesPostForbidden
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -1257,7 +1257,7 @@ func decodeFraudRulesPostResponse(resp *http.Response) (res FraudRulesPostRes, _
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response FraudRulesPostConflict
+			var response APIV1FraudRulesPostConflict
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -1335,7 +1335,7 @@ func decodeFraudRulesPostResponse(resp *http.Response) (res FraudRulesPostRes, _
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeFraudRulesValidatePostResponse(resp *http.Response) (res FraudRulesValidatePostRes, _ error) {
+func decodeAPIV1FraudRulesValidatePostResponse(resp *http.Response) (res APIV1FraudRulesValidatePostRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -1395,7 +1395,7 @@ func decodeFraudRulesValidatePostResponse(resp *http.Response) (res FraudRulesVa
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response FraudRulesValidatePostUnauthorized
+			var response APIV1FraudRulesValidatePostUnauthorized
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -1439,7 +1439,7 @@ func decodeFraudRulesValidatePostResponse(resp *http.Response) (res FraudRulesVa
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response FraudRulesValidatePostForbidden
+			var response APIV1FraudRulesValidatePostForbidden
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -1473,7 +1473,7 @@ func decodeFraudRulesValidatePostResponse(resp *http.Response) (res FraudRulesVa
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodePingGetResponse(resp *http.Response) (res *PingGetOK, _ error) {
+func decodeAPIV1PingGetResponse(resp *http.Response) (res *APIV1PingGetOK, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -1489,7 +1489,7 @@ func decodePingGetResponse(resp *http.Response) (res *PingGetOK, _ error) {
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response PingGetOK
+			var response APIV1PingGetOK
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -1514,7 +1514,7 @@ func decodePingGetResponse(resp *http.Response) (res *PingGetOK, _ error) {
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeStatsMerchantsRiskGetResponse(resp *http.Response) (res StatsMerchantsRiskGetRes, _ error) {
+func decodeAPIV1StatsMerchantsRiskGetResponse(resp *http.Response) (res APIV1StatsMerchantsRiskGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -1574,7 +1574,7 @@ func decodeStatsMerchantsRiskGetResponse(resp *http.Response) (res StatsMerchant
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response StatsMerchantsRiskGetUnauthorized
+			var response APIV1StatsMerchantsRiskGetUnauthorized
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -1618,7 +1618,7 @@ func decodeStatsMerchantsRiskGetResponse(resp *http.Response) (res StatsMerchant
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response StatsMerchantsRiskGetForbidden
+			var response APIV1StatsMerchantsRiskGetForbidden
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -1652,7 +1652,7 @@ func decodeStatsMerchantsRiskGetResponse(resp *http.Response) (res StatsMerchant
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeStatsOverviewGetResponse(resp *http.Response) (res StatsOverviewGetRes, _ error) {
+func decodeAPIV1StatsOverviewGetResponse(resp *http.Response) (res APIV1StatsOverviewGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -1712,7 +1712,7 @@ func decodeStatsOverviewGetResponse(resp *http.Response) (res StatsOverviewGetRe
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response StatsOverviewGetUnauthorized
+			var response APIV1StatsOverviewGetUnauthorized
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -1756,7 +1756,7 @@ func decodeStatsOverviewGetResponse(resp *http.Response) (res StatsOverviewGetRe
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response StatsOverviewGetForbidden
+			var response APIV1StatsOverviewGetForbidden
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -1834,7 +1834,7 @@ func decodeStatsOverviewGetResponse(resp *http.Response) (res StatsOverviewGetRe
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeStatsRulesMatchesGetResponse(resp *http.Response) (res StatsRulesMatchesGetRes, _ error) {
+func decodeAPIV1StatsRulesMatchesGetResponse(resp *http.Response) (res APIV1StatsRulesMatchesGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -1894,7 +1894,7 @@ func decodeStatsRulesMatchesGetResponse(resp *http.Response) (res StatsRulesMatc
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response StatsRulesMatchesGetUnauthorized
+			var response APIV1StatsRulesMatchesGetUnauthorized
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -1938,7 +1938,7 @@ func decodeStatsRulesMatchesGetResponse(resp *http.Response) (res StatsRulesMatc
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response StatsRulesMatchesGetForbidden
+			var response APIV1StatsRulesMatchesGetForbidden
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -1972,7 +1972,7 @@ func decodeStatsRulesMatchesGetResponse(resp *http.Response) (res StatsRulesMatc
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeStatsTransactionsTimeseriesGetResponse(resp *http.Response) (res StatsTransactionsTimeseriesGetRes, _ error) {
+func decodeAPIV1StatsTransactionsTimeseriesGetResponse(resp *http.Response) (res APIV1StatsTransactionsTimeseriesGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -2032,7 +2032,7 @@ func decodeStatsTransactionsTimeseriesGetResponse(resp *http.Response) (res Stat
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response StatsTransactionsTimeseriesGetUnauthorized
+			var response APIV1StatsTransactionsTimeseriesGetUnauthorized
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -2076,7 +2076,7 @@ func decodeStatsTransactionsTimeseriesGetResponse(resp *http.Response) (res Stat
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response StatsTransactionsTimeseriesGetForbidden
+			var response APIV1StatsTransactionsTimeseriesGetForbidden
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -2110,7 +2110,7 @@ func decodeStatsTransactionsTimeseriesGetResponse(resp *http.Response) (res Stat
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeStatsUsersIDRiskProfileGetResponse(resp *http.Response) (res StatsUsersIDRiskProfileGetRes, _ error) {
+func decodeAPIV1StatsUsersIDRiskProfileGetResponse(resp *http.Response) (res APIV1StatsUsersIDRiskProfileGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -2170,7 +2170,7 @@ func decodeStatsUsersIDRiskProfileGetResponse(resp *http.Response) (res StatsUse
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response StatsUsersIDRiskProfileGetUnauthorized
+			var response APIV1StatsUsersIDRiskProfileGetUnauthorized
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -2214,7 +2214,7 @@ func decodeStatsUsersIDRiskProfileGetResponse(resp *http.Response) (res StatsUse
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response StatsUsersIDRiskProfileGetForbidden
+			var response APIV1StatsUsersIDRiskProfileGetForbidden
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -2258,7 +2258,7 @@ func decodeStatsUsersIDRiskProfileGetResponse(resp *http.Response) (res StatsUse
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response StatsUsersIDRiskProfileGetNotFound
+			var response APIV1StatsUsersIDRiskProfileGetNotFound
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -2292,7 +2292,7 @@ func decodeStatsUsersIDRiskProfileGetResponse(resp *http.Response) (res StatsUse
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeTransactionsBatchPostResponse(resp *http.Response) (res TransactionsBatchPostRes, _ error) {
+func decodeAPIV1TransactionsBatchPostResponse(resp *http.Response) (res APIV1TransactionsBatchPostRes, _ error) {
 	switch resp.StatusCode {
 	case 201:
 		// Code 201.
@@ -2308,7 +2308,7 @@ func decodeTransactionsBatchPostResponse(resp *http.Response) (res TransactionsB
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response TransactionsBatchPostCreated
+			var response APIV1TransactionsBatchPostCreated
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -2352,7 +2352,7 @@ func decodeTransactionsBatchPostResponse(resp *http.Response) (res TransactionsB
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response TransactionsBatchPostMultiStatus
+			var response APIV1TransactionsBatchPostMultiStatus
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -2474,7 +2474,7 @@ func decodeTransactionsBatchPostResponse(resp *http.Response) (res TransactionsB
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeTransactionsGetResponse(resp *http.Response) (res TransactionsGetRes, _ error) {
+func decodeAPIV1TransactionsGetResponse(resp *http.Response) (res APIV1TransactionsGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -2612,7 +2612,7 @@ func decodeTransactionsGetResponse(resp *http.Response) (res TransactionsGetRes,
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeTransactionsIDGetResponse(resp *http.Response) (res TransactionsIDGetRes, _ error) {
+func decodeAPIV1TransactionsIDGetResponse(resp *http.Response) (res APIV1TransactionsIDGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -2672,7 +2672,7 @@ func decodeTransactionsIDGetResponse(resp *http.Response) (res TransactionsIDGet
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response TransactionsIDGetUnauthorized
+			var response APIV1TransactionsIDGetUnauthorized
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -2716,7 +2716,7 @@ func decodeTransactionsIDGetResponse(resp *http.Response) (res TransactionsIDGet
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response TransactionsIDGetForbidden
+			var response APIV1TransactionsIDGetForbidden
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -2760,7 +2760,7 @@ func decodeTransactionsIDGetResponse(resp *http.Response) (res TransactionsIDGet
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response TransactionsIDGetNotFound
+			var response APIV1TransactionsIDGetNotFound
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -2794,7 +2794,7 @@ func decodeTransactionsIDGetResponse(resp *http.Response) (res TransactionsIDGet
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeTransactionsPostResponse(resp *http.Response) (res TransactionsPostRes, _ error) {
+func decodeAPIV1TransactionsPostResponse(resp *http.Response) (res APIV1TransactionsPostRes, _ error) {
 	switch resp.StatusCode {
 	case 201:
 		// Code 201.
@@ -2854,7 +2854,7 @@ func decodeTransactionsPostResponse(resp *http.Response) (res TransactionsPostRe
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response TransactionsPostBadRequest
+			var response APIV1TransactionsPostBadRequest
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -2898,7 +2898,7 @@ func decodeTransactionsPostResponse(resp *http.Response) (res TransactionsPostRe
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response TransactionsPostUnauthorized
+			var response APIV1TransactionsPostUnauthorized
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -2942,7 +2942,7 @@ func decodeTransactionsPostResponse(resp *http.Response) (res TransactionsPostRe
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response TransactionsPostForbidden
+			var response APIV1TransactionsPostForbidden
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -2986,7 +2986,7 @@ func decodeTransactionsPostResponse(resp *http.Response) (res TransactionsPostRe
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response TransactionsPostNotFound
+			var response APIV1TransactionsPostNotFound
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -3064,7 +3064,7 @@ func decodeTransactionsPostResponse(resp *http.Response) (res TransactionsPostRe
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeUsersGetResponse(resp *http.Response) (res UsersGetRes, _ error) {
+func decodeAPIV1UsersGetResponse(resp *http.Response) (res APIV1UsersGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -3124,7 +3124,7 @@ func decodeUsersGetResponse(resp *http.Response) (res UsersGetRes, _ error) {
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response UsersGetUnauthorized
+			var response APIV1UsersGetUnauthorized
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -3168,7 +3168,7 @@ func decodeUsersGetResponse(resp *http.Response) (res UsersGetRes, _ error) {
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response UsersGetForbidden
+			var response APIV1UsersGetForbidden
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -3246,11 +3246,11 @@ func decodeUsersGetResponse(resp *http.Response) (res UsersGetRes, _ error) {
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeUsersIDDeleteResponse(resp *http.Response) (res UsersIDDeleteRes, _ error) {
+func decodeAPIV1UsersIDDeleteResponse(resp *http.Response) (res APIV1UsersIDDeleteRes, _ error) {
 	switch resp.StatusCode {
 	case 204:
 		// Code 204.
-		return &UsersIDDeleteNoContent{}, nil
+		return &APIV1UsersIDDeleteNoContent{}, nil
 	case 401:
 		// Code 401.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -3265,7 +3265,7 @@ func decodeUsersIDDeleteResponse(resp *http.Response) (res UsersIDDeleteRes, _ e
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response UsersIDDeleteUnauthorized
+			var response APIV1UsersIDDeleteUnauthorized
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -3309,7 +3309,7 @@ func decodeUsersIDDeleteResponse(resp *http.Response) (res UsersIDDeleteRes, _ e
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response UsersIDDeleteForbidden
+			var response APIV1UsersIDDeleteForbidden
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -3353,7 +3353,7 @@ func decodeUsersIDDeleteResponse(resp *http.Response) (res UsersIDDeleteRes, _ e
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response UsersIDDeleteNotFound
+			var response APIV1UsersIDDeleteNotFound
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -3387,7 +3387,7 @@ func decodeUsersIDDeleteResponse(resp *http.Response) (res UsersIDDeleteRes, _ e
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeUsersIDGetResponse(resp *http.Response) (res UsersIDGetRes, _ error) {
+func decodeAPIV1UsersIDGetResponse(resp *http.Response) (res APIV1UsersIDGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -3447,7 +3447,7 @@ func decodeUsersIDGetResponse(resp *http.Response) (res UsersIDGetRes, _ error) 
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response UsersIDGetUnauthorized
+			var response APIV1UsersIDGetUnauthorized
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -3491,7 +3491,7 @@ func decodeUsersIDGetResponse(resp *http.Response) (res UsersIDGetRes, _ error) 
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response UsersIDGetForbidden
+			var response APIV1UsersIDGetForbidden
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -3535,7 +3535,7 @@ func decodeUsersIDGetResponse(resp *http.Response) (res UsersIDGetRes, _ error) 
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response UsersIDGetNotFound
+			var response APIV1UsersIDGetNotFound
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -3569,7 +3569,7 @@ func decodeUsersIDGetResponse(resp *http.Response) (res UsersIDGetRes, _ error) 
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeUsersIDPutResponse(resp *http.Response) (res UsersIDPutRes, _ error) {
+func decodeAPIV1UsersIDPutResponse(resp *http.Response) (res APIV1UsersIDPutRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -3629,7 +3629,7 @@ func decodeUsersIDPutResponse(resp *http.Response) (res UsersIDPutRes, _ error) 
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response UsersIDPutUnauthorized
+			var response APIV1UsersIDPutUnauthorized
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -3673,7 +3673,7 @@ func decodeUsersIDPutResponse(resp *http.Response) (res UsersIDPutRes, _ error) 
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response UsersIDPutForbidden
+			var response APIV1UsersIDPutForbidden
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -3717,7 +3717,7 @@ func decodeUsersIDPutResponse(resp *http.Response) (res UsersIDPutRes, _ error) 
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response UsersIDPutNotFound
+			var response APIV1UsersIDPutNotFound
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -3795,7 +3795,7 @@ func decodeUsersIDPutResponse(resp *http.Response) (res UsersIDPutRes, _ error) 
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeUsersMeGetResponse(resp *http.Response) (res UsersMeGetRes, _ error) {
+func decodeAPIV1UsersMeGetResponse(resp *http.Response) (res APIV1UsersMeGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -3889,7 +3889,7 @@ func decodeUsersMeGetResponse(resp *http.Response) (res UsersMeGetRes, _ error) 
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeUsersMePutResponse(resp *http.Response) (res UsersMePutRes, _ error) {
+func decodeAPIV1UsersMePutResponse(resp *http.Response) (res APIV1UsersMePutRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -3949,7 +3949,7 @@ func decodeUsersMePutResponse(resp *http.Response) (res UsersMePutRes, _ error) 
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response UsersMePutUnauthorized
+			var response APIV1UsersMePutUnauthorized
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -3993,7 +3993,7 @@ func decodeUsersMePutResponse(resp *http.Response) (res UsersMePutRes, _ error) 
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response UsersMePutForbidden
+			var response APIV1UsersMePutForbidden
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -4071,7 +4071,7 @@ func decodeUsersMePutResponse(resp *http.Response) (res UsersMePutRes, _ error) 
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeUsersPostResponse(resp *http.Response) (res UsersPostRes, _ error) {
+func decodeAPIV1UsersPostResponse(resp *http.Response) (res APIV1UsersPostRes, _ error) {
 	switch resp.StatusCode {
 	case 201:
 		// Code 201.
@@ -4131,7 +4131,7 @@ func decodeUsersPostResponse(resp *http.Response) (res UsersPostRes, _ error) {
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response UsersPostUnauthorized
+			var response APIV1UsersPostUnauthorized
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -4175,7 +4175,7 @@ func decodeUsersPostResponse(resp *http.Response) (res UsersPostRes, _ error) {
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response UsersPostForbidden
+			var response APIV1UsersPostForbidden
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -4219,7 +4219,7 @@ func decodeUsersPostResponse(resp *http.Response) (res UsersPostRes, _ error) {
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response UsersPostConflict
+			var response APIV1UsersPostConflict
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err

@@ -16,108 +16,108 @@ func NewHandlerAdapter(antifraudService service.AntifraudService) antifraud_v1.H
 	}
 }
 
-func (h *handlerAdapter) PingGet(ctx context.Context) (*antifraud_v1.PingGetOK, error) {
+func (h *handlerAdapter) APIV1PingGet(ctx context.Context) (*antifraud_v1.APIV1PingGetOK, error) {
 	opt := antifraud_v1.OptString{
 		Value: "ok",
 	}
-	return &antifraud_v1.PingGetOK{
+	return &antifraud_v1.APIV1PingGetOK{
 		Status: opt,
 	}, nil
 
 }
 
-func (h *handlerAdapter) AuthLoginPost(ctx context.Context, req *antifraud_v1.LoginRequest) (antifraud_v1.AuthLoginPostRes, error) {
+func (h *handlerAdapter) APIV1AuthLoginPost(ctx context.Context, req *antifraud_v1.LoginRequest) (antifraud_v1.APIV1AuthLoginPostRes, error) {
 	return nil, nil
 }
 
-func (h *handlerAdapter) AuthRegisterPost(ctx context.Context, req *antifraud_v1.RegisterRequest) (antifraud_v1.AuthRegisterPostRes, error) {
+func (h *handlerAdapter) APIV1AuthRegisterPost(ctx context.Context, req *antifraud_v1.RegisterRequest) (antifraud_v1.APIV1AuthRegisterPostRes, error) {
 	return nil, nil
 }
 
-func (h *handlerAdapter) FraudRulesGet(ctx context.Context) (antifraud_v1.FraudRulesGetRes, error) {
+func (h *handlerAdapter) APIV1FraudRulesGet(ctx context.Context) (antifraud_v1.APIV1FraudRulesGetRes, error) {
 	return nil, nil
 }
 
-func (h *handlerAdapter) FraudRulesIDDelete(ctx context.Context, params antifraud_v1.FraudRulesIDDeleteParams) (antifraud_v1.FraudRulesIDDeleteRes, error) {
+func (h *handlerAdapter) APIV1FraudRulesIDDelete(ctx context.Context, params antifraud_v1.APIV1FraudRulesIDDeleteParams) (antifraud_v1.APIV1FraudRulesIDDeleteRes, error) {
 	return nil, nil
 }
 
-func (h *handlerAdapter) FraudRulesIDGet(ctx context.Context, params antifraud_v1.FraudRulesIDGetParams) (antifraud_v1.FraudRulesIDGetRes, error) {
+func (h *handlerAdapter) APIV1FraudRulesIDGet(ctx context.Context, params antifraud_v1.APIV1FraudRulesIDGetParams) (antifraud_v1.APIV1FraudRulesIDGetRes, error) {
 	return nil, nil
 }
 
-func (h *handlerAdapter) FraudRulesIDPut(ctx context.Context, req *antifraud_v1.FraudRuleUpdateRequest, params antifraud_v1.FraudRulesIDPutParams) (antifraud_v1.FraudRulesIDPutRes, error) {
+func (h *handlerAdapter) APIV1FraudRulesIDPut(ctx context.Context, req *antifraud_v1.FraudRuleUpdateRequest, params antifraud_v1.APIV1FraudRulesIDPutParams) (antifraud_v1.APIV1FraudRulesIDPutRes, error) {
 	return nil, nil
 }
 
-func (h *handlerAdapter) FraudRulesPost(ctx context.Context, req *antifraud_v1.FraudRuleCreateRequest) (antifraud_v1.FraudRulesPostRes, error) {
+func (h *handlerAdapter) APIV1FraudRulesPost(ctx context.Context, req *antifraud_v1.FraudRuleCreateRequest) (antifraud_v1.APIV1FraudRulesPostRes, error) {
 	return nil, nil
 }
 
-func (h *handlerAdapter) FraudRulesValidatePost(ctx context.Context, req *antifraud_v1.DslValidateRequest) (antifraud_v1.FraudRulesValidatePostRes, error) {
+func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *antifraud_v1.DslValidateRequest) (antifraud_v1.APIV1FraudRulesValidatePostRes, error) {
 	return nil, nil
 }
 
-func (h *handlerAdapter) StatsMerchantsRiskGet(ctx context.Context, params antifraud_v1.StatsMerchantsRiskGetParams) (antifraud_v1.StatsMerchantsRiskGetRes, error) {
+func (h *handlerAdapter) APIV1StatsMerchantsRiskGet(ctx context.Context, params antifraud_v1.APIV1StatsMerchantsRiskGetParams) (antifraud_v1.APIV1StatsMerchantsRiskGetRes, error) {
 	return nil, nil
 }
 
-func (h *handlerAdapter) StatsOverviewGet(ctx context.Context, params antifraud_v1.StatsOverviewGetParams) (antifraud_v1.StatsOverviewGetRes, error) {
+func (h *handlerAdapter) APIV1StatsOverviewGet(ctx context.Context, params antifraud_v1.APIV1StatsOverviewGetParams) (antifraud_v1.APIV1StatsOverviewGetRes, error) {
 	return nil, nil
 }
 
-func (h *handlerAdapter) StatsRulesMatchesGet(ctx context.Context, params antifraud_v1.StatsRulesMatchesGetParams) (antifraud_v1.StatsRulesMatchesGetRes, error) {
+func (h *handlerAdapter) APIV1StatsRulesMatchesGet(ctx context.Context, params antifraud_v1.APIV1StatsRulesMatchesGetParams) (antifraud_v1.APIV1StatsRulesMatchesGetRes, error) {
 	return nil, nil
 }
 
-func (h *handlerAdapter) StatsTransactionsTimeseriesGet(ctx context.Context, params antifraud_v1.StatsTransactionsTimeseriesGetParams) (antifraud_v1.StatsTransactionsTimeseriesGetRes, error) {
+func (h *handlerAdapter) APIV1StatsTransactionsTimeseriesGet(ctx context.Context, params antifraud_v1.APIV1StatsTransactionsTimeseriesGetParams) (antifraud_v1.APIV1StatsTransactionsTimeseriesGetRes, error) {
 	return nil, nil
 }
 
-func (h *handlerAdapter) StatsUsersIDRiskProfileGet(ctx context.Context, params antifraud_v1.StatsUsersIDRiskProfileGetParams) (antifraud_v1.StatsUsersIDRiskProfileGetRes, error) {
+func (h *handlerAdapter) APIV1StatsUsersIDRiskProfileGet(ctx context.Context, params antifraud_v1.APIV1StatsUsersIDRiskProfileGetParams) (antifraud_v1.APIV1StatsUsersIDRiskProfileGetRes, error) {
 	return nil, nil
 }
 
-func (h *handlerAdapter) TransactionsBatchPost(ctx context.Context, req *antifraud_v1.TransactionBatchCreateRequest) (antifraud_v1.TransactionsBatchPostRes, error) {
+func (h *handlerAdapter) APIV1TransactionsBatchPost(ctx context.Context, req *antifraud_v1.TransactionBatchCreateRequest) (antifraud_v1.APIV1TransactionsBatchPostRes, error) {
 	return nil, nil
 }
 
-func (h *handlerAdapter) TransactionsGet(ctx context.Context, params antifraud_v1.TransactionsGetParams) (antifraud_v1.TransactionsGetRes, error) {
+func (h *handlerAdapter) APIV1TransactionsGet(ctx context.Context, params antifraud_v1.APIV1TransactionsGetParams) (antifraud_v1.APIV1TransactionsGetRes, error) {
 	return nil, nil
 }
 
-func (h *handlerAdapter) TransactionsIDGet(ctx context.Context, params antifraud_v1.TransactionsIDGetParams) (antifraud_v1.TransactionsIDGetRes, error) {
+func (h *handlerAdapter) APIV1TransactionsIDGet(ctx context.Context, params antifraud_v1.APIV1TransactionsIDGetParams) (antifraud_v1.APIV1TransactionsIDGetRes, error) {
 	return nil, nil
 }
 
-func (h *handlerAdapter) TransactionsPost(ctx context.Context, req *antifraud_v1.TransactionCreateRequest) (antifraud_v1.TransactionsPostRes, error) {
+func (h *handlerAdapter) APIV1TransactionsPost(ctx context.Context, req *antifraud_v1.TransactionCreateRequest) (antifraud_v1.APIV1TransactionsPostRes, error) {
 	return nil, nil
 }
 
-func (h *handlerAdapter) UsersGet(ctx context.Context, params antifraud_v1.UsersGetParams) (antifraud_v1.UsersGetRes, error) {
+func (h *handlerAdapter) APIV1UsersGet(ctx context.Context, params antifraud_v1.APIV1UsersGetParams) (antifraud_v1.APIV1UsersGetRes, error) {
 	return nil, nil
 }
 
-func (h *handlerAdapter) UsersIDDelete(ctx context.Context, params antifraud_v1.UsersIDDeleteParams) (antifraud_v1.UsersIDDeleteRes, error) {
+func (h *handlerAdapter) APIV1UsersIDDelete(ctx context.Context, params antifraud_v1.APIV1UsersIDDeleteParams) (antifraud_v1.APIV1UsersIDDeleteRes, error) {
 	return nil, nil
 }
 
-func (h *handlerAdapter) UsersIDGet(ctx context.Context, params antifraud_v1.UsersIDGetParams) (antifraud_v1.UsersIDGetRes, error) {
+func (h *handlerAdapter) APIV1UsersIDGet(ctx context.Context, params antifraud_v1.APIV1UsersIDGetParams) (antifraud_v1.APIV1UsersIDGetRes, error) {
 	return nil, nil
 }
 
-func (h *handlerAdapter) UsersIDPut(ctx context.Context, req *antifraud_v1.UserUpdateRequest, params antifraud_v1.UsersIDPutParams) (antifraud_v1.UsersIDPutRes, error) {
+func (h *handlerAdapter) APIV1UsersIDPut(ctx context.Context, req *antifraud_v1.UserUpdateRequest, params antifraud_v1.APIV1UsersIDPutParams) (antifraud_v1.APIV1UsersIDPutRes, error) {
 	return nil, nil
 }
 
-func (h *handlerAdapter) UsersMeGet(ctx context.Context) (antifraud_v1.UsersMeGetRes, error) {
+func (h *handlerAdapter) APIV1UsersMeGet(ctx context.Context) (antifraud_v1.APIV1UsersMeGetRes, error) {
 	return nil, nil
 }
 
-func (h *handlerAdapter) UsersMePut(ctx context.Context, req *antifraud_v1.UserUpdateRequest) (antifraud_v1.UsersMePutRes, error) {
+func (h *handlerAdapter) APIV1UsersMePut(ctx context.Context, req *antifraud_v1.UserUpdateRequest) (antifraud_v1.APIV1UsersMePutRes, error) {
 	return nil, nil
 }
 
-func (h *handlerAdapter) UsersPost(ctx context.Context, req *antifraud_v1.UserCreateRequest) (antifraud_v1.UsersPostRes, error) {
+func (h *handlerAdapter) APIV1UsersPost(ctx context.Context, req *antifraud_v1.UserCreateRequest) (antifraud_v1.APIV1UsersPostRes, error) {
 	return nil, nil
 }
