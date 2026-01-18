@@ -114,6 +114,13 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 		logger.Info(ctx, "Mounting OpenAPI server on /api/v1")
 		r.Mount("/api/v1", antifraudServer)
 	}
+	
+	// Fallback ping endpoint for healthcheck
+	r.Get("/api/v1/ping", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status":"ok"}`))
+	})
 
 	a.httpServer = &http.Server{
 		Addr:              ":" + config.AppConfig().Http.Address(),
