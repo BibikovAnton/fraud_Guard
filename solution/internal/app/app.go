@@ -115,6 +115,13 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 	if antifraudServer != nil {
 		logger.Info(ctx, "Mounting OpenAPI server on /api/v1")
 		r.Mount("/api/v1", antifraudServer)
+		
+		// Test direct call to OpenAPI server
+		r.Get("/test", func(w http.ResponseWriter, r *http.Request) {
+			logger.Info(ctx, "Test endpoint called")
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("test ok"))
+		})
 	}
 
 	a.httpServer = &http.Server{
