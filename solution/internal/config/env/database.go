@@ -57,5 +57,5 @@ func (cfg *databaseConfig) URI() string {
 }
 
 func (cfg *databaseConfig) MigrationsPath() string {
-	return "./migrations"
+	return "/opt/migrations"
 }
