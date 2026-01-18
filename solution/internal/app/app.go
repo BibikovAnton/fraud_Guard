@@ -2,12 +2,11 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-faster/errors"
-	"go.uber.org/zap"
 	"net"
+	"go.uber.org/zap"
 	"net/http"
 	v1 "solution/internal/api/antifraud/v1"
 	"solution/internal/config"
