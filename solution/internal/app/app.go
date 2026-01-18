@@ -106,12 +106,12 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 
 	antifraudServer, err := antifraud_v1.NewServer(handlerAdapter, secHandlerAdapter)
 	if err != nil {
-		logger.Error(ctx, "Error creating OpenAPI orderServer", zap.Error(err))
+		logger.Error(ctx, "Error creating OpenAPI antifraudServer", zap.Error(err))
 		return err
 	}
 
 	if antifraudServer != nil {
-		r.Mount("/", antifraudServer)
+		r.Mount("/api/v1", antifraudServer)
 	}
 
 	a.httpServer = &http.Server{
@@ -142,7 +142,7 @@ func (a *App) runMigrations(ctx context.Context) error {
 }
 
 func (a *App) runHTTPServer(ctx context.Context) error {
-	logger.Info(ctx, "Starting Order HTTP server", zap.String("port", config.AppConfig().Http.Address()))
+	logger.Info(ctx, "Starting AntiFraud HTTP server", zap.String("port", config.AppConfig().Http.Address()))
 
 	err := a.httpServer.Serve(a.listener)
 	if err != nil && !errors.Is(http.ErrServerClosed, err) {
