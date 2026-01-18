@@ -1,0 +1,201 @@
+version: '3'
+
+vars:
+  GO_VERSION: '1.25'
+  GOLANGCI_LINT_VERSION: 'v2.1.5'
+  GCI_VERSION: 'v0.13.6'
+  GOFUMPT_VERSION: 'v0.8.0'
+  OGEN_VERSION: 'v1.12.0'
+  YQ_VERSION: 'v4.45.2'
+
+
+  BIN_DIR: '{{.ROOT_DIR}}/bin'
+  GOLANGCI_LINT: '{{.BIN_DIR}}/golangci-lint'
+  GCI: '{{.BIN_DIR}}/gci'
+  GOFUMPT: '{{.BIN_DIR}}/gofumpt'
+  OGEN: '{{.BIN_DIR}}/ogen'
+  YQ: '{{.BIN_DIR}}/yq'
+
+
+  NODE_MODULES_DIR: '{{.ROOT_DIR}}/node_modules/.bin'
+  REDOCLY: '{{.NODE_MODULES_DIR}}/redocly'
+
+  OPEN_API_ANTIFRAUD_V1_BASE: '{{.ROOT_DIR}}/api/bundles/antifraud.openapi.v1.bundle.yaml'
+  OPEN_API_ANTIFRAUD_V1_BUNDLE: '{{.ROOT_DIR}}/shared/api/bundles/antifraud.openapi.v1.bundle.yaml'
+
+  OPEN_API_FILES: '{{.ROOT_DIR}}/shared/api/bundles'
+
+  MODULES: solution
+  SERVICES: solution
+
+tasks:
+  install-formatters:
+    desc: "Устанавливает форматтеры gci и gofumpt в ./bin"
+    summary: |
+      Эта задача проверяет наличие инструментов форматирования кода gofumpt и gci в директории bin.
+      Если инструменты не найдены, они будут автоматически установлены с указанными версиями.
+      
+      Используется:
+        - gofumpt: для форматирования кода Go
+        - gci: для сортировки импортов Go
+    cmds:
+      - |
+        [ -f {{.GOFUMPT}} ] || {
+          echo '📦 Устанавливаем gofumpt {{.GOFUMPT_VERSION}}...'
+          GOBIN={{.BIN_DIR}} go install mvdan.cc/gofumpt@{{.GOFUMPT_VERSION}}
+        }
+        [ -f {{.GCI}} ] || {
+          echo '📦 Устанавливаем gci {{.GCI_VERSION}}...'
+          GOBIN={{.BIN_DIR}} go install github.com/daixiang0/gci@{{.GCI_VERSION}}
+        }
+    status:
+      - test -x {{.GOFUMPT}}
+      - test -x {{.GCI}}
+
+  format:
+    desc: "Форматирует весь проект gofumpt + gci, исключая mocks"
+    summary: |
+      Форматирует все Go-файлы проекта с использованием gofumpt для стандартизации кода
+      и gci для сортировки импортов, исключая файлы в директориях mocks.
+      
+      Использует инструменты:
+        - gofumpt: для стандартизации форматирования
+        - gci: для сортировки импортов по стандартным группам
+    deps: [ install-formatters ]
+    cmds:
+      - |
+        echo "🧼 Форматируем через gofumpt ..."
+        
+        for module in {{.MODULES}}; do
+          if [ -d "$module" ]; then
+            echo "🧼 Форматируем $module"
+            find $module -type f -name '*.go' ! -path '*/mocks/*' -exec {{.GOFUMPT}} -extra -w {} +
+          fi
+        done
+      - |
+        echo "🎯 Сортируем импорты через gci ..."
+        
+        for module in {{.MODULES}}; do
+          if [ -d "$module" ]; then
+            echo "🎯 Сортируем импорты в $module"
+            find $module -type f -name '*.go' ! -path '*/mocks/*' -exec {{.GCI}} write -s standard -s default -s "prefix(github.com/olezhek28/microservices-course-olezhek-solution)" {} +
+          fi
+        done
+
+  install-golangci-lint:
+    desc: "Устанавливает golangci-lint в каталог bin"
+    summary: |
+      Проверяет наличие golangci-lint в директории bin.
+      Если инструмент не найден, автоматически устанавливает его через go install.
+      
+      Устанавливаемая версия: {{.GOLANGCI_LINT_VERSION}}
+    cmds:
+      - |
+        [ -f {{.GOLANGCI_LINT}} ] || {
+          mkdir -p {{.BIN_DIR}}
+          echo "📦 Устанавливаем golangci-lint {{.GOLANGCI_LINT_VERSION}}..."
+          GOBIN={{.BIN_DIR}} go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@{{.GOLANGCI_LINT_VERSION}}
+        }
+    status:
+      - test -x {{.GOLANGCI_LINT}}
+
+  yq:install:
+    desc: "Устанавливает yq в bin/ при необходимости"
+    cmds:
+      - |
+        [ -f {{.YQ}} ] || {
+          echo '📦 Installing yq...'
+          GOBIN={{.BIN_DIR}} go install github.com/mikefarah/yq/v4@{{.YQ_VERSION}}
+        }
+
+  lint:
+    desc: "Запускает golangci-lint для всех модулей"
+    summary: |
+      Запускает линтер golangci-lint для всех модулей проекта.
+      Линтер проверяет код на соответствие стандартам качества и лучшим практикам.
+      Проверка включает проверку безопасности через gosec (встроенный в golangci-lint).
+      
+      Зависимости:
+        - install-golangci-lint: автоматически устанавливает линтер
+        - format: форматирует код перед проверкой
+    deps: [ install-golangci-lint ]
+    vars:
+      MODULES: '{{.MODULES}}'
+      GOLANGCI_LINT: '{{.GOLANGCI_LINT}}'
+    cmds:
+      - |
+        set -e
+        ERR=0
+        echo "🔍 Линтим все модули ..."
+        for mod in {{.MODULES}}; do
+          if [ -d "$mod" ]; then
+            echo "🔍 Линтим $mod module"
+            {{.GOLANGCI_LINT}} run $mod/... --config=.golangci.yml || ERR=1
+          fi
+        done
+        exit $ERR
+
+  install-buf:
+    desc: "Устанавливает Buf в каталог bin"
+    cmds:
+      - |
+        [ -f {{.BUF}} ] || {
+          mkdir -p {{.BIN_DIR}} tmp-buf
+          curl -sSL \
+            "https://github.com/bufbuild/buf/releases/download/v{{.BUF_VERSION}}/buf-$(uname -s)-$(uname -m).tar.gz" \
+            | tar -xz -C tmp-buf
+          mv tmp-buf/buf/bin/buf {{.BUF}}
+          rm -rf tmp-buf
+          chmod +x {{.BUF}}
+        }
+
+  redocly-cli:install:
+    desc: Установить локально Redocly CLI
+    cmds:
+      - |
+        [ -f {{.REDOCLY}} ] || {
+          npm ci
+        }
+
+  redocly-cli:anti-fraud-v1-bundle:
+    desc: Собрать OpenAPI в один файл через локальный redocly
+    deps: [ redocly-cli:install ]
+    cmds:
+      - 'mkdir -p {{.OPEN_API_FILES}}'
+      - '{{.REDOCLY}} bundle {{.OPEN_API_ANTIFRAUD_V1_BASE}} -o {{.OPEN_API_ANTIFRAUD_V1_BUNDLE}}'
+
+  redocly-cli:bundle:
+    desc: Собрать все схемы OpenAPI в общие файлы через локальный redocly
+    deps: [ redocly-cli:install ]
+    cmds:
+      - task: redocly-cli:anti-fraud-v1-bundle
+
+  ogen:install:
+    desc: "Скачивает ogen в папку bin"
+    cmds:
+      - |
+        [ -f {{.OGEN}} ] || {
+          mkdir -p {{.BIN_DIR}}
+          GOBIN={{.BIN_DIR}} go install github.com/ogen-go/ogen/cmd/ogen@{{.OGEN_VERSION}}
+        }
+
+  ogen:gen:
+    desc: "Генерация Go-кода из всех OpenAPI-деклараций с x-ogen"
+    deps: [ ogen:install, yq:install ]
+    cmds:
+      - task: redocly-cli:bundle
+      - |
+        find {{.OPEN_API_FILES}} -name '*.yaml' -o -name '*.yml' | while read -r file; do
+          if [ -f "$file" ] && grep -q 'x-ogen:' "$file"; then
+            echo "🚀 Generating from: $file"
+            target=$({{.YQ}} e '."x-ogen".target' "$file")
+            package=$({{.YQ}} e '."x-ogen".package' "$file")
+            echo "📁 Target: $target"
+            echo "📦 Package: $package"
+            {{.OGEN}} \
+              --target "$target" \
+              --package "$package" \
+              --clean \
+              "$file" || exit 1
+          fi
+        done

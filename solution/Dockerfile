@@ -1,4 +1,4 @@
-FROM golang:1.23-alpine3.21 AS builder
+FROM golang:1.25-alpine AS builder
 
 # Setup base software for building an app.
 RUN apk add --no-cache ca-certificates git gcc g++ libc-dev binutils
@@ -6,14 +6,14 @@ RUN apk add --no-cache ca-certificates git gcc g++ libc-dev binutils
 WORKDIR /opt
 
 # Download dependencies.
-COPY solution/go.mod solution/go.sum ./
+COPY go.mod go.sum ./
 RUN go mod download && go mod verify
 
 # Copy application source.
-COPY ./solution .
+COPY . .
 
-# Build the application.
-RUN go build -o bin/application .
+
+RUN go build -o bin/application ./cmd/main.go
 
 # Prepare executor image.
 FROM alpine:3.21 AS runner
