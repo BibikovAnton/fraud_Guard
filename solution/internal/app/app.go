@@ -111,6 +111,7 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 	}
 
 	if antifraudServer != nil {
+		logger.Info(ctx, "Mounting OpenAPI server on /api/v1")
 		r.Mount("/api/v1", antifraudServer)
 	}
 
