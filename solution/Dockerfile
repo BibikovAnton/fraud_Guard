@@ -22,6 +22,7 @@ RUN apk add --no-cache ca-certificates libc6-compat openssh bash curl
 WORKDIR /opt
 
 COPY --from=builder /opt/bin/application ./
+COPY --from=builder /opt/migrations ./
 
 # Run the application.
 CMD ["./application"]
