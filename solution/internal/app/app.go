@@ -77,7 +77,7 @@ func (a *App) initCloser(_ context.Context) error {
 }
 
 func (a *App) initListener(_ context.Context) error {
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", config.AppConfig().Http.Address()))
+	lis, err := net.Listen("tcp", "0.0.0.0:"+config.AppConfig().Http.Address())
 	if err != nil {
 		return err
 	}
