@@ -6,12 +6,11 @@ RUN apk add --no-cache ca-certificates git gcc g++ libc-dev binutils
 WORKDIR /opt
 
 # Download dependencies.
-COPY go.mod go.sum ./
+COPY solution/go.mod solution/go.sum ./
 RUN go mod download && go mod verify
 
 # Copy application source.
-COPY . .
-
+COPY solution/ .
 
 RUN go build -o bin/application ./cmd/main.go
 
