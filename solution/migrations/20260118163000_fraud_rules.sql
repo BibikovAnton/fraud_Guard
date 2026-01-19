@@ -1,6 +1,3 @@
--- Создание таблицы правил антифрода
--- Из прошлого проекта: добавил индексы для быстрого поиска активных правил по приоритету
-
 CREATE TABLE IF NOT EXISTS fraud_rules (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(100) NOT NULL UNIQUE,
@@ -12,11 +9,9 @@ CREATE TABLE IF NOT EXISTS fraud_rules (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
--- Индексы для производительности на 10k RPS
 CREATE INDEX IF NOT EXISTS idx_fraud_rules_active_priority ON fraud_rules (is_active, priority) WHERE is_active = true;
 CREATE INDEX IF NOT EXISTS idx_fraud_rules_name ON fraud_rules (name);
 
--- Триггер для updated_at - человеческое решение вместо ORM магии
 CREATE OR REPLACE FUNCTION update_fraud_rules_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
