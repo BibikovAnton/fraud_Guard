@@ -57,11 +57,10 @@ func (h *handlerAdapter) APIV1AuthLoginPost(ctx context.Context, req *antifraud_
 
 	authResp, err := h.userService.Login(ctx, loginReq)
 	if err != nil {
-		// Разные типы ошибок для безопасности - не раскрываем детали
 		if strings.Contains(err.Error(), "invalid credentials") {
 			return &antifraud_v1.APIV1AuthLoginPostUnauthorized{
 				Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
-				Message:   "Неверный email или пароль",
+				Message:   "Неверные учетные данные",
 				TraceId:   uuid.New(),
 				Timestamp: time.Now().UTC(),
 				Path:      "/api/v1/auth/login",
@@ -243,12 +242,26 @@ func (h *handlerAdapter) APIV1FraudRulesIDPut(ctx context.Context, req *antifrau
 
 func (h *handlerAdapter) APIV1FraudRulesPost(ctx context.Context, req *antifraud_v1.FraudRuleCreateRequest) (antifraud_v1.APIV1FraudRulesPostRes, error) {
 	if ctx == nil {
-		return nil, fmt.Errorf("context is nil")
+		return &antifraud_v1.APIV1FraudRulesPostUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Context is nil",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/fraud-rules",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
 	}
 	
 	userRole, ok := ctx.Value(middleware.ContextRoleKey).(string)
 	if !ok || userRole != "ADMIN" {
-		return nil, fmt.Errorf("access denied: admin rights required")
+		return &antifraud_v1.APIV1FraudRulesPostUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Access denied: admin rights required",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/fraud-rules",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
 	}
 
 	createReq := model.FraudRuleCreateRequest{
@@ -272,12 +285,26 @@ func (h *handlerAdapter) APIV1FraudRulesPost(ctx context.Context, req *antifraud
 
 func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *antifraud_v1.DslValidateRequest) (antifraud_v1.APIV1FraudRulesValidatePostRes, error) {
 	if ctx == nil {
-		return nil, fmt.Errorf("context is nil")
+		return &antifraud_v1.APIV1FraudRulesValidatePostUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Context is nil",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/fraud-rules/validate",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
 	}
 	
 	userRole, ok := ctx.Value(middleware.ContextRoleKey).(string)
 	if !ok || userRole != "ADMIN" {
-		return nil, fmt.Errorf("access denied: admin rights required")
+		return &antifraud_v1.APIV1FraudRulesValidatePostUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Access denied: admin rights required",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/fraud-rules/validate",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
 	}
 
 	validation, err := h.fraudRuleService.ValidateDSL(ctx, req.DslExpression)
@@ -329,12 +356,26 @@ func (h *handlerAdapter) APIV1TransactionsPost(ctx context.Context, req *antifra
 
 func (h *handlerAdapter) APIV1UsersGet(ctx context.Context, params antifraud_v1.APIV1UsersGetParams) (antifraud_v1.APIV1UsersGetRes, error) {
 	if ctx == nil {
-		return nil, fmt.Errorf("context is nil")
+		return &antifraud_v1.APIV1UsersGetUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Context is nil",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/users",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
 	}
 	
 	userRole, ok := ctx.Value(middleware.ContextRoleKey).(string)
 	if !ok || userRole != "ADMIN" {
-		return nil, fmt.Errorf("access denied: admin rights required")
+		return &antifraud_v1.APIV1UsersGetUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Access denied: admin rights required",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/users",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
 	}
 
 	page := 0
@@ -367,12 +408,26 @@ func (h *handlerAdapter) APIV1UsersGet(ctx context.Context, params antifraud_v1.
 
 func (h *handlerAdapter) APIV1UsersIDDelete(ctx context.Context, params antifraud_v1.APIV1UsersIDDeleteParams) (antifraud_v1.APIV1UsersIDDeleteRes, error) {
 	if ctx == nil {
-		return nil, fmt.Errorf("context is nil")
+		return &antifraud_v1.APIV1UsersIDDeleteUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Context is nil",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/users/" + params.ID.String(),
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
 	}
 	
 	userRole, ok := ctx.Value(middleware.ContextRoleKey).(string)
 	if !ok || userRole != "ADMIN" {
-		return nil, fmt.Errorf("access denied: admin rights required")
+		return &antifraud_v1.APIV1UsersIDDeleteUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Access denied: admin rights required",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/users/" + params.ID.String(),
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
 	}
 
 	if err := h.userService.SoftDelete(ctx, params.ID.String()); err != nil {
@@ -692,12 +747,26 @@ func (h *handlerAdapter) APIV1UsersMePut(ctx context.Context, req *antifraud_v1.
 
 func (h *handlerAdapter) APIV1UsersPost(ctx context.Context, req *antifraud_v1.UserCreateRequest) (antifraud_v1.APIV1UsersPostRes, error) {
 	if ctx == nil {
-		return nil, fmt.Errorf("context is nil")
+		return &antifraud_v1.APIV1UsersPostUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Context is nil",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/users",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
 	}
 	
 	userRole, ok := ctx.Value(middleware.ContextRoleKey).(string)
 	if !ok || userRole != "ADMIN" {
-		return nil, fmt.Errorf("access denied: admin rights required")
+		return &antifraud_v1.APIV1UsersPostUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Access denied: admin rights required",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/users",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
 	}
 
 	createReq := model.UserCreateRequest{
