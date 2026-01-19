@@ -283,7 +283,25 @@ func (h *handlerAdapter) APIV1FraudRulesPost(ctx context.Context, req *antifraud
 
 	rule, err := h.fraudRuleService.Create(ctx, createReq)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create fraud rule: %w", err)
+		if strings.Contains(err.Error(), "already exists") || strings.Contains(err.Error(), "duplicate") {
+			return &antifraud_v1.APIV1FraudRulesPostConflict{
+				Code:      antifraud_v1.ErrorCodeRULENAMEALREADYEXISTS,
+				Message:   "Rule with this name already exists",
+				TraceId:   uuid.New(),
+				Timestamp: time.Now().UTC(),
+				Path:      "/api/v1/fraud-rules",
+				Details:   antifraud_v1.OptApiErrorDetails{},
+			}, nil
+		}
+		
+		return &antifraud_v1.APIV1FraudRulesPostForbidden{
+			Code:      antifraud_v1.ErrorCodeVALIDATIONFAILED,
+			Message:   "Failed to create fraud rule: " + err.Error(),
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/fraud-rules",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
 	}
 
 	apiRule := convertFraudRuleToAPI(*rule)
@@ -358,7 +376,78 @@ func (h *handlerAdapter) APIV1TransactionsIDGet(ctx context.Context, params anti
 }
 
 func (h *handlerAdapter) APIV1TransactionsPost(ctx context.Context, req *antifraud_v1.TransactionCreateRequest) (antifraud_v1.APIV1TransactionsPostRes, error) {
-	return nil, nil
+	if ctx == nil {
+		return &antifraud_v1.APIV1TransactionsPostUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Context is nil",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/transactions",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+	
+	userRole, ok := ctx.Value(middleware.ContextRoleKey).(string)
+	if !ok {
+		return &antifraud_v1.APIV1TransactionsPostUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Access denied: authentication required",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/transactions",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	userID, ok := ctx.Value(middleware.ContextUserIDKey).(string)
+	if !ok {
+		return &antifraud_v1.APIV1TransactionsPostUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Access denied: user ID not found",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/transactions",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	// Проверка прав: USER может создавать только для себя, ADMIN для любого
+	if userRole != "ADMIN" && userID != req.UserId.String() {
+		return &antifraud_v1.APIV1TransactionsPostForbidden{
+			Code:      antifraud_v1.ErrorCodeFORBIDDEN,
+			Message:   "Access denied: users can only create transactions for themselves",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/transactions",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	// Валидация
+	if req.Amount <= 0 {
+		return &antifraud_v1.APIV1TransactionsPostBadRequest{
+			Code:      antifraud_v1.ErrorCodeVALIDATIONFAILED,
+			Message:   "Amount must be positive",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/transactions",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	if req.Currency == "" {
+		return &antifraud_v1.APIV1TransactionsPostBadRequest{
+			Code:      antifraud_v1.ErrorCodeVALIDATIONFAILED,
+			Message:   "Currency is required",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/transactions",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	// TODO: реализовать создание транзакции через сервис
+	return nil, fmt.Errorf("transaction creation not implemented")
 }
 
 func (h *handlerAdapter) APIV1UsersGet(ctx context.Context, params antifraud_v1.APIV1UsersGetParams) (antifraud_v1.APIV1UsersGetRes, error) {
