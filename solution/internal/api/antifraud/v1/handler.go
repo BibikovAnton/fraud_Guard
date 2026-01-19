@@ -242,6 +242,10 @@ func (h *handlerAdapter) APIV1FraudRulesIDPut(ctx context.Context, req *antifrau
 }
 
 func (h *handlerAdapter) APIV1FraudRulesPost(ctx context.Context, req *antifraud_v1.FraudRuleCreateRequest) (antifraud_v1.APIV1FraudRulesPostRes, error) {
+	if ctx == nil {
+		return nil, fmt.Errorf("context is nil")
+	}
+	
 	userRole, ok := ctx.Value(middleware.ContextRoleKey).(string)
 	if !ok || userRole != "ADMIN" {
 		return nil, fmt.Errorf("access denied: admin rights required")
@@ -267,6 +271,10 @@ func (h *handlerAdapter) APIV1FraudRulesPost(ctx context.Context, req *antifraud
 }
 
 func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *antifraud_v1.DslValidateRequest) (antifraud_v1.APIV1FraudRulesValidatePostRes, error) {
+	if ctx == nil {
+		return nil, fmt.Errorf("context is nil")
+	}
+	
 	userRole, ok := ctx.Value(middleware.ContextRoleKey).(string)
 	if !ok || userRole != "ADMIN" {
 		return nil, fmt.Errorf("access denied: admin rights required")
@@ -320,6 +328,10 @@ func (h *handlerAdapter) APIV1TransactionsPost(ctx context.Context, req *antifra
 }
 
 func (h *handlerAdapter) APIV1UsersGet(ctx context.Context, params antifraud_v1.APIV1UsersGetParams) (antifraud_v1.APIV1UsersGetRes, error) {
+	if ctx == nil {
+		return nil, fmt.Errorf("context is nil")
+	}
+	
 	userRole, ok := ctx.Value(middleware.ContextRoleKey).(string)
 	if !ok || userRole != "ADMIN" {
 		return nil, fmt.Errorf("access denied: admin rights required")
@@ -354,6 +366,10 @@ func (h *handlerAdapter) APIV1UsersGet(ctx context.Context, params antifraud_v1.
 }
 
 func (h *handlerAdapter) APIV1UsersIDDelete(ctx context.Context, params antifraud_v1.APIV1UsersIDDeleteParams) (antifraud_v1.APIV1UsersIDDeleteRes, error) {
+	if ctx == nil {
+		return nil, fmt.Errorf("context is nil")
+	}
+	
 	userRole, ok := ctx.Value(middleware.ContextRoleKey).(string)
 	if !ok || userRole != "ADMIN" {
 		return nil, fmt.Errorf("access denied: admin rights required")
@@ -367,6 +383,10 @@ func (h *handlerAdapter) APIV1UsersIDDelete(ctx context.Context, params antifrau
 }
 
 func (h *handlerAdapter) APIV1UsersIDGet(ctx context.Context, params antifraud_v1.APIV1UsersIDGetParams) (antifraud_v1.APIV1UsersIDGetRes, error) {
+	if ctx == nil {
+		return nil, fmt.Errorf("context is nil")
+	}
+	
 	userRole, ok := ctx.Value(middleware.ContextRoleKey).(string)
 	if !ok {
 		return &antifraud_v1.APIV1UsersIDGetUnauthorized{
@@ -423,6 +443,10 @@ func (h *handlerAdapter) APIV1UsersIDGet(ctx context.Context, params antifraud_v
 }
 
 func (h *handlerAdapter) APIV1UsersIDPut(ctx context.Context, req *antifraud_v1.UserUpdateRequest, params antifraud_v1.APIV1UsersIDPutParams) (antifraud_v1.APIV1UsersIDPutRes, error) {
+	if ctx == nil {
+		return nil, fmt.Errorf("context is nil")
+	}
+	
 	userRole, ok := ctx.Value(middleware.ContextRoleKey).(string)
 	if !ok {
 		return &antifraud_v1.APIV1UsersIDPutUnauthorized{
@@ -558,6 +582,10 @@ func (h *handlerAdapter) APIV1UsersIDPut(ctx context.Context, req *antifraud_v1.
 }
 
 func (h *handlerAdapter) APIV1UsersMeGet(ctx context.Context) (antifraud_v1.APIV1UsersMeGetRes, error) {
+	if ctx == nil {
+		return nil, fmt.Errorf("context is nil")
+	}
+	
 	userID, ok := ctx.Value(middleware.ContextUserIDKey).(string)
 	if !ok {
 		return nil, fmt.Errorf("user ID not found in context")
@@ -573,6 +601,17 @@ func (h *handlerAdapter) APIV1UsersMeGet(ctx context.Context) (antifraud_v1.APIV
 }
 
 func (h *handlerAdapter) APIV1UsersMePut(ctx context.Context, req *antifraud_v1.UserUpdateRequest) (antifraud_v1.APIV1UsersMePutRes, error) {
+	if ctx == nil {
+		return &antifraud_v1.APIV1UsersMePutUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Context is nil",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/users/me",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+	
 	userID, ok := ctx.Value(middleware.ContextUserIDKey).(string)
 	if !ok {
 		return &antifraud_v1.APIV1UsersMePutUnauthorized{
@@ -652,6 +691,10 @@ func (h *handlerAdapter) APIV1UsersMePut(ctx context.Context, req *antifraud_v1.
 }
 
 func (h *handlerAdapter) APIV1UsersPost(ctx context.Context, req *antifraud_v1.UserCreateRequest) (antifraud_v1.APIV1UsersPostRes, error) {
+	if ctx == nil {
+		return nil, fmt.Errorf("context is nil")
+	}
+	
 	userRole, ok := ctx.Value(middleware.ContextRoleKey).(string)
 	if !ok || userRole != "ADMIN" {
 		return nil, fmt.Errorf("access denied: admin rights required")
