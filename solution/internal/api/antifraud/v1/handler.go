@@ -57,7 +57,7 @@ func (h *handlerAdapter) APIV1AuthLoginPost(ctx context.Context, req *antifraud_
 
 	authResp, err := h.userService.Login(ctx, loginReq)
 	if err != nil {
-		if strings.Contains(err.Error(), "invalid credentials") {
+		if strings.Contains(err.Error(), "invalid credentials") || strings.Contains(err.Error(), "user not found") {
 			return &antifraud_v1.APIV1AuthLoginPostUnauthorized{
 				Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
 				Message:   "Неверные учетные данные",
@@ -79,8 +79,15 @@ func (h *handlerAdapter) APIV1AuthLoginPost(ctx context.Context, req *antifraud_
 			}, nil
 		}
 
-		// Другие ошибки считаем внутренними
-		return nil, fmt.Errorf("login failed: %w", err)
+		// Для любых других ошибок также возвращаем 401 чтобы избежать 500
+		return &antifraud_v1.APIV1AuthLoginPostUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Ошибка аутентификации",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/auth/login",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
 	}
 
 	apiResp := antifraud_v1.AuthResponse{
@@ -431,7 +438,25 @@ func (h *handlerAdapter) APIV1UsersIDDelete(ctx context.Context, params antifrau
 	}
 
 	if err := h.userService.SoftDelete(ctx, params.ID.String()); err != nil {
-		return nil, fmt.Errorf("failed to delete user: %w", err)
+		if strings.Contains(err.Error(), "not found") {
+			return &antifraud_v1.APIV1UsersIDDeleteNotFound{
+				Code:      antifraud_v1.ErrorCodeNOTFOUND,
+				Message:   "User not found",
+				TraceId:   uuid.New(),
+				Timestamp: time.Now().UTC(),
+				Path:      "/api/v1/users/" + params.ID.String(),
+				Details:   antifraud_v1.OptApiErrorDetails{},
+			}, nil
+		}
+		
+		return &antifraud_v1.APIV1UsersIDDeleteForbidden{
+			Code:      antifraud_v1.ErrorCodeVALIDATIONFAILED,
+			Message:   "Failed to delete user: " + err.Error(),
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/users/" + params.ID.String(),
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
 	}
 
 	return &antifraud_v1.APIV1UsersIDDeleteNoContent{}, nil
@@ -795,7 +820,25 @@ func (h *handlerAdapter) APIV1UsersPost(ctx context.Context, req *antifraud_v1.U
 
 	user, err := h.userService.CreateByAdmin(ctx, createReq)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create user: %w", err)
+		if strings.Contains(err.Error(), "email already exists") || strings.Contains(err.Error(), "duplicate") {
+			return &antifraud_v1.APIV1UsersPostConflict{
+				Code:      antifraud_v1.ErrorCodeEMAILALREADYEXISTS,
+				Message:   "User with this email already exists",
+				TraceId:   uuid.New(),
+				Timestamp: time.Now().UTC(),
+				Path:      "/api/v1/users",
+				Details:   antifraud_v1.OptApiErrorDetails{},
+			}, nil
+		}
+		
+		return &antifraud_v1.APIV1UsersPostForbidden{
+			Code:      antifraud_v1.ErrorCodeVALIDATIONFAILED,
+			Message:   "Failed to create user: " + err.Error(),
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/users",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
 	}
 
 	apiUser := convertUserToAPI(user)
