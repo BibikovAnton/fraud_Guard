@@ -7,9 +7,7 @@ import (
 	"solution/internal/model"
 )
 
-// FindByEmail ищет пользователя по email
-// Важно: возвращает ошибку sql.ErrNoData если пользователь не найден
-func (r *repository) FindByEmail(ctx context.Context, email string) (model.User, error) {
+func (r *repo) FindByEmail(ctx context.Context, email string) (*model.User, error) {
 	query := `
 		SELECT id, email, password_hash, full_name, age, region, 
 			   gender, marital_status, role, is_active, created_at, updated_at
@@ -23,7 +21,7 @@ func (r *repository) FindByEmail(ctx context.Context, email string) (model.User,
 	var gender sql.NullString
 	var maritalStatus sql.NullString
 
-	err := r.db.QueryRowContext(ctx, query, email).Scan(
+	err := r.db.QueryRow(ctx, query, email).Scan(
 		&user.ID,
 		&user.Email,
 		&user.PasswordHash,
@@ -40,12 +38,11 @@ func (r *repository) FindByEmail(ctx context.Context, email string) (model.User,
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return model.User{}, fmt.Errorf("user with email %s not found: %w", email, err)
+			return nil, nil
 		}
-		return model.User{}, fmt.Errorf("failed to find user by email: %w", err)
+		return nil, fmt.Errorf("failed to find user by email: %w", err)
 	}
 
-// Конвертируем nullable поля в указатели
 	if age.Valid {
 		ageInt := int(age.Int32)
 		user.Age = &ageInt
@@ -65,15 +62,12 @@ func (r *repository) FindByEmail(ctx context.Context, email string) (model.User,
 		user.MaritalStatus = &ms
 	}
 
-	// Конвертируем роль в строгий тип
 	user.Role = model.UserRole(user.Role)
 
-	return user, nil
+	return &user, nil
 }
 
-// FindByEmailIncludingInactive ищет пользователя по email включая неактивных
-// Нужен для авторизации, чтобы показать 423 если пользователь деактивирован
-func (r *repository) FindByEmailIncludingInactive(ctx context.Context, email string) (model.User, error) {
+func (r *repo) FindByEmailIncludingInactive(ctx context.Context, email string) (*model.User, error) {
 	query := `
 		SELECT id, email, password_hash, full_name, age, region, 
 			   gender, marital_status, role, is_active, created_at, updated_at
@@ -87,7 +81,7 @@ func (r *repository) FindByEmailIncludingInactive(ctx context.Context, email str
 	var gender sql.NullString
 	var maritalStatus sql.NullString
 
-	err := r.db.QueryRowContext(ctx, query, email).Scan(
+	err := r.db.QueryRow(ctx, query, email).Scan(
 		&user.ID,
 		&user.Email,
 		&user.PasswordHash,
@@ -104,12 +98,11 @@ func (r *repository) FindByEmailIncludingInactive(ctx context.Context, email str
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return model.User{}, fmt.Errorf("user with email %s not found: %w", email, err)
+			return nil, nil
 		}
-		return model.User{}, fmt.Errorf("failed to find user by email: %w", err)
+		return nil, fmt.Errorf("failed to find user by email: %w", err)
 	}
 
-	// Конвертируем nullable поля в указатели
 	if age.Valid {
 		ageInt := int(age.Int32)
 		user.Age = &ageInt
@@ -129,8 +122,7 @@ func (r *repository) FindByEmailIncludingInactive(ctx context.Context, email str
 		user.MaritalStatus = &ms
 	}
 
-	// Конвертируем роль в строгий тип
 	user.Role = model.UserRole(user.Role)
 
-	return user, nil
+	return &user, nil
 }

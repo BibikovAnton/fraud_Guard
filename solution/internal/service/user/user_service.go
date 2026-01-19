@@ -11,15 +11,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// userService реализует всю бизнес-логику работы с пользователями
-// Использую dependency injection для тестируемости и чистоты архитектуры
 type userService struct {
 	userRepo repository.UserRepository
 	jwtSecret string
 }
 
-// NewUserService создает новый экземпляр сервиса пользователей
-// TODO: подумать о добавлении логгера для трейсинга операций
 func NewUserService(userRepo repository.UserRepository, jwtSecret string) *userService {
 	return &userService{
 		userRepo:  userRepo,
@@ -27,217 +23,165 @@ func NewUserService(userRepo repository.UserRepository, jwtSecret string) *userS
 	}
 }
 
-// Register регистрирует нового пользователя с валидацией и хешированием пароля
-// Из прошлого проекта: всегда валидируем на нескольких уровнях для безопасности
-func (s *userService) Register(ctx context.Context, req model.RegisterRequest) (model.AuthResponse, error) {
-	// Валидация email на уникальность - критично для безопасности
-	exists, err := s.userRepo.ExistsByEmailAndActive(ctx, req.Email)
-	if err != nil {
-		return model.AuthResponse{}, fmt.Errorf("failed to check email existence: %w", err)
-	}
-	if exists {
-		return model.AuthResponse{}, fmt.Errorf("user with email %s already exists", req.Email)
-	}
-
-	// Хеширование пароля с bcrypt - проверенная временем практика
-	// Cost factor 12 хороший баланс между скоростью и безопасностью
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return model.AuthResponse{}, fmt.Errorf("failed to hash password: %w", err)
-	}
-
-	// Создание пользователя с ролью USER по умолчанию
-	user := model.NewUser(req.Email, string(passwordHash), req.FullName, model.UserRoleConst)
-	
-	// Установка опциональных полей если они переданы
-	user.Age = req.Age
-	user.Region = req.Region
-	user.Gender = req.Gender
-	user.MaritalStatus = req.MaritalStatus
-
-	// Сохранение в базу данных
-	if err := s.userRepo.Create(ctx, user); err != nil {
-		return model.AuthResponse{}, fmt.Errorf("failed to create user: %w", err)
-	}
-
-	// Генерация JWT токена
-	token, err := s.generateJWT(user.ID, user.Role)
-	if err != nil {
-		return model.AuthResponse{}, fmt.Errorf("failed to generate token: %w", err)
-	}
-
-	return model.AuthResponse{
-		AccessToken: token,
-		ExpiresIn:   3600, // 1 час в секундах
-		User:        user,
-	}, nil
-}
-
-// Login аутентифицирует пользователя по email и паролю
-// Важно: проверяем включая неактивных пользователей для корректных ошибок
-func (s *userService) Login(ctx context.Context, req model.LoginRequest) (model.AuthResponse, error) {
-	// Ищем пользователя включая неактивных - нужно для проверки статуса
-	user, err := s.userRepo.FindByEmailIncludingInactive(ctx, req.Email)
-	if err != nil {
-		return model.AuthResponse{}, fmt.Errorf("failed to find user: %w", err)
-	}
-
-	// Проверяем пароль с постоянным временем для защиты от timing attacks
-	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
-		return model.AuthResponse{}, fmt.Errorf("invalid credentials")
-	}
-
-	// Проверяем активность пользователя
-	if !user.IsActive {
-		return model.AuthResponse{}, fmt.Errorf("user is deactivated")
-	}
-
-	// Генерация JWT токена
-	token, err := s.generateJWT(user.ID, user.Role)
-	if err != nil {
-		return model.AuthResponse{}, fmt.Errorf("failed to generate token: %w", err)
-	}
-
-	return model.AuthResponse{
-		AccessToken: token,
-		ExpiresIn:   3600, // 1 час в секундах
-		User:        user,
-	}, nil
-}
-
-// GetMe возвращает профиль текущего пользователя
-// Простая операция - пользователь уже аутентифицирован через JWT
-func (s *userService) GetMe(ctx context.Context, userID string) (model.User, error) {
-	// TODO: можно добавить кэширование для часто запрашиваемых профилей
-	user, err := s.userRepo.FindByID(ctx, userID)
-	if err != nil {
-		return model.User{}, fmt.Errorf("failed to get user profile: %w", err)
-	}
-
-	return user, nil
-}
-
-// UpdateMe полностью обновляет профиль пользователя
-// Важно: все поля обязательны, для очистки нужно передать null
-func (s *userService) UpdateMe(ctx context.Context, userID string, req model.UserUpdateRequest) (model.User, error) {
-	// Сначала получаем текущего пользователя для сохранения неизменяемых полей
-	existingUser, err := s.userRepo.FindByID(ctx, userID)
-	if err != nil {
-		return model.User{}, fmt.Errorf("failed to find existing user: %w", err)
-	}
-
-	// Создаем обновленного пользователя с сохранением неизменяемых полей
-	updatedUser := model.User{
-		ID:           existingUser.ID,
-		Email:        existingUser.Email,        // email нельзя менять
-		PasswordHash: existingUser.PasswordHash, // пароль нельзя менять через этот метод
-		FullName:     req.FullName,
-		Age:          req.Age,
-		Region:       req.Region,
-		Gender:       req.Gender,
-		MaritalStatus: req.MaritalStatus,
-		Role:         existingUser.Role,     // обычный пользователь не может менять роль
-		IsActive:     existingUser.IsActive, // обычный пользователь не может деактивировать себя
-		CreatedAt:    existingUser.CreatedAt,
-		UpdatedAt:    time.Now().UTC(), // обновляем время изменения
-	}
-
-	// Сохраняем в базу данных
-	if err := s.userRepo.Update(ctx, updatedUser); err != nil {
-		return model.User{}, fmt.Errorf("failed to update user: %w", err)
-	}
-
-	// Возвращаем обновленного пользователя
-	return updatedUser, nil
-}
-
-// CreateByAdmin создает нового пользователя с правами администратора
-// Важно: позволяет указывать роль пользователя
-func (s *userService) CreateByAdmin(ctx context.Context, req model.UserCreateRequest) (model.User, error) {
-	// Валидация email на уникальность - критично для безопасности
+func (s *userService) Register(ctx context.Context, req model.RegisterRequest) (*model.RegisterResponse, error) {
 	exists, err := s.userRepo.ExistsByEmail(ctx, req.Email)
 	if err != nil {
-		return model.User{}, fmt.Errorf("failed to check email existence: %w", err)
+		return nil, fmt.Errorf("failed to check email existence: %w", err)
 	}
 	if exists {
-		return model.User{}, fmt.Errorf("user with email %s already exists", req.Email)
+		return nil, fmt.Errorf("user with email %s already exists", req.Email)
 	}
 
-	// Хеширование пароля с bcrypt - проверенная временем практика
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return model.User{}, fmt.Errorf("failed to hash password: %w", err)
+		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
 
-	// Создание пользователя с указанной ролью
-	user := model.NewUser(req.Email, string(passwordHash), req.FullName, req.Role)
-	
-	// Установка опциональных полей если они переданы
+	user := model.NewUser(req.Email, string(hashedPassword), req.FullName, model.UserRoleConst)
+
+	if err := s.userRepo.Create(ctx, user); err != nil {
+		return nil, fmt.Errorf("failed to create user: %w", err)
+	}
+
+	token, err := s.generateJWT(user.ID, user.Role)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate token: %w", err)
+	}
+
+	return &model.RegisterResponse{
+		User:  user,
+		Token: token,
+	}, nil
+}
+
+func (s *userService) Login(ctx context.Context, req model.LoginRequest) (*model.LoginResponse, error) {
+	user, err := s.userRepo.FindByEmailIncludingInactive(ctx, req.Email)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find user: %w", err)
+	}
+	if user == nil {
+		return nil, fmt.Errorf("invalid credentials")
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
+		return nil, fmt.Errorf("invalid credentials")
+	}
+
+	if !user.IsActive {
+		return nil, fmt.Errorf("user account is deactivated")
+	}
+
+	token, err := s.generateJWT(user.ID, user.Role)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate token: %w", err)
+	}
+
+	return &model.LoginResponse{
+		User:  *user,
+		Token: token,
+	}, nil
+}
+
+func (s *userService) GetMe(ctx context.Context, userID string) (*model.User, error) {
+	user, err := s.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user profile: %w", err)
+	}
+	if user == nil {
+		return nil, fmt.Errorf("user not found")
+	}
+
+	return user, nil
+}
+
+func (s *userService) UpdateMe(ctx context.Context, userID string, req model.UserUpdateRequest) (*model.User, error) {
+	existingUser, err := s.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get existing user: %w", err)
+	}
+	if existingUser == nil {
+		return nil, fmt.Errorf("user not found")
+	}
+
+	if req.FullName != nil {
+		existingUser.FullName = *req.FullName
+	}
+
+	if req.Age != nil {
+		existingUser.Age = req.Age
+	}
+	if req.Region != nil {
+		existingUser.Region = req.Region
+	}
+	if req.Gender != nil {
+		existingUser.Gender = req.Gender
+	}
+	if req.MaritalStatus != nil {
+		existingUser.MaritalStatus = req.MaritalStatus
+	}
+
+	updatedUser, err := s.userRepo.Update(ctx, userID, req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update user: %w", err)
+	}
+
+	return updatedUser, nil
+}
+
+func (s *userService) CreateByAdmin(ctx context.Context, req model.UserCreateRequest) (*model.User, error) {
+	exists, err := s.userRepo.ExistsByEmail(ctx, req.Email)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check email existence: %w", err)
+	}
+	if exists {
+		return nil, fmt.Errorf("user with email %s already exists", req.Email)
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, fmt.Errorf("failed to hash password: %w", err)
+	}
+
+	user := model.NewUser(req.Email, string(hashedPassword), req.FullName, req.Role)
+
 	user.Age = req.Age
 	user.Region = req.Region
 	user.Gender = req.Gender
 	user.MaritalStatus = req.MaritalStatus
 
-	// Сохранение в базу данных
 	if err := s.userRepo.Create(ctx, user); err != nil {
-		return model.User{}, fmt.Errorf("failed to create user: %w", err)
+		return nil, fmt.Errorf("failed to create user: %w", err)
+	}
+
+	createdUser, err := s.userRepo.FindByEmail(ctx, req.Email)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve created user: %w", err)
+	}
+
+	return createUser, nil
+}
+
+func (s *userService) GetByID(ctx context.Context, userID string) (*model.User, error) {
+	user, err := s.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user by ID: %w", err)
+	}
+	if user == nil {
+		return nil, fmt.Errorf("user not found")
 	}
 
 	return user, nil
 }
 
-// GetByID возвращает пользователя по ID (только для админов)
-func (s *userService) GetByID(ctx context.Context, userID string) (model.User, error) {
-	user, err := s.userRepo.FindByIDIncludingInactive(ctx, userID)
+func (s *userService) UpdateByAdmin(ctx context.Context, userID string, req model.UserUpdateRequest) (*model.User, error) {
+	updatedUser, err := s.userRepo.UpdateByAdmin(ctx, userID, req)
 	if err != nil {
-		return model.User{}, fmt.Errorf("failed to get user by ID: %w", err)
+		return nil, fmt.Errorf("failed to update user: %w", err)
 	}
 
-	return user, nil
-}
-
-// UpdateByAdmin обновляет пользователя с полными правами администратора
-func (s *userService) UpdateByAdmin(ctx context.Context, userID string, req model.UserUpdateRequest) (model.User, error) {
-	// Сначала получаем текущего пользователя
-	existingUser, err := s.userRepo.FindByIDIncludingInactive(ctx, userID)
-	if err != nil {
-		return model.User{}, fmt.Errorf("failed to find existing user: %w", err)
-	}
-
-	// Создаем обновленного пользователя
-	updatedUser := model.User{
-		ID:           existingUser.ID,
-		Email:        existingUser.Email,        // email нельзя менять
-		PasswordHash: existingUser.PasswordHash, // пароль нельзя менять через этот метод
-		FullName:     req.FullName,
-		Age:          req.Age,
-		Region:       req.Region,
-		Gender:       req.Gender,
-		MaritalStatus: req.MaritalStatus,
-		Role:         existingUser.Role,     // по умолчанию сохраняем текущую роль
-		IsActive:     existingUser.IsActive, // по умолчанию сохраняем текущий статус
-		CreatedAt:    existingUser.CreatedAt,
-		UpdatedAt:    time.Now().UTC(), // обновляем время изменения
-	}
-
-	// Применяем административные изменения если они указаны
-	if req.Role != nil {
-		updatedUser.Role = *req.Role
-	}
-	if req.IsActive != nil {
-		updatedUser.IsActive = *req.IsActive
-	}
-
-	// Сохраняем в базу данных через административный метод
-	if err := s.userRepo.UpdateByAdmin(ctx, updatedUser); err != nil {
-		return model.User{}, fmt.Errorf("failed to update user by admin: %w", err)
-	}
-
-	// Возвращаем обновленного пользователя
 	return updatedUser, nil
 }
 
-// SoftDelete деактивирует пользователя (только для админов)
 func (s *userService) SoftDelete(ctx context.Context, userID string) error {
 	if err := s.userRepo.SoftDelete(ctx, userID); err != nil {
 		return fmt.Errorf("failed to soft delete user: %w", err)
@@ -246,13 +190,20 @@ func (s *userService) SoftDelete(ctx context.Context, userID string) error {
 	return nil
 }
 
-// generateJWT создает JWT токен для пользователя
-// Использую стандартные claim'ы и 1 час жизни
+func (s *userService) GetAll(ctx context.Context, page, size int) ([]*model.User, int, error) {
+	if page < 0 {
+		page = 0
+	}
+	if size <= 0 || size > 100 {
+		size = 20 // значение по умолчанию
+	}
+
+	return s.userRepo.GetAll(ctx, page, size)
+}
+
 func (s *userService) generateJWT(userID string, role model.UserRole) (string, error) {
-	// Воспроизводимость: всегда используем одно и то же время жизни
 	expiresIn := time.Hour
 	
-	// Создаем токен с базовыми claim'ами
 	token, err := jwt.GenerateToken(userID, string(role), s.jwtSecret, expiresIn)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate JWT token: %w", err)
@@ -261,8 +212,6 @@ func (s *userService) generateJWT(userID string, role model.UserRole) (string, e
 	return token, nil
 }
 
-// validatePassword выполняет базовую валидацию пароля
-// Из опыта: лучше проверять на нескольких уровнях
 func (s *userService) validatePassword(password string) error {
 	if len(password) < 8 {
 		return fmt.Errorf("password must be at least 8 characters long")
@@ -271,25 +220,23 @@ func (s *userService) validatePassword(password string) error {
 		return fmt.Errorf("password must be at most 72 characters long")
 	}
 	
-	// Проверяем наличие цифры и буквы - требование из readme.txt
-	hasLetter := false
 	hasDigit := false
-	
+	hasLetter := false
 	for _, char := range password {
-		if (char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z') {
-			hasLetter = true
-		}
 		if char >= '0' && char <= '9' {
 			hasDigit = true
 		}
+		if (char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z') {
+			hasLetter = true
+		}
+		if hasDigit && hasLetter {
+			break
+		}
 	}
 	
-	if !hasLetter || !hasDigit {
-		return fmt.Errorf("password must contain at least one letter and one digit")
+	if !hasDigit || !hasLetter {
+		return fmt.Errorf("password must contain at least one digit and one letter")
 	}
-	
+
 	return nil
 }
-
-// TODO: добавить методы для административных функций
-// CreateByAdmin, GetByID, UpdateByAdmin, GetAll, SoftDelete

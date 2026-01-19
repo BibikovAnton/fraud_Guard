@@ -3,22 +3,25 @@ package v1
 import (
 	"context"
 	"fmt"
+	"solution/internal/middleware"
 	"solution/internal/model"
 	"solution/internal/service"
-	antifraud_v1 "solution/pkg/openapi/antifraud/v1"
 
 	"github.com/google/uuid"
+	antifraud_v1 "solution/pkg/openapi/antifraud/v1"
 )
 
 type handlerAdapter struct {
 	antifraudService service.AntifraudService
 	userService      service.UserService
+	fraudRuleService service.FraudRuleService
 }
 
-func NewHandlerAdapter(antifraudService service.AntifraudService, userService service.UserService) antifraud_v1.Handler {
+func NewHandlerAdapter(antifraudService service.AntifraudService, userService service.UserService, fraudRuleService service.FraudRuleService) antifraud_v1.Handler {
 	return &handlerAdapter{
 		antifraudService: antifraudService,
 		userService:      userService,
+		fraudRuleService: fraudRuleService,
 	}
 }
 
@@ -33,67 +36,43 @@ func (h *handlerAdapter) APIV1PingGet(ctx context.Context) (*antifraud_v1.APIV1P
 }
 
 func (h *handlerAdapter) APIV1AuthLoginPost(ctx context.Context, req *antifraud_v1.LoginRequest) (antifraud_v1.APIV1AuthLoginPostRes, error) {
-	// Конвертируем запрос в нашу модель
 	loginReq := model.LoginRequest{
 		Email:    req.Email,
 		Password: req.Password,
 	}
 
-	// Вызываем сервис
 	authResp, err := h.userService.Login(ctx, loginReq)
 	if err != nil {
-		// TODO: добавить обработку разных типов ошибок (401, 423)
+		// TODO: добавить обработку разных типов ошибок (401, 423) - нужно различать неверный пароль и заблокированного пользователя
 		return nil, fmt.Errorf("login failed: %w", err)
 	}
 
-	// Конвертируем ответ в OpenAPI модель
 	apiResp := antifraud_v1.AuthResponse{
-		AccessToken: authResp.AccessToken,
-		ExpiresIn:   authResp.ExpiresIn,
-		User:        convertUserToAPI(authResp.User),
+		AccessToken: authResp.Token,
+		ExpiresIn:   3600,
+		User:        convertUserToAPI(&authResp.User),
 	}
 
 	return &apiResp, nil
 }
 
 func (h *handlerAdapter) APIV1AuthRegisterPost(ctx context.Context, req *antifraud_v1.RegisterRequest) (antifraud_v1.APIV1AuthRegisterPostRes, error) {
-	// Конвертируем запрос в нашу модель
-	registerReq := model.RegisterRequest{
+ 	registerReq := model.RegisterRequest{
 		Email:    req.Email,
 		Password: req.Password,
 		FullName: req.FullName,
 	}
 
-	// Обрабатываем опциональные поля
-	if req.Age.Set {
-		age := req.Age.Value
-		registerReq.Age = &age
-	}
-	if req.Region.Set {
-		region := req.Region.Value
-		registerReq.Region = &region
-	}
-	if req.Gender.Set {
-		gender := model.Gender(req.Gender.Value)
-		registerReq.Gender = &gender
-	}
-	if req.MaritalStatus.Set {
-		maritalStatus := model.MaritalStatus(req.MaritalStatus.Value)
-		registerReq.MaritalStatus = &maritalStatus
-	}
-
-	// Вызываем сервис
 	authResp, err := h.userService.Register(ctx, registerReq)
 	if err != nil {
-		// TODO: добавить обработку разных типов ошибок (409, 422)
+		// TODO: добавить обработку разных типов ошибок (409, 422) - из прошлого проекта с банком это критично для безопасности
 		return nil, fmt.Errorf("registration failed: %w", err)
 	}
 
-	// Конвертируем ответ в OpenAPI модель
 	apiResp := antifraud_v1.AuthResponse{
-		AccessToken: authResp.AccessToken,
-		ExpiresIn:   authResp.ExpiresIn,
-		User:        convertUserToAPI(authResp.User),
+		AccessToken: authResp.Token,
+		ExpiresIn:   3600,
+		User:        convertUserToAPI(&authResp.User),
 	}
 
 	return &apiResp, nil
@@ -116,11 +95,45 @@ func (h *handlerAdapter) APIV1FraudRulesIDPut(ctx context.Context, req *antifrau
 }
 
 func (h *handlerAdapter) APIV1FraudRulesPost(ctx context.Context, req *antifraud_v1.FraudRuleCreateRequest) (antifraud_v1.APIV1FraudRulesPostRes, error) {
-	return nil, nil
+	userRole, ok := ctx.Value(middleware.ContextRoleKey).(string)
+	if !ok || userRole != "ADMIN" {
+		return nil, fmt.Errorf("access denied: admin rights required")
+	}
+
+	createReq := model.FraudRuleCreateRequest{
+		Name:        req.Name,
+		Description: req.Description.Value,
+		DSL:         req.DslExpression,
+	}
+
+	if req.Priority.Set {
+		createReq.Priority = &req.Priority.Value
+	}
+
+	rule, err := h.fraudRuleService.Create(ctx, createReq)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create fraud rule: %w", err)
+	}
+
+	apiRule := convertFraudRuleToAPI(*rule)
+	return &apiRule, nil
 }
 
 func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *antifraud_v1.DslValidateRequest) (antifraud_v1.APIV1FraudRulesValidatePostRes, error) {
-	return nil, nil
+	userRole, ok := ctx.Value(middleware.ContextRoleKey).(string)
+	if !ok || userRole != "ADMIN" {
+		return nil, fmt.Errorf("access denied: admin rights required")
+	}
+
+	validation, err := h.fraudRuleService.ValidateDSL(ctx, req.DslExpression)
+	if err != nil {
+		return nil, fmt.Errorf("failed to validate DSL: %w", err)
+	}
+
+	return &antifraud_v1.DslValidateResponse{
+		IsValid: validation.IsValid,
+		Errors:  []antifraud_v1.DslError{}, // TODO: конвертация ошибок - нужно парсить позиции токенов для UI
+	}, nil
 }
 
 func (h *handlerAdapter) APIV1StatsMerchantsRiskGet(ctx context.Context, params antifraud_v1.APIV1StatsMerchantsRiskGetParams) (antifraud_v1.APIV1StatsMerchantsRiskGetRes, error) {
@@ -160,57 +173,77 @@ func (h *handlerAdapter) APIV1TransactionsPost(ctx context.Context, req *antifra
 }
 
 func (h *handlerAdapter) APIV1UsersGet(ctx context.Context, params antifraud_v1.APIV1UsersGetParams) (antifraud_v1.APIV1UsersGetRes, error) {
-	return nil, nil
-}
-
-func (h *handlerAdapter) APIV1UsersIDDelete(ctx context.Context, params antifraud_v1.APIV1UsersIDDeleteParams) (antifraud_v1.APIV1UsersIDDeleteRes, error) {
-	// Проверяем, что пользователь имеет права ADMIN
-	userRole := ctx.Value("user_role").(string)
-	if userRole != "ADMIN" {
+	userRole, ok := ctx.Value(middleware.ContextRoleKey).(string)
+	if !ok || userRole != "ADMIN" {
 		return nil, fmt.Errorf("access denied: admin rights required")
 	}
 
-	// Вызываем сервис
+	page := 0
+	size := 20
+
+	if params.Page.Set {
+		page = params.Page.Value
+	}
+	if params.Size.Set {
+		size = params.Size.Value
+	}
+
+	users, total, err := h.userService.GetAll(ctx, page, size)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get users: %w", err)
+	}
+
+	apiUsers := make([]antifraud_v1.User, len(users))
+	for i, user := range users {
+		apiUsers[i] = convertUserToAPI(user)
+	}
+
+	return &antifraud_v1.PagedUsers{
+		Items: apiUsers,
+		Total: total,
+		Page:  page,
+		Size:  size,
+	}, nil
+}
+
+func (h *handlerAdapter) APIV1UsersIDDelete(ctx context.Context, params antifraud_v1.APIV1UsersIDDeleteParams) (antifraud_v1.APIV1UsersIDDeleteRes, error) {
+	userRole, ok := ctx.Value(middleware.ContextRoleKey).(string)
+	if !ok || userRole != "ADMIN" {
+		return nil, fmt.Errorf("access denied: admin rights required")
+	}
+
 	if err := h.userService.SoftDelete(ctx, params.ID.String()); err != nil {
 		return nil, fmt.Errorf("failed to delete user: %w", err)
 	}
 
-	// Возвращаем 204 No Content
 	return &antifraud_v1.APIV1UsersIDDeleteNoContent{}, nil
 }
 
 func (h *handlerAdapter) APIV1UsersIDGet(ctx context.Context, params antifraud_v1.APIV1UsersIDGetParams) (antifraud_v1.APIV1UsersIDGetRes, error) {
-	// Проверяем, что пользователь имеет права ADMIN
-	userRole := ctx.Value("user_role").(string)
-	if userRole != "ADMIN" {
+	userRole, ok := ctx.Value(middleware.ContextRoleKey).(string)
+	if !ok || userRole != "ADMIN" {
 		return nil, fmt.Errorf("access denied: admin rights required")
 	}
 
-	// Вызываем сервис
 	user, err := h.userService.GetByID(ctx, params.ID.String())
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user: %w", err)
 	}
 
-	// encodeAPIV1UsersIDGetResponse ожидает *antifraud_v1.User
 	apiUser := convertUserToAPI(user)
 	return &apiUser, nil
 }
 
 func (h *handlerAdapter) APIV1UsersIDPut(ctx context.Context, req *antifraud_v1.UserUpdateRequest, params antifraud_v1.APIV1UsersIDPutParams) (antifraud_v1.APIV1UsersIDPutRes, error) {
-	// Проверяем, что пользователь имеет права ADMIN
-	userRole := ctx.Value("user_role").(string)
-	if userRole != "ADMIN" {
+	userRole, ok := ctx.Value(middleware.ContextRoleKey).(string)
+	if !ok || userRole != "ADMIN" {
 		return nil, fmt.Errorf("access denied: admin rights required")
 	}
 
-	// Конвертируем запрос в нашу модель
 	updateReq := model.UserUpdateRequest{
-		FullName: req.FullName,
+		FullName: &req.FullName,
 	}
 
-	// Nil* поля приходят всегда: либо value, либо null.
-	// Если Null=true, считаем что поле нужно очистить (передать nil).
 	if req.Region.Null {
 		updateReq.Region = nil
 	} else {
@@ -236,7 +269,6 @@ func (h *handlerAdapter) APIV1UsersIDPut(ctx context.Context, req *antifraud_v1.
 		updateReq.MaritalStatus = &maritalStatus
 	}
 
-	// Обрабатываем административные поля
 	if req.Role.Set {
 		role := model.UserRole(req.Role.Value)
 		updateReq.Role = &role
@@ -246,7 +278,6 @@ func (h *handlerAdapter) APIV1UsersIDPut(ctx context.Context, req *antifraud_v1.
 		updateReq.IsActive = &isActive
 	}
 
-	// Вызываем сервис
 	user, err := h.userService.UpdateByAdmin(ctx, params.ID.String(), updateReq)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update user: %w", err)
@@ -257,10 +288,11 @@ func (h *handlerAdapter) APIV1UsersIDPut(ctx context.Context, req *antifraud_v1.
 }
 
 func (h *handlerAdapter) APIV1UsersMeGet(ctx context.Context) (antifraud_v1.APIV1UsersMeGetRes, error) {
-	// Получаем userID из контекста (JWT middleware должен был его установить)
-	userID := ctx.Value("user_id").(string)
-	
-	// Вызываем сервис
+	userID, ok := ctx.Value(middleware.ContextUserIDKey).(string)
+	if !ok {
+		return nil, fmt.Errorf("user ID not found in context")
+	}
+
 	user, err := h.userService.GetMe(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user profile: %w", err)
@@ -271,15 +303,15 @@ func (h *handlerAdapter) APIV1UsersMeGet(ctx context.Context) (antifraud_v1.APIV
 }
 
 func (h *handlerAdapter) APIV1UsersMePut(ctx context.Context, req *antifraud_v1.UserUpdateRequest) (antifraud_v1.APIV1UsersMePutRes, error) {
-	// Получаем userID из контекста
-	userID := ctx.Value("user_id").(string)
-	
-	// Конвертируем запрос в нашу модель
-	updateReq := model.UserUpdateRequest{
-		FullName: req.FullName,
+	userID, ok := ctx.Value(middleware.ContextUserIDKey).(string)
+	if !ok {
+		return nil, fmt.Errorf("user ID not found in context")
 	}
 
-	// Nil* поля: либо value, либо null.
+	updateReq := model.UserUpdateRequest{
+		FullName: &req.FullName,
+	}
+
 	if req.Region.Null {
 		updateReq.Region = nil
 	} else {
@@ -305,7 +337,6 @@ func (h *handlerAdapter) APIV1UsersMePut(ctx context.Context, req *antifraud_v1.
 		updateReq.MaritalStatus = &maritalStatus
 	}
 
-	// Вызываем сервис
 	user, err := h.userService.UpdateMe(ctx, userID, updateReq)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update user profile: %w", err)
@@ -316,13 +347,11 @@ func (h *handlerAdapter) APIV1UsersMePut(ctx context.Context, req *antifraud_v1.
 }
 
 func (h *handlerAdapter) APIV1UsersPost(ctx context.Context, req *antifraud_v1.UserCreateRequest) (antifraud_v1.APIV1UsersPostRes, error) {
-	// Проверяем, что пользователь имеет права ADMIN
-	userRole := ctx.Value("user_role").(string)
-	if userRole != "ADMIN" {
+	userRole, ok := ctx.Value(middleware.ContextRoleKey).(string)
+	if !ok || userRole != "ADMIN" {
 		return nil, fmt.Errorf("access denied: admin rights required")
 	}
 
-	// Конвертируем запрос в нашу модель
 	createReq := model.UserCreateRequest{
 		Email:    req.Email,
 		Password: req.Password,
@@ -330,7 +359,6 @@ func (h *handlerAdapter) APIV1UsersPost(ctx context.Context, req *antifraud_v1.U
 		Role:     model.UserRole(req.Role),
 	}
 
-	// UserCreateRequest использует Opt* (Set/Value)
 	if req.Region.Set {
 		region := req.Region.Value
 		createReq.Region = &region
@@ -348,7 +376,6 @@ func (h *handlerAdapter) APIV1UsersPost(ctx context.Context, req *antifraud_v1.U
 		createReq.MaritalStatus = &maritalStatus
 	}
 
-	// Вызываем сервис
 	user, err := h.userService.CreateByAdmin(ctx, createReq)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)
@@ -358,9 +385,7 @@ func (h *handlerAdapter) APIV1UsersPost(ctx context.Context, req *antifraud_v1.U
 	return &apiUser, nil
 }
 
-// convertUserToAPI конвертирует нашу модель User в OpenAPI модель
-// Важно: правильно обрабатывать nullable поля для соответствия спецификации
-func convertUserToAPI(user model.User) antifraud_v1.User {
+func convertUserToAPI(user *model.User) antifraud_v1.User {
 	apiUser := antifraud_v1.User{
 		Email:     user.Email,
 		FullName:  user.FullName,
@@ -370,28 +395,53 @@ func convertUserToAPI(user model.User) antifraud_v1.User {
 		UpdatedAt: user.UpdatedAt,
 	}
 
-	// Конвертируем ID из string в uuid.UUID
 	id, err := uuid.Parse(user.ID)
 	if err == nil {
 		apiUser.ID = id
 	}
 
-	// Обрабатываем nullable поля
-	if user.Age != nil {
-		apiUser.Age = antifraud_v1.OptInt{Value: *user.Age, Set: true}
-	}
-	
 	if user.Region != nil {
-		apiUser.Region = antifraud_v1.OptString{Value: *user.Region, Set: true}
+		apiUser.Region = antifraud_v1.OptString{
+			Value: *user.Region,
+			Set:   true,
+		}
 	}
-	
 	if user.Gender != nil {
-		apiUser.Gender = antifraud_v1.OptGender{Value: antifraud_v1.Gender(*user.Gender), Set: true}
+		apiUser.Gender = antifraud_v1.OptGender{
+			Value: antifraud_v1.Gender(*user.Gender),
+			Set:   true,
+		}
 	}
-	
+	if user.Age != nil {
+		apiUser.Age = antifraud_v1.OptInt{
+			Value: *user.Age,
+			Set:   true,
+		}
+	}
 	if user.MaritalStatus != nil {
-		apiUser.MaritalStatus = antifraud_v1.OptMaritalStatus{Value: antifraud_v1.MaritalStatus(*user.MaritalStatus), Set: true}
+		apiUser.MaritalStatus = antifraud_v1.OptMaritalStatus{
+			Value: antifraud_v1.MaritalStatus(*user.MaritalStatus),
+			Set:   true,
+		}
 	}
 
 	return apiUser
+}
+
+func convertFraudRuleToAPI(rule model.FraudRule) antifraud_v1.FraudRule {
+	id, err := uuid.Parse(rule.ID)
+	if err != nil {
+		id = uuid.New()
+	}
+
+	return antifraud_v1.FraudRule{
+		ID:            id,
+		Name:          rule.Name,
+		Description:   antifraud_v1.OptString{Value: rule.Description, Set: rule.Description != ""},
+		DslExpression: rule.DSL,
+		Enabled:       rule.IsActive,
+		Priority:      rule.Priority,
+		CreatedAt:     rule.CreatedAt,
+		UpdatedAt:     rule.UpdatedAt,
+	}
 }

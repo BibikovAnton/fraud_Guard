@@ -6,24 +6,21 @@ import (
 	"github.com/google/uuid"
 )
 
-// User - основная модель пользователя с человеческими полями
-// TODO: подумать о добавлении поля last_login_at для аналитики поведения
 type User struct {
 	ID           string    `json:"id"`
 	Email        string    `json:"email"`
-	PasswordHash string    `json:"-"` // не сериализуем в JSON
+	PasswordHash string    `json:"-"`
 	FullName     string    `json:"fullName"`
-	Age          *int      `json:"age,omitempty"`          // nullable поле
-	Region       *string   `json:"region,omitempty"`       // nullable поле  
-	Gender       *Gender   `json:"gender,omitempty"`       // nullable поле
-	MaritalStatus *MaritalStatus `json:"maritalStatus,omitempty"` // nullable поле
+	Age          *int      `json:"age,omitempty"`
+	Region       *string   `json:"region,omitempty"`
+	Gender       *Gender   `json:"gender,omitempty"`
+	MaritalStatus *MaritalStatus `json:"maritalStatus,omitempty"`
 	Role         UserRole  `json:"role"`
 	IsActive     bool      `json:"isActive"`
 	CreatedAt    time.Time `json:"createdAt"`
 	UpdatedAt    time.Time `json:"updatedAt"`
 }
 
-// Gender - гендер пользователя, строго типизированный enum
 type Gender string
 
 const (
@@ -31,7 +28,6 @@ const (
 	GenderFemale Gender = "FEMALE"
 )
 
-// MaritalStatus - семейное положение, тоже строгий enum
 type MaritalStatus string
 
 const (
@@ -41,7 +37,6 @@ const (
 	MaritalStatusWidowed  MaritalStatus = "WIDOWED"
 )
 
-// UserRole - роль пользователя в системе
 type UserRole string
 
 const (
@@ -49,53 +44,46 @@ const (
 	AdminRole UserRole = "ADMIN"
 )
 
-// RegisterRequest - запрос на регистрацию с валидацией
-// Из прошлого проекта заметил, что лучше сразу добавлять валидацию на уровне модели
 type RegisterRequest struct {
 	Email         string        `json:"email" validate:"required,email,max=254"`
 	Password      string        `json:"password" validate:"required,min=8,max=72,containsany=0123456789,containsany=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"`
 	FullName      string        `json:"fullName" validate:"required,min=2,max=200"`
-	Age           *int          `json:"age" validate:"omitempty,min=18,max=120"`
-	Region        *string       `json:"region" validate:"omitempty,max=32"`
-	Gender        *Gender       `json:"gender,omitempty"`
-	MaritalStatus *MaritalStatus `json:"maritalStatus,omitempty"`
 }
 
-// LoginRequest - запрос на вход, минималистичный но надежный
+type RegisterResponse struct {
+	User  User   `json:"user"`
+	Token string `json:"token"`
+}
+
 type LoginRequest struct {
-	Email    string `json:"email" validate:"required,email,max=254"`
-	Password string `json:"password" validate:"required,min=8,max=72"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
-// AuthResponse - ответ при успешной аутентификации
-type AuthResponse struct {
-	AccessToken string `json:"accessToken"`
-	ExpiresIn   int    `json:"expiresIn"`
-	User        User   `json:"user"`
+type LoginResponse struct {
+	User  User   `json:"user"`
+	Token string `json:"token"`
 }
 
-// UserCreateRequest - запрос для создания пользователя админом
 type UserCreateRequest struct {
-	Email         string        `json:"email" validate:"required,email,max=254"`
-	Password      string        `json:"password" validate:"required,min=8,max=72,containsany=0123456789,containsany=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"`
-	FullName      string        `json:"fullName" validate:"required,min=2,max=200"`
-	Age           *int          `json:"age" validate:"omitempty,min=18,max=120"`
-	Region        *string       `json:"region" validate:"omitempty,max=32"`
-	Gender        *Gender       `json:"gender,omitempty"`
-	MaritalStatus *MaritalStatus `json:"maritalStatus,omitempty"`
-	Role          UserRole      `json:"role" validate:"required,oneof=USER ADMIN"`
+	Email         string           `json:"email"`
+	Password      string           `json:"password"`
+	FullName      string           `json:"fullName"`
+	Region        *string          `json:"region,omitempty"`
+	Gender        *Gender          `json:"gender,omitempty"`
+	Age           *int             `json:"age,omitempty"`
+	MaritalStatus *MaritalStatus   `json:"maritalStatus,omitempty"`
+	Role          UserRole         `json:"role"`
 }
 
-// UserUpdateRequest - запрос на полное обновление профиля
-// Важно: все поля обязательны, для очистки нужно передать null
 type UserUpdateRequest struct {
-	FullName      string        `json:"fullName" validate:"required,min=2,max=200"`
-	Age           *int          `json:"age" validate:"omitempty,min=18,max=120"`
-	Region        *string       `json:"region" validate:"omitempty,max=32"`
-	Gender        *Gender       `json:"gender,omitempty"`
-	MaritalStatus *MaritalStatus `json:"maritalStatus,omitempty"`
-	Role          *UserRole     `json:"role,omitempty"`     // только ADMIN может менять
-	IsActive      *bool         `json:"isActive,omitempty"`  // только ADMIN может менять
+	FullName      *string          `json:"fullName,omitempty"`
+	Region        *string          `json:"region,omitempty"`
+	Gender        *Gender          `json:"gender,omitempty"`
+	Age           *int             `json:"age,omitempty"`
+	MaritalStatus *MaritalStatus   `json:"maritalStatus,omitempty"`
+	Role          *UserRole        `json:"role,omitempty"`
+	IsActive      *bool            `json:"isActive,omitempty"`
 }
 
 // NewUser создает нового пользователя с базовыми полями

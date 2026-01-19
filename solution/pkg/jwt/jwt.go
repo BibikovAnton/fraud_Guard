@@ -92,8 +92,6 @@ func (j *JWT) GetTokenExpiry() time.Duration {
 	return j.tokenExpiry
 }
 
-// GenerateToken - удобная функция для генерации токена
-// Добавил для совместимости с UserService, из прошлого проекта так было удобнее
 func GenerateToken(userID, role, secret string, expiresIn time.Duration) (string, error) {
 	if role != "USER" && role != "ADMIN" {
 		return "", errors.New("invalid role, must be USER or ADMIN")
@@ -103,7 +101,7 @@ func GenerateToken(userID, role, secret string, expiresIn time.Duration) (string
 		return "", errors.New("userID cannot be empty")
 	}
 
-	now := time.Now().UTC() // всегда UTC для воспроизводимости
+	now := time.Now().UTC()
 	claims := CustomClaims{
 		UserID: userID,
 		Role:   role,

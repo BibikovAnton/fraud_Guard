@@ -101,7 +101,7 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(10 * time.Second))
 
-	handlerAdapter := v1.NewHandlerAdapter(a.diContainer.AntifraudService(ctx), a.diContainer.UserService(ctx))
+	handlerAdapter := v1.NewHandlerAdapter(a.diContainer.AntifraudService(ctx), a.diContainer.UserService(ctx), a.diContainer.FraudRuleService(ctx))
 	secHandlerAdapter := v1.NewSecurityHandlerAdapter()
 
 	antifraudServer, err := antifraud_v1.NewServer(handlerAdapter, secHandlerAdapter)

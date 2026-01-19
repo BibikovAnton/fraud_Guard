@@ -5,136 +5,144 @@ import (
 	"database/sql"
 	"fmt"
 	"solution/internal/model"
+	"strings"
 	"time"
 )
 
-// Update обновляет данные пользователя в базе данных
-// Важно: обновляем только разрешенные поля для обычных пользователей
-func (r *repository) Update(ctx context.Context, user model.User) error {
-	// Воспроизводимость: всегда используем UTC время
+func (r *repo) Update(ctx context.Context, userID string, req model.UserUpdateRequest) (*model.User, error) {
 	now := time.Now().UTC()
 	
-	query := `
-		UPDATE users 
-		SET full_name = $2, age = $3, region = $4, gender = $5, 
-			marital_status = $6, updated_at = $7
-		WHERE id = $1 AND is_active = true
-	`
-
-	// Подготовка значений с учетом nullable полей
+	var updates []string
+	var args []interface{}
+	argIndex := 1
+	
+	if req.FullName != nil {
+		updates = append(updates, fmt.Sprintf("full_name = $%d", argIndex))
+		args = append(args, *req.FullName)
+		argIndex++
+	}
+	
 	var age sql.NullInt32
-	if user.Age != nil {
-		age = sql.NullInt32{Int32: int32(*user.Age), Valid: true}
+	if req.Age != nil {
+		age = sql.NullInt32{Int32: int32(*req.Age), Valid: true}
 	}
-
+	updates = append(updates, fmt.Sprintf("age = $%d", argIndex))
+	args = append(args, age)
+	argIndex++
+	
 	var region sql.NullString
-	if user.Region != nil {
-		region = sql.NullString{String: *user.Region, Valid: true}
+	if req.Region != nil {
+		region = sql.NullString{String: *req.Region, Valid: true}
 	}
-
+	updates = append(updates, fmt.Sprintf("region = $%d", argIndex))
+	args = append(args, region)
+	argIndex++
+	
 	var gender sql.NullString
-	if user.Gender != nil {
-		gender = sql.NullString{String: string(*user.Gender), Valid: true}
+	if req.Gender != nil {
+		gender = sql.NullString{String: string(*req.Gender), Valid: true}
 	}
-
+	updates = append(updates, fmt.Sprintf("gender = $%d", argIndex))
+	args = append(args, gender)
+	argIndex++
+	
 	var maritalStatus sql.NullString
-	if user.MaritalStatus != nil {
-		maritalStatus = sql.NullString{String: string(*user.MaritalStatus), Valid: true}
+	if req.MaritalStatus != nil {
+		maritalStatus = sql.NullString{String: string(*req.MaritalStatus), Valid: true}
 	}
-
-	result, err := r.db.ExecContext(ctx, query,
-		user.ID,                    // $1
-		user.FullName,              // $2
-		age,                        // $3
-		region,                     // $4
-		gender,                     // $5
-		maritalStatus,              // $6
-		now,                        // $7
-	)
-
+	updates = append(updates, fmt.Sprintf("marital_status = $%d", argIndex))
+	args = append(args, maritalStatus)
+	argIndex++
+	
+	updates = append(updates, fmt.Sprintf("updated_at = $%d", argIndex))
+	args = append(args, now)
+	
+	query := fmt.Sprintf("UPDATE users SET %s WHERE id = $%d AND is_active = true", 
+		strings.Join(updates, ", "), argIndex+1)
+	
+	args = append(args, userID)
+	
+	_, err := r.db.Exec(ctx, query, args...)
 	if err != nil {
-		return fmt.Errorf("failed to update user: %w", err)
+		return nil, fmt.Errorf("failed to update user: %w", err)
 	}
-
-	// Проверяем, что хотя бы одна строка была обновлена
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return fmt.Errorf("failed to get rows affected: %w", err)
-	}
-
-	if rowsAffected == 0 {
-		return fmt.Errorf("user with id %s not found or inactive", user.ID)
-	}
-
-	return nil
+	
+	return r.GetByID(ctx, userID)
 }
 
-// UpdateByAdmin обновляет данные пользователя с возможностью менять роль и статус
-// Используется административными функциями
-func (r *repository) UpdateByAdmin(ctx context.Context, user model.User) error {
-	// Воспроизводимость: всегда используем UTC время
+func (r *repo) UpdateByAdmin(ctx context.Context, userID string, req model.UserUpdateRequest) (*model.User, error) {
 	now := time.Now().UTC()
 	
-	query := `
-		UPDATE users 
-		SET full_name = $2, age = $3, region = $4, gender = $5, 
-			marital_status = $6, role = $7, is_active = $8, updated_at = $9
-		WHERE id = $1
-	`
-
-	// Подготовка значений с учетом nullable полей
+	var updates []string
+	var args []interface{}
+	argIndex := 1
+	
+	if req.FullName != nil {
+		updates = append(updates, fmt.Sprintf("full_name = $%d", argIndex))
+		args = append(args, *req.FullName)
+		argIndex++
+	}
 	var age sql.NullInt32
-	if user.Age != nil {
-		age = sql.NullInt32{Int32: int32(*user.Age), Valid: true}
+	if req.Age != nil {
+		age = sql.NullInt32{Int32: int32(*req.Age), Valid: true}
 	}
-
+	updates = append(updates, fmt.Sprintf("age = $%d", argIndex))
+	args = append(args, age)
+	argIndex++
+	
 	var region sql.NullString
-	if user.Region != nil {
-		region = sql.NullString{String: *user.Region, Valid: true}
+	if req.Region != nil {
+		region = sql.NullString{String: *req.Region, Valid: true}
 	}
-
+	updates = append(updates, fmt.Sprintf("region = $%d", argIndex))
+	args = append(args, region)
+	argIndex++
+	
 	var gender sql.NullString
-	if user.Gender != nil {
-		gender = sql.NullString{String: string(*user.Gender), Valid: true}
+	if req.Gender != nil {
+		gender = sql.NullString{String: string(*req.Gender), Valid: true}
 	}
-
+	updates = append(updates, fmt.Sprintf("gender = $%d", argIndex))
+	args = append(args, gender)
+	argIndex++
+	
 	var maritalStatus sql.NullString
-	if user.MaritalStatus != nil {
-		maritalStatus = sql.NullString{String: string(*user.MaritalStatus), Valid: true}
+	if req.MaritalStatus != nil {
+		maritalStatus = sql.NullString{String: string(*req.MaritalStatus), Valid: true}
 	}
-
-	result, err := r.db.ExecContext(ctx, query,
-		user.ID,                    // $1
-		user.FullName,              // $2
-		age,                        // $3
-		region,                     // $4
-		gender,                     // $5
-		maritalStatus,              // $6
-		string(user.Role),          // $7
-		user.IsActive,              // $8
-		now,                        // $9
-	)
-
+	updates = append(updates, fmt.Sprintf("marital_status = $%d", argIndex))
+	args = append(args, maritalStatus)
+	argIndex++
+	
+	if req.Role != nil {
+		updates = append(updates, fmt.Sprintf("role = $%d", argIndex))
+		args = append(args, string(*req.Role))
+		argIndex++
+	}
+	
+	if req.IsActive != nil {
+		updates = append(updates, fmt.Sprintf("is_active = $%d", argIndex))
+		args = append(args, *req.IsActive)
+		argIndex++
+	}
+	
+	updates = append(updates, fmt.Sprintf("updated_at = $%d", argIndex))
+	args = append(args, now)
+	
+	query := fmt.Sprintf("UPDATE users SET %s WHERE id = $%d", 
+		strings.Join(updates, ", "), argIndex+1)
+	
+	args = append(args, userID)
+	
+	_, err := r.db.Exec(ctx, query, args...)
 	if err != nil {
-		return fmt.Errorf("failed to update user by admin: %w", err)
+		return nil, fmt.Errorf("failed to update user by admin: %w", err)
 	}
-
-	// Проверяем, что хотя бы одна строка была обновлена
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return fmt.Errorf("failed to get rows affected: %w", err)
-	}
-
-	if rowsAffected == 0 {
-		return fmt.Errorf("user with id %s not found", user.ID)
-	}
-
-	return nil
+	
+	return r.GetByID(ctx, userID)
 }
 
-// SoftDelete деактивирует пользователя вместо физического удаления
-// Следуем принципу soft-delete из readme.txt
-func (r *repository) SoftDelete(ctx context.Context, id string) error {
+func (r *repo) SoftDelete(ctx context.Context, userID string) error {
 	query := `
 		UPDATE users 
 		SET is_active = false, updated_at = $2
@@ -143,19 +151,14 @@ func (r *repository) SoftDelete(ctx context.Context, id string) error {
 
 	now := time.Now().UTC()
 	
-	result, err := r.db.ExecContext(ctx, query, id, now)
+	result, err := r.db.Exec(ctx, query, userID, now)
 	if err != nil {
 		return fmt.Errorf("failed to soft delete user: %w", err)
 	}
 
-	// Проверяем, что хотя бы одна строка была обновлена
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return fmt.Errorf("failed to get rows affected: %w", err)
-	}
-
+	rowsAffected := result.RowsAffected()
 	if rowsAffected == 0 {
-		return fmt.Errorf("user with id %s not found", id)
+		return fmt.Errorf("user with id %s not found", userID)
 	}
 
 	return nil

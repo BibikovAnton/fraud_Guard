@@ -10,9 +10,11 @@ import (
 	"solution/internal/config"
 	"solution/internal/repository"
 	repositoryAntifraud "solution/internal/repository/antifraud"
+	repositoryFraudRules "solution/internal/repository/fraud_rules"
 	repositoryUser "solution/internal/repository/user"
 	"solution/internal/service"
 	serviceAntifraud "solution/internal/service/antifraurd"
+	serviceFraudRules "solution/internal/service/fraud_rules"
 	serviceUser "solution/internal/service/user"
 	"solution/platform/pkg/closer"
 )
@@ -20,9 +22,11 @@ import (
 type diContainer struct {
 	antifraudService    service.AntifraudService
 	userService        service.UserService
+	fraudRuleService   service.FraudRuleService
 	
 	antifraudRepository repository.AntifraudRepository
 	userRepository      repository.UserRepository
+	fraudRuleRepository repository.FraudRuleRepository
 
 	postgresConn     *pgx.Conn
 	postgresDBHandle *sql.DB
@@ -50,6 +54,13 @@ func (d *diContainer) UserService(ctx context.Context) service.UserService {
 	return d.userService
 }
 
+func (d *diContainer) FraudRuleService(ctx context.Context) service.FraudRuleService {
+	if d.fraudRuleService == nil {
+		d.fraudRuleService = serviceFraudRules.NewService(d.FraudRuleRepository(ctx))
+	}
+	return d.fraudRuleService
+}
+
 func (d *diContainer) AntifraudRepository(ctx context.Context) repository.AntifraudRepository {
 	if d.antifraudRepository == nil {
 		d.antifraudRepository = repositoryAntifraud.NewRepository(d.PostgresDBHandle(ctx))
@@ -59,9 +70,16 @@ func (d *diContainer) AntifraudRepository(ctx context.Context) repository.Antifr
 
 func (d *diContainer) UserRepository(ctx context.Context) repository.UserRepository {
 	if d.userRepository == nil {
-		d.userRepository = repositoryUser.NewRepository(d.PostgresDBHandle(ctx))
+		d.userRepository = repositoryUser.NewRepository(d.PostgresDBClient(ctx))
 	}
 	return d.userRepository
+}
+
+func (d *diContainer) FraudRuleRepository(ctx context.Context) repository.FraudRuleRepository {
+	if d.fraudRuleRepository == nil {
+		d.fraudRuleRepository = repositoryFraudRules.NewRepository(d.PostgresDBClient(ctx))
+	}
+	return d.fraudRuleRepository
 }
 
 func (d *diContainer) PostgresDBClient(ctx context.Context) *pgx.Conn {

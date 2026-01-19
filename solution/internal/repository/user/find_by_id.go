@@ -7,9 +7,7 @@ import (
 	"solution/internal/model"
 )
 
-// FindByID ищет пользователя по ID
-// Используется в GetMe и других операциях где мы уже знаем ID из JWT
-func (r *repository) FindByID(ctx context.Context, id string) (model.User, error) {
+func (r *repo) GetByID(ctx context.Context, userID string) (*model.User, error) {
 	query := `
 		SELECT id, email, password_hash, full_name, age, region, 
 			   gender, marital_status, role, is_active, created_at, updated_at
@@ -23,7 +21,7 @@ func (r *repository) FindByID(ctx context.Context, id string) (model.User, error
 	var gender sql.NullString
 	var maritalStatus sql.NullString
 
-	err := r.db.QueryRowContext(ctx, query, id).Scan(
+	err := r.db.QueryRow(ctx, query, userID).Scan(
 		&user.ID,
 		&user.Email,
 		&user.PasswordHash,
@@ -40,12 +38,11 @@ func (r *repository) FindByID(ctx context.Context, id string) (model.User, error
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return model.User{}, fmt.Errorf("user with id %s not found: %w", id, err)
+			return nil, nil
 		}
-		return model.User{}, fmt.Errorf("failed to find user by id: %w", err)
+		return nil, fmt.Errorf("failed to get user by ID: %w", err)
 	}
 
-	// Конвертируем nullable поля в указатели
 	if age.Valid {
 		ageInt := int(age.Int32)
 		user.Age = &ageInt
@@ -65,15 +62,12 @@ func (r *repository) FindByID(ctx context.Context, id string) (model.User, error
 		user.MaritalStatus = &ms
 	}
 
-	// Конвертируем роль в строгий тип
 	user.Role = model.UserRole(user.Role)
 
-	return user, nil
+	return &user, nil
 }
 
-// FindByIDIncludingInactive ищет пользователя по ID включая неактивных
-// Нужен для административных функций
-func (r *repository) FindByIDIncludingInactive(ctx context.Context, id string) (model.User, error) {
+func (r *repo) FindByIDIncludingInactive(ctx context.Context, userID string) (*model.User, error) {
 	query := `
 		SELECT id, email, password_hash, full_name, age, region, 
 			   gender, marital_status, role, is_active, created_at, updated_at
@@ -87,7 +81,7 @@ func (r *repository) FindByIDIncludingInactive(ctx context.Context, id string) (
 	var gender sql.NullString
 	var maritalStatus sql.NullString
 
-	err := r.db.QueryRowContext(ctx, query, id).Scan(
+	err := r.db.QueryRow(ctx, query, userID).Scan(
 		&user.ID,
 		&user.Email,
 		&user.PasswordHash,
@@ -104,12 +98,11 @@ func (r *repository) FindByIDIncludingInactive(ctx context.Context, id string) (
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return model.User{}, fmt.Errorf("user with id %s not found: %w", id, err)
+			return nil, nil
 		}
-		return model.User{}, fmt.Errorf("failed to find user by id: %w", err)
+		return nil, fmt.Errorf("failed to get user by ID: %w", err)
 	}
 
-	// Конвертируем nullable поля в указатели
 	if age.Valid {
 		ageInt := int(age.Int32)
 		user.Age = &ageInt
@@ -129,8 +122,7 @@ func (r *repository) FindByIDIncludingInactive(ctx context.Context, id string) (
 		user.MaritalStatus = &ms
 	}
 
-	// Конвертируем роль в строгий тип
 	user.Role = model.UserRole(user.Role)
 
-	return user, nil
+	return &user, nil
 }
