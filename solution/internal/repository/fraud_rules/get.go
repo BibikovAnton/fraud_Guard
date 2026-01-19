@@ -73,7 +73,7 @@ func (r *repository) GetAll(ctx context.Context, activeOnly bool) ([]*model.Frau
 	if activeOnly {
 		query += ` WHERE is_active = true`
 	}
-	
+
 	query += ` ORDER BY priority ASC, created_at DESC`
 
 	rows, err := r.db.Query(ctx, query)

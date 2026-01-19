@@ -7,6 +7,7 @@ require (
 	github.com/go-chi/chi/v5 v5.2.4
 	github.com/go-faster/errors v0.7.1
 	github.com/go-faster/jx v1.1.0
+	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/ogen-go/ogen v1.12.0
@@ -15,6 +16,7 @@ require (
 	go.opentelemetry.io/otel/metric v1.37.0
 	go.opentelemetry.io/otel/trace v1.37.0
 	go.uber.org/zap v1.27.0
+	golang.org/x/crypto v0.47.0
 )
 
 require (
@@ -39,10 +41,8 @@ require (
 )
 
 require (
-	github.com/golang-jwt/jwt/v5 v5.3.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
-	golang.org/x/crypto v0.47.0 // indirect
 	golang.org/x/text v0.33.0 // indirect
 )

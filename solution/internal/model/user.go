@@ -7,18 +7,18 @@ import (
 )
 
 type User struct {
-	ID           string    `json:"id"`
-	Email        string    `json:"email"`
-	PasswordHash string    `json:"-"`
-	FullName     string    `json:"fullName"`
-	Age          *int      `json:"age,omitempty"`
-	Region       *string   `json:"region,omitempty"`
-	Gender       *Gender   `json:"gender,omitempty"`
+	ID            string         `json:"id"`
+	Email         string         `json:"email"`
+	PasswordHash  string         `json:"-"`
+	FullName      string         `json:"fullName"`
+	Age           *int           `json:"age,omitempty"`
+	Region        *string        `json:"region,omitempty"`
+	Gender        *Gender        `json:"gender,omitempty"`
 	MaritalStatus *MaritalStatus `json:"maritalStatus,omitempty"`
-	Role         UserRole  `json:"role"`
-	IsActive     bool      `json:"isActive"`
-	CreatedAt    time.Time `json:"createdAt"`
-	UpdatedAt    time.Time `json:"updatedAt"`
+	Role          UserRole       `json:"role"`
+	IsActive      bool           `json:"isActive"`
+	CreatedAt     time.Time      `json:"createdAt"`
+	UpdatedAt     time.Time      `json:"updatedAt"`
 }
 
 type Gender string
@@ -40,14 +40,14 @@ const (
 type UserRole string
 
 const (
-	UserRoleConst  UserRole = "USER"
-	AdminRole UserRole = "ADMIN"
+	UserRoleConst UserRole = "USER"
+	AdminRole     UserRole = "ADMIN"
 )
 
 type RegisterRequest struct {
-	Email         string        `json:"email" validate:"required,email,max=254"`
-	Password      string        `json:"password" validate:"required,min=8,max=72,containsany=0123456789,containsany=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"`
-	FullName      string        `json:"fullName" validate:"required,min=2,max=200"`
+	Email    string `json:"email" validate:"required,email,max=254"`
+	Password string `json:"password" validate:"required,min=8,max=72,containsany=0123456789,containsany=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"`
+	FullName string `json:"fullName" validate:"required,min=2,max=200"`
 }
 
 type RegisterResponse struct {
@@ -66,24 +66,24 @@ type LoginResponse struct {
 }
 
 type UserCreateRequest struct {
-	Email         string           `json:"email"`
-	Password      string           `json:"password"`
-	FullName      string           `json:"fullName"`
-	Region        *string          `json:"region,omitempty"`
-	Gender        *Gender          `json:"gender,omitempty"`
-	Age           *int             `json:"age,omitempty"`
-	MaritalStatus *MaritalStatus   `json:"maritalStatus,omitempty"`
-	Role          UserRole         `json:"role"`
+	Email         string         `json:"email"`
+	Password      string         `json:"password"`
+	FullName      string         `json:"fullName"`
+	Region        *string        `json:"region,omitempty"`
+	Gender        *Gender        `json:"gender,omitempty"`
+	Age           *int           `json:"age,omitempty"`
+	MaritalStatus *MaritalStatus `json:"maritalStatus,omitempty"`
+	Role          UserRole       `json:"role"`
 }
 
 type UserUpdateRequest struct {
-	FullName      *string          `json:"fullName,omitempty"`
-	Region        *string          `json:"region,omitempty"`
-	Gender        *Gender          `json:"gender,omitempty"`
-	Age           *int             `json:"age,omitempty"`
-	MaritalStatus *MaritalStatus   `json:"maritalStatus,omitempty"`
-	Role          *UserRole        `json:"role,omitempty"`
-	IsActive      *bool            `json:"isActive,omitempty"`
+	FullName      *string        `json:"fullName,omitempty"`
+	Region        *string        `json:"region,omitempty"`
+	Gender        *Gender        `json:"gender,omitempty"`
+	Age           *int           `json:"age,omitempty"`
+	MaritalStatus *MaritalStatus `json:"maritalStatus,omitempty"`
+	Role          *UserRole      `json:"role,omitempty"`
+	IsActive      *bool          `json:"isActive,omitempty"`
 }
 
 // NewUser создает нового пользователя с базовыми полями

@@ -49,8 +49,8 @@ type DSLValidationError struct {
 // Константы для бизнес-логики
 const (
 	DefaultPriority = 100
-	
+
 	MaxDSLSize = 10000
-	
+
 	MaxRulesCount = 1000
 )

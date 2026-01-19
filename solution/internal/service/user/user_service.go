@@ -12,7 +12,7 @@ import (
 )
 
 type userService struct {
-	userRepo repository.UserRepository
+	userRepo  repository.UserRepository
 	jwtSecret string
 }
 
@@ -193,7 +193,7 @@ func (s *userService) GetAll(ctx context.Context, page, size int) ([]*model.User
 
 func (s *userService) generateJWT(userID string, role model.UserRole) (string, error) {
 	expiresIn := time.Hour
-	
+
 	token, err := jwt.GenerateToken(userID, string(role), s.jwtSecret, expiresIn)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate JWT token: %w", err)
@@ -209,7 +209,7 @@ func (s *userService) validatePassword(password string) error {
 	if len(password) > 72 {
 		return fmt.Errorf("password must be at most 72 characters long")
 	}
-	
+
 	hasDigit := false
 	hasLetter := false
 	for _, char := range password {
@@ -223,7 +223,7 @@ func (s *userService) validatePassword(password string) error {
 			break
 		}
 	}
-	
+
 	if !hasDigit || !hasLetter {
 		return fmt.Errorf("password must contain at least one digit and one letter")
 	}

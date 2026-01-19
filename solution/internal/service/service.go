@@ -39,7 +39,7 @@ type FraudRuleService interface {
 	GetAll(ctx context.Context, activeOnly bool) ([]*model.FraudRule, error)
 	Update(ctx context.Context, id string, req model.FraudRuleUpdateRequest) (*model.FraudRule, error)
 	Delete(ctx context.Context, id string) error
-	
+
 	// Валидация DSL
 	ValidateDSL(ctx context.Context, dsl string) (*model.FraudRuleValidateResponse, error)
 }

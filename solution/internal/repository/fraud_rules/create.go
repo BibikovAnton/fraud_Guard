@@ -12,7 +12,7 @@ func (r *repository) Create(ctx context.Context, rule model.FraudRule) error {
 	if rule.ID == "" {
 		rule.ID = uuid.New().String()
 	}
-	
+
 	if rule.Priority == 0 {
 		rule.Priority = model.DefaultPriority
 	}
@@ -48,7 +48,7 @@ func (r *repository) Create(ctx context.Context, rule model.FraudRule) error {
 		rule.CreatedAt,
 		rule.UpdatedAt,
 	)
-	
+
 	if err != nil {
 		return fmt.Errorf("failed to create fraud rule: %w", err)
 	}
@@ -80,7 +80,7 @@ func (r *repository) ExistsByName(ctx context.Context, name string, excludeID st
 func (r *repository) GetActiveRulesCount(ctx context.Context) (int, error) {
 	var count int
 	query := `SELECT COUNT(*) FROM fraud_rules WHERE is_active = true`
-	
+
 	err := r.db.QueryRow(ctx, query).Scan(&count)
 	if err != nil {
 		return 0, fmt.Errorf("failed to count active rules: %w", err)

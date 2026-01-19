@@ -20,10 +20,10 @@ import (
 )
 
 type diContainer struct {
-	antifraudService    service.AntifraudService
-	userService        service.UserService
-	fraudRuleService   service.FraudRuleService
-	
+	antifraudService service.AntifraudService
+	userService      service.UserService
+	fraudRuleService service.FraudRuleService
+
 	antifraudRepository repository.AntifraudRepository
 	userRepository      repository.UserRepository
 	fraudRuleRepository repository.FraudRuleRepository

@@ -10,7 +10,7 @@ import (
 
 func (r *repo) Create(ctx context.Context, user model.User) error {
 	now := time.Now().UTC()
-	
+
 	query := `
 		INSERT INTO users (
 			id, email, password_hash, full_name, age, region, 

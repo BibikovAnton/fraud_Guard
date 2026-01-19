@@ -111,7 +111,7 @@ func GenerateToken(userID, role, secret string, expiresIn time.Duration) (string
 			Subject:   userID,
 		},
 	}
-	
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString([]byte(secret))
 	if err != nil {

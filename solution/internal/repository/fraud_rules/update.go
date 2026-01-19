@@ -90,7 +90,7 @@ func (r *repository) Delete(ctx context.Context, id string) error {
 	}
 
 	query := `UPDATE fraud_rules SET is_active = false, updated_at = $1 WHERE id = $2`
-	
+
 	_, err = r.db.Exec(ctx, query, time.Now(), id)
 	if err != nil {
 		return fmt.Errorf("failed to delete fraud rule: %w", err)

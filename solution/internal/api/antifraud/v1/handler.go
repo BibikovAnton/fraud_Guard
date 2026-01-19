@@ -6,6 +6,8 @@ import (
 	"solution/internal/middleware"
 	"solution/internal/model"
 	"solution/internal/service"
+	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	antifraud_v1 "solution/pkg/openapi/antifraud/v1"
@@ -36,14 +38,49 @@ func (h *handlerAdapter) APIV1PingGet(ctx context.Context) (*antifraud_v1.APIV1P
 }
 
 func (h *handlerAdapter) APIV1AuthLoginPost(ctx context.Context, req *antifraud_v1.LoginRequest) (antifraud_v1.APIV1AuthLoginPostRes, error) {
+	// Валидация полей входа
+	if err := h.validateLoginRequest(req); err != nil {
+		return &antifraud_v1.APIV1AuthLoginPostBadRequest{
+			Code:      antifraud_v1.ErrorCodeVALIDATIONFAILED,
+			Message:   err.Error(),
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/auth/login",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
 	loginReq := model.LoginRequest{
-		Email:    req.Email,
+		Email:    strings.TrimSpace(strings.ToLower(req.Email)), // нормализация email
 		Password: req.Password,
 	}
 
 	authResp, err := h.userService.Login(ctx, loginReq)
 	if err != nil {
-		// TODO: добавить обработку разных типов ошибок (401, 423) - нужно различать неверный пароль и заблокированного пользователя
+		// Разные типы ошибок для безопасности - не раскрываем детали
+		if strings.Contains(err.Error(), "invalid credentials") {
+			return &antifraud_v1.APIV1AuthLoginPostUnauthorized{
+				Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+				Message:   "Неверный email или пароль",
+				TraceId:   uuid.New(),
+				Timestamp: time.Now().UTC(),
+				Path:      "/api/v1/auth/login",
+				Details:   antifraud_v1.OptApiErrorDetails{},
+			}, nil
+		}
+
+		if strings.Contains(err.Error(), "deactivated") || strings.Contains(err.Error(), "USER_INACTIVE") {
+			return &antifraud_v1.APIV1AuthLoginPostLocked{
+				Code:      antifraud_v1.ErrorCodeUSERINACTIVE,
+				Message:   "Пользователь деактивирован",
+				TraceId:   uuid.New(),
+				Timestamp: time.Now().UTC(),
+				Path:      "/api/v1/auth/login",
+				Details:   antifraud_v1.OptApiErrorDetails{},
+			}, nil
+		}
+
+		// Другие ошибки считаем внутренними
 		return nil, fmt.Errorf("login failed: %w", err)
 	}
 
@@ -56,16 +93,67 @@ func (h *handlerAdapter) APIV1AuthLoginPost(ctx context.Context, req *antifraud_
 	return &apiResp, nil
 }
 
+// validateLoginRequest валидирует поля входа
+// Упрощенная валидация по сравнению с регистрацией
+func (h *handlerAdapter) validateLoginRequest(req *antifraud_v1.LoginRequest) error {
+	if req.Email == "" {
+		return fmt.Errorf("email обязателен")
+	}
+
+	if len(req.Email) > 254 {
+		return fmt.Errorf("email слишком длинный (максимум 254 символа)")
+	}
+
+	// Простая проверка email
+	if !strings.Contains(req.Email, "@") {
+		return fmt.Errorf("неверный формат email")
+	}
+
+	if req.Password == "" {
+		return fmt.Errorf("пароль обязателен")
+	}
+
+	if len(req.Password) > 72 {
+		return fmt.Errorf("пароль слишком длинный (максимум 72 символа)")
+	}
+
+	return nil
+}
+
 func (h *handlerAdapter) APIV1AuthRegisterPost(ctx context.Context, req *antifraud_v1.RegisterRequest) (antifraud_v1.APIV1AuthRegisterPostRes, error) {
- 	registerReq := model.RegisterRequest{
-		Email:    req.Email,
+	// Валидация полей - критично для безопасности из прошлого проекта с банком
+	if err := h.validateRegisterRequest(req); err != nil {
+		return &antifraud_v1.APIV1AuthRegisterPostBadRequest{
+			Code:      antifraud_v1.ErrorCodeVALIDATIONFAILED,
+			Message:   err.Error(),
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/auth/register",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	registerReq := model.RegisterRequest{
+		Email:    strings.TrimSpace(strings.ToLower(req.Email)), // нормализация email
 		Password: req.Password,
-		FullName: req.FullName,
+		FullName: strings.TrimSpace(req.FullName),
 	}
 
 	authResp, err := h.userService.Register(ctx, registerReq)
 	if err != nil {
-		// TODO: добавить обработку разных типов ошибок (409, 422) - из прошлого проекта с банком это критично для безопасности
+		// Разные типы ошибок для безопасности - не раскрываем существование email
+		if strings.Contains(err.Error(), "already exists") {
+			return &antifraud_v1.APIV1AuthRegisterPostConflict{
+				Code:      antifraud_v1.ErrorCodeEMAILALREADYEXISTS,
+				Message:   "Пользователь с таким email уже существует",
+				TraceId:   uuid.New(),
+				Timestamp: time.Now().UTC(),
+				Path:      "/api/v1/auth/register",
+				Details:   antifraud_v1.OptApiErrorDetails{},
+			}, nil
+		}
+
+		// Другие ошибки считаем внутренними
 		return nil, fmt.Errorf("registration failed: %w", err)
 	}
 
@@ -76,6 +164,65 @@ func (h *handlerAdapter) APIV1AuthRegisterPost(ctx context.Context, req *antifra
 	}
 
 	return &apiResp, nil
+}
+
+// validateRegisterRequest валидирует поля регистрации
+// Добавил строгую проверку из опыта финтех проектов
+func (h *handlerAdapter) validateRegisterRequest(req *antifraud_v1.RegisterRequest) error {
+	if req.Email == "" {
+		return fmt.Errorf("email обязателен")
+	}
+
+	if len(req.Email) > 254 {
+		return fmt.Errorf("email слишком длинный (максимум 254 символа)")
+	}
+
+	// Простая проверка email - для production нужна сложнее
+	if !strings.Contains(req.Email, "@") || !strings.Contains(req.Email, ".") {
+		return fmt.Errorf("неверный формат email")
+	}
+
+	if req.Password == "" {
+		return fmt.Errorf("пароль обязателен")
+	}
+
+	if len(req.Password) < 8 {
+		return fmt.Errorf("пароль должен содержать минимум 8 символов")
+	}
+
+	if len(req.Password) > 72 {
+		return fmt.Errorf("пароль слишком длинный (максимум 72 символа)")
+	}
+
+	// Проверка на цифры и буквы - базовая защита
+	hasDigit := false
+	hasLetter := false
+	for _, char := range req.Password {
+		if char >= '0' && char <= '9' {
+			hasDigit = true
+		}
+		if (char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z') {
+			hasLetter = true
+		}
+	}
+
+	if !hasDigit || !hasLetter {
+		return fmt.Errorf("пароль должен содержать минимум одну цифру и одну букву")
+	}
+
+	if req.FullName == "" {
+		return fmt.Errorf("имя обязательно")
+	}
+
+	if len(req.FullName) < 2 {
+		return fmt.Errorf("имя слишком короткое (минимум 2 символа)")
+	}
+
+	if len(req.FullName) > 200 {
+		return fmt.Errorf("имя слишком длинное (максимум 200 символов)")
+	}
+
+	return nil
 }
 
 func (h *handlerAdapter) APIV1FraudRulesGet(ctx context.Context) (antifraud_v1.APIV1FraudRulesGetRes, error) {
@@ -221,12 +368,53 @@ func (h *handlerAdapter) APIV1UsersIDDelete(ctx context.Context, params antifrau
 
 func (h *handlerAdapter) APIV1UsersIDGet(ctx context.Context, params antifraud_v1.APIV1UsersIDGetParams) (antifraud_v1.APIV1UsersIDGetRes, error) {
 	userRole, ok := ctx.Value(middleware.ContextRoleKey).(string)
-	if !ok || userRole != "ADMIN" {
-		return nil, fmt.Errorf("access denied: admin rights required")
+	if !ok {
+		return &antifraud_v1.APIV1UsersIDGetUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Не удалось определить роль пользователя",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/users/" + params.ID.String(),
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	userID, ok := ctx.Value(middleware.ContextUserIDKey).(string)
+	if !ok {
+		return &antifraud_v1.APIV1UsersIDGetUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Не удалось определить ID пользователя",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/users/" + params.ID.String(),
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	// Проверка прав доступа: ADMIN может смотреть любой профиль, USER только свой
+	if userRole != "ADMIN" && userID != params.ID.String() {
+		return &antifraud_v1.APIV1UsersIDGetForbidden{
+			Code:      antifraud_v1.ErrorCodeFORBIDDEN,
+			Message:   "Доступ запрещен: можно просматривать только свой профиль",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/users/" + params.ID.String(),
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
 	}
 
 	user, err := h.userService.GetByID(ctx, params.ID.String())
 	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			return &antifraud_v1.APIV1UsersIDGetNotFound{
+				Code:      antifraud_v1.ErrorCodeNOTFOUND,
+				Message:   "Пользователь не найден",
+				TraceId:   uuid.New(),
+				Timestamp: time.Now().UTC(),
+				Path:      "/api/v1/users/" + params.ID.String(),
+				Details:   antifraud_v1.OptApiErrorDetails{},
+			}, nil
+		}
 		return nil, fmt.Errorf("failed to get user: %w", err)
 	}
 
@@ -236,8 +424,66 @@ func (h *handlerAdapter) APIV1UsersIDGet(ctx context.Context, params antifraud_v
 
 func (h *handlerAdapter) APIV1UsersIDPut(ctx context.Context, req *antifraud_v1.UserUpdateRequest, params antifraud_v1.APIV1UsersIDPutParams) (antifraud_v1.APIV1UsersIDPutRes, error) {
 	userRole, ok := ctx.Value(middleware.ContextRoleKey).(string)
-	if !ok || userRole != "ADMIN" {
-		return nil, fmt.Errorf("access denied: admin rights required")
+	if !ok {
+		return &antifraud_v1.APIV1UsersIDPutUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Не удалось определить роль пользователя",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/users/" + params.ID.String(),
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	userID, ok := ctx.Value(middleware.ContextUserIDKey).(string)
+	if !ok {
+		return &antifraud_v1.APIV1UsersIDPutUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Не удалось определить ID пользователя",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/users/" + params.ID.String(),
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	// Проверка прав доступа: ADMIN может обновлять любой профиль, USER только свой
+	if userRole != "ADMIN" && userID != params.ID.String() {
+		return &antifraud_v1.APIV1UsersIDPutForbidden{
+			Code:      antifraud_v1.ErrorCodeFORBIDDEN,
+			Message:   "Доступ запрещен: можно обновлять только свой профиль",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/users/" + params.ID.String(),
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	// Дополнительные ограничения для USER
+	if userRole != "ADMIN" {
+		// USER не может менять роль
+		if req.Role.Set {
+			return &antifraud_v1.APIV1UsersIDPutForbidden{
+				Code:      antifraud_v1.ErrorCodeFORBIDDEN,
+				Message:   "USER не может изменять роль",
+				TraceId:   uuid.New(),
+				Timestamp: time.Now().UTC(),
+				Path:      "/api/v1/users/" + params.ID.String(),
+				Details:   antifraud_v1.OptApiErrorDetails{},
+			}, nil
+		}
+
+		// USER не может менять статус активности
+		if req.IsActive.Set {
+			return &antifraud_v1.APIV1UsersIDPutForbidden{
+				Code:      antifraud_v1.ErrorCodeFORBIDDEN,
+				Message:   "USER не может изменять статус активности",
+				TraceId:   uuid.New(),
+				Timestamp: time.Now().UTC(),
+				Path:      "/api/v1/users/" + params.ID.String(),
+				Details:   antifraud_v1.OptApiErrorDetails{},
+			}, nil
+		}
 	}
 
 	updateReq := model.UserUpdateRequest{
@@ -250,18 +496,21 @@ func (h *handlerAdapter) APIV1UsersIDPut(ctx context.Context, req *antifraud_v1.
 		region := req.Region.Value
 		updateReq.Region = &region
 	}
+
 	if req.Gender.Null {
 		updateReq.Gender = nil
 	} else {
 		gender := model.Gender(req.Gender.Value)
 		updateReq.Gender = &gender
 	}
+
 	if req.Age.Null {
 		updateReq.Age = nil
 	} else {
 		age := req.Age.Value
 		updateReq.Age = &age
 	}
+
 	if req.MaritalStatus.Null {
 		updateReq.MaritalStatus = nil
 	} else {
@@ -269,17 +518,38 @@ func (h *handlerAdapter) APIV1UsersIDPut(ctx context.Context, req *antifraud_v1.
 		updateReq.MaritalStatus = &maritalStatus
 	}
 
-	if req.Role.Set {
-		role := model.UserRole(req.Role.Value)
-		updateReq.Role = &role
-	}
-	if req.IsActive.Set {
-		isActive := req.IsActive.Value
-		updateReq.IsActive = &isActive
+	// Только ADMIN может менять роль и статус активности
+	if userRole == "ADMIN" {
+		if req.Role.Set {
+			role := model.UserRole(req.Role.Value)
+			updateReq.Role = &role
+		}
+		if req.IsActive.Set {
+			isActive := req.IsActive.Value
+			updateReq.IsActive = &isActive
+		}
 	}
 
-	user, err := h.userService.UpdateByAdmin(ctx, params.ID.String(), updateReq)
+	var user *model.User
+	var err error
+
+	if userRole == "ADMIN" {
+		user, err = h.userService.UpdateByAdmin(ctx, params.ID.String(), updateReq)
+	} else {
+		user, err = h.userService.UpdateMe(ctx, params.ID.String(), updateReq)
+	}
+
 	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			return &antifraud_v1.APIV1UsersIDPutNotFound{
+				Code:      antifraud_v1.ErrorCodeNOTFOUND,
+				Message:   "Пользователь не найден",
+				TraceId:   uuid.New(),
+				Timestamp: time.Now().UTC(),
+				Path:      "/api/v1/users/" + params.ID.String(),
+				Details:   antifraud_v1.OptApiErrorDetails{},
+			}, nil
+		}
 		return nil, fmt.Errorf("failed to update user: %w", err)
 	}
 
@@ -305,7 +575,38 @@ func (h *handlerAdapter) APIV1UsersMeGet(ctx context.Context) (antifraud_v1.APIV
 func (h *handlerAdapter) APIV1UsersMePut(ctx context.Context, req *antifraud_v1.UserUpdateRequest) (antifraud_v1.APIV1UsersMePutRes, error) {
 	userID, ok := ctx.Value(middleware.ContextUserIDKey).(string)
 	if !ok {
-		return nil, fmt.Errorf("user ID not found in context")
+		return &antifraud_v1.APIV1UsersMePutUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Не удалось определить ID пользователя",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/users/me",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	// USER не может менять роль - проверяем на уровне API
+	if req.Role.Set {
+		return &antifraud_v1.APIV1UsersMePutForbidden{
+			Code:      antifraud_v1.ErrorCodeFORBIDDEN,
+			Message:   "USER не может изменять роль",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/users/me",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	// USER не может менять статус активности - проверяем на уровне API
+	if req.IsActive.Set {
+		return &antifraud_v1.APIV1UsersMePutForbidden{
+			Code:      antifraud_v1.ErrorCodeFORBIDDEN,
+			Message:   "USER не может изменять статус активности",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/users/me",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
 	}
 
 	updateReq := model.UserUpdateRequest{
@@ -339,6 +640,10 @@ func (h *handlerAdapter) APIV1UsersMePut(ctx context.Context, req *antifraud_v1.
 
 	user, err := h.userService.UpdateMe(ctx, userID, updateReq)
 	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			// Для UsersMePut нет NotFound типа, используем общую ошибку
+			return nil, fmt.Errorf("user not found: %w", err)
+		}
 		return nil, fmt.Errorf("failed to update user profile: %w", err)
 	}
 
