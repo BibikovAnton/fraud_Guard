@@ -153,12 +153,7 @@ func (s *userService) CreateByAdmin(ctx context.Context, req model.UserCreateReq
 		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
 
-	createdUser, err := s.userRepo.FindByEmail(ctx, req.Email)
-	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve created user: %w", err)
-	}
-
-	return createUser, nil
+	return &user, nil
 }
 
 func (s *userService) GetByID(ctx context.Context, userID string) (*model.User, error) {
@@ -174,12 +169,7 @@ func (s *userService) GetByID(ctx context.Context, userID string) (*model.User, 
 }
 
 func (s *userService) UpdateByAdmin(ctx context.Context, userID string, req model.UserUpdateRequest) (*model.User, error) {
-	updatedUser, err := s.userRepo.UpdateByAdmin(ctx, userID, req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to update user: %w", err)
-	}
-
-	return updatedUser, nil
+	return s.userRepo.UpdateByAdmin(ctx, userID, req)
 }
 
 func (s *userService) SoftDelete(ctx context.Context, userID string) error {
