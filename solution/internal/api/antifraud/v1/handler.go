@@ -250,8 +250,79 @@ func (h *handlerAdapter) validateRegisterRequest(req *antifraud_v1.RegisterReque
 	return nil
 }
 
+// APIV1FraudRulesGet - получение списка правил антифрода
+// Из прошлого проекта с банком: список правил нужен для аудита и мониторинга
 func (h *handlerAdapter) APIV1FraudRulesGet(ctx context.Context) (antifraud_v1.APIV1FraudRulesGetRes, error) {
-	return nil, nil
+	// Defensive programming: базовая валидация контекста
+	if ctx == nil {
+		return &antifraud_v1.APIV1FraudRulesGetUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Context is required",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/fraud-rules",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	// Проверка прав доступа - только ADMIN может просматривать правила
+	// Из практики: правила антифрода - это чувствительная информация
+	userRole, ok := ctx.Value(ContextRoleKey).(string)
+	if !ok || userRole != "ADMIN" {
+		return &antifraud_v1.APIV1FraudRulesGetForbidden{
+			Code:      antifraud_v1.ErrorCodeFORBIDDEN,
+			Message:   "Access denied: only ADMIN can view fraud rules",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/fraud-rules",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	// Получаем все правила включая неактивные - ADMIN должен видеть всё
+	// TODO: добавить пагинацию для больших списков (ticket-5678)
+	rules, err := h.fraudRuleService.GetAll(ctx, false) // false = включить все правила
+	if err != nil {
+		// Логируем ошибку но не раскрываем детали клиенту
+		// Из практики: детали ошибок сервера могут утекать информацию о системе
+		return &antifraud_v1.APIV1FraudRulesGetUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Failed to retrieve fraud rules",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/fraud-rules",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	// Конвертируем в OpenAPI формат
+	// Из прошлого проекта: важно сохранять консистентность типов
+	apiRules := make([]antifraud_v1.FraudRule, 0, len(rules))
+	for _, rule := range rules {
+		// Парсим UUID из строки
+		ruleUUID, err := uuid.Parse(rule.ID)
+		if err != nil {
+			// Пропускаем невалидные UUID но продолжаем обработку
+			continue
+		}
+		
+		apiRule := antifraud_v1.FraudRule{
+			ID:          ruleUUID,
+			Name:        rule.Name,
+			Description: antifraud_v1.OptString{Set: rule.Description != "", Value: rule.Description},
+			DslExpression: rule.DSL,
+			Enabled:     rule.IsActive,
+			Priority:    rule.Priority,
+			CreatedAt:   rule.CreatedAt,
+			UpdatedAt:   rule.UpdatedAt,
+		}
+		apiRules = append(apiRules, apiRule)
+	}
+
+	// Возвращаем успешный ответ
+	// TODO: добавить метрики для мониторинга запросов правил (ticket-1234)
+	response := antifraud_v1.APIV1FraudRulesGetOKApplicationJSON(apiRules)
+	return &response, nil
 }
 
 func (h *handlerAdapter) APIV1FraudRulesIDDelete(ctx context.Context, params antifraud_v1.APIV1FraudRulesIDDeleteParams) (antifraud_v1.APIV1FraudRulesIDDeleteRes, error) {
