@@ -12,7 +12,6 @@ import (
 	v1 "solution/internal/api/antifraud/v1"
 	"solution/internal/config"
 	"solution/internal/migrator"
-	authMiddleware "solution/internal/middleware"
 	antifraud_v1 "solution/pkg/openapi/antifraud/v1"
 	"solution/platform/pkg/closer"
 	"solution/platform/pkg/logger"
@@ -103,8 +102,9 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 	r.Use(middleware.Timeout(10 * time.Second))
 
 	handlerAdapter := v1.NewHandlerAdapter(a.diContainer.AntifraudService(ctx), a.diContainer.UserService(ctx), a.diContainer.FraudRuleService(ctx))
+	secHandlerAdapter := v1.NewSecurityHandlerAdapter()
 
-antifraudServer, err := antifraud_v1.NewServer(handlerAdapter, nil)
+	antifraudServer, err := antifraud_v1.NewServer(handlerAdapter, secHandlerAdapter)
 	if err != nil {
 		logger.Error(ctx, "Error creating OpenAPI antifraudServer", zap.Error(err))
 		return err
@@ -114,7 +114,7 @@ antifraudServer, err := antifraud_v1.NewServer(handlerAdapter, nil)
 
 	if antifraudServer != nil {
 		logger.Info(ctx, "Mounting OpenAPI server on /api/v1")
-		r.Mount("/api/v1", authMiddleware.IsAuth(antifraudServer))
+		r.Mount("/api/v1", antifraudServer)
 	}
 
 	a.httpServer = &http.Server{
