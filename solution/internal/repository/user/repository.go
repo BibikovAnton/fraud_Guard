@@ -1,8 +1,6 @@
 package user
 
 import (
-	"context"
-	"solution/internal/model"
 	"solution/internal/repository"
 
 	"github.com/jackc/pgx/v5"
@@ -16,8 +14,4 @@ type repo struct {
 
 func NewRepository(db *pgx.Conn) repository.UserRepository {
 	return &repo{db: db}
-}
-
-func (r *repo) GetByIDIncludingInactive(ctx context.Context, userID string) (*model.User, error) {
-	return r.GetByID(ctx, userID)
 }

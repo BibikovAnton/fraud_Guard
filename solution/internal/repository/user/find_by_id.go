@@ -67,7 +67,7 @@ func (r *repo) GetByID(ctx context.Context, userID string) (*model.User, error) 
 	return &user, nil
 }
 
-func (r *repo) FindByIDIncludingInactive(ctx context.Context, userID string) (*model.User, error) {
+func (r *repo) GetByIDIncludingInactive(ctx context.Context, userID string) (*model.User, error) {
 	query := `
 		SELECT id, email, password_hash, full_name, age, region, 
 			   gender, marital_status, role, is_active, created_at, updated_at
