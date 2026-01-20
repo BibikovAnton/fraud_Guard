@@ -602,7 +602,16 @@ func (h *handlerAdapter) APIV1UsersIDGet(ctx context.Context, params antifraud_v
 		}, nil
 	}
 
-	user, err := h.userService.GetByID(ctx, params.ID.String())
+	var user *model.User
+	var err error
+
+	// ADMIN может видеть деактивированных пользователей
+	if userRole == "ADMIN" {
+		user, err = h.userService.GetByIDIncludingInactive(ctx, params.ID.String())
+	} else {
+		user, err = h.userService.GetByID(ctx, params.ID.String())
+	}
+
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			return &antifraud_v1.APIV1UsersIDGetNotFound{

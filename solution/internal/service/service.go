@@ -5,14 +5,12 @@ import (
 	"solution/internal/model"
 )
 
-// AntifraudService - основной сервис антифрода
-// TODO: добавить методы для работы с правилами и транзакциями
+
 type AntifraudService interface {
-	// TODO: Добавить методы для работы с антифродом
+	
 }
 
-// UserService - сервис для работы с пользователями
-// Содержит всю бизнес-логику регистрации, авторизации и управления профилями
+
 type UserService interface {
 	// Аутентификация и регистрация
 	Register(ctx context.Context, req model.RegisterRequest) (*model.RegisterResponse, error)
@@ -26,6 +24,7 @@ type UserService interface {
 	// Административные методы
 	CreateByAdmin(ctx context.Context, req model.UserCreateRequest) (*model.User, error)
 	GetByID(ctx context.Context, userID string) (*model.User, error)
+	GetByIDIncludingInactive(ctx context.Context, userID string) (*model.User, error)
 	UpdateByAdmin(ctx context.Context, userID string, req model.UserUpdateRequest) (*model.User, error)
 	SoftDelete(ctx context.Context, userID string) error
 	GetAll(ctx context.Context, page, size int) ([]*model.User, int, error)
