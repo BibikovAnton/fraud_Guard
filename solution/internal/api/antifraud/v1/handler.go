@@ -415,8 +415,176 @@ func (h *handlerAdapter) APIV1FraudRulesIDGet(ctx context.Context, params antifr
 	return &apiRule, nil
 }
 
+// APIV1FraudRulesIDPut - обновление правила по ID
+// Из прошлого проекта с банком: обновление правил критически важно для бизнес-логики
 func (h *handlerAdapter) APIV1FraudRulesIDPut(ctx context.Context, req *antifraud_v1.FraudRuleUpdateRequest, params antifraud_v1.APIV1FraudRulesIDPutParams) (antifraud_v1.APIV1FraudRulesIDPutRes, error) {
-	return nil, nil
+	// Defensive programming: базовая валидация
+	if ctx == nil || req == nil {
+		return &antifraud_v1.APIV1FraudRulesIDPutUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Context and request are required",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      fmt.Sprintf("/api/v1/fraud-rules/%s", params.ID),
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	// Проверка прав доступа - только ADMIN может обновлять правила
+	// Из практики: изменение правил антифрода - это критическая операция
+	userRole, ok := ctx.Value(ContextRoleKey).(string)
+	if !ok || userRole != "ADMIN" {
+		return &antifraud_v1.APIV1FraudRulesIDPutForbidden{
+			Code:      antifraud_v1.ErrorCodeFORBIDDEN,
+			Message:   "Access denied: only ADMIN can update fraud rules",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      fmt.Sprintf("/api/v1/fraud-rules/%s", params.ID),
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	// Валидация ID - защитимся от невалидных UUID
+	// TODO: добавить валидацию UUID на уровне middleware (ticket-5680)
+	ruleUUID := params.ID.String()
+	if ruleUUID == "" {
+		return &antifraud_v1.APIV1FraudRulesIDPutUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Invalid rule ID",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      fmt.Sprintf("/api/v1/fraud-rules/%s", params.ID),
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	// Валидация входных данных - защитимся от пустых полей
+	// Из прошлого проекта: валидация на уровне хендлера экономит ресурсы
+	if strings.TrimSpace(req.Name) == "" {
+		return &antifraud_v1.ValidationError{
+			Code:      string(antifraud_v1.ErrorCodeVALIDATIONFAILED),
+			Message:   "Name is required",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      fmt.Sprintf("/api/v1/fraud-rules/%s", params.ID),
+			FieldErrors: []antifraud_v1.FieldError{
+				{
+					Field:   "name",
+					Issue:   "Name cannot be empty",
+				},
+			},
+		}, nil
+	}
+
+	if strings.TrimSpace(req.DslExpression) == "" {
+		return &antifraud_v1.ValidationError{
+			Code:      string(antifraud_v1.ErrorCodeVALIDATIONFAILED),
+			Message:   "DSL expression is required",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      fmt.Sprintf("/api/v1/fraud-rules/%s", params.ID),
+			FieldErrors: []antifraud_v1.FieldError{
+				{
+					Field:   "dslExpression",
+					Issue:   "DSL expression cannot be empty",
+				},
+			},
+		}, nil
+	}
+
+	if req.Priority < 1 {
+		return &antifraud_v1.ValidationError{
+			Code:      string(antifraud_v1.ErrorCodeVALIDATIONFAILED),
+			Message:   "Priority must be >= 1",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      fmt.Sprintf("/api/v1/fraud-rules/%s", params.ID),
+			FieldErrors: []antifraud_v1.FieldError{
+				{
+					Field:   "priority",
+					Issue:   "Priority must be >= 1",
+				},
+			},
+		}, nil
+	}
+
+	// Конвертируем в модель для сервиса
+	// Из прошлого проекта: важно сохранять консистентность данных
+	description := ""
+	if req.Description.Set {
+		description = strings.TrimSpace(req.Description.Value)
+	}
+
+	name := strings.TrimSpace(req.Name)
+	dsl := strings.TrimSpace(req.DslExpression)
+	
+	updateReq := model.FraudRuleUpdateRequest{
+		Name:        &name,
+		Description: &description,
+		DSL:         &dsl,
+		IsActive:    &req.Enabled,
+		Priority:    &req.Priority,
+	}
+
+	// Обновляем правило через сервис
+	// Из практики: сервис инкапсулирует бизнес-логику и валидацию DSL
+	updatedRule, err := h.fraudRuleService.Update(ctx, ruleUUID, updateReq)
+	if err != nil {
+		// Проверяем тип ошибки для детального ответа
+		if strings.Contains(err.Error(), "not found") {
+			return &antifraud_v1.APIV1FraudRulesIDPutNotFound{
+				Code:      antifraud_v1.ErrorCodeNOTFOUND,
+				Message:   "Fraud rule not found",
+				TraceId:   uuid.New(),
+				Timestamp: time.Now().UTC(),
+				Path:      fmt.Sprintf("/api/v1/fraud-rules/%s", params.ID),
+				Details:   antifraud_v1.OptApiErrorDetails{},
+			}, nil
+		}
+
+		if strings.Contains(err.Error(), "invalid DSL") || strings.Contains(err.Error(), "DSL") {
+			return &antifraud_v1.ValidationError{
+				Code:      string(antifraud_v1.ErrorCodeVALIDATIONFAILED),
+				Message:   "Invalid DSL expression",
+				TraceId:   uuid.New(),
+				Timestamp: time.Now().UTC(),
+				Path:      fmt.Sprintf("/api/v1/fraud-rules/%s", params.ID),
+				FieldErrors: []antifraud_v1.FieldError{
+					{
+						Field:   "dslExpression",
+						Issue:   err.Error(),
+					},
+				},
+			}, nil
+		}
+
+		// Общая ошибка сервера
+		return &antifraud_v1.APIV1FraudRulesIDPutUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Failed to update fraud rule",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      fmt.Sprintf("/api/v1/fraud-rules/%s", params.ID),
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	// Конвертируем в OpenAPI формат
+	// Из прошлого проекта: консистентность ответов критически важна
+	apiRule := antifraud_v1.FraudRule{
+		ID:          params.ID,
+		Name:        updatedRule.Name,
+		Description: antifraud_v1.OptString{Set: updatedRule.Description != "", Value: updatedRule.Description},
+		DslExpression: updatedRule.DSL,
+		Enabled:     updatedRule.IsActive,
+		Priority:    updatedRule.Priority,
+		CreatedAt:   updatedRule.CreatedAt,
+		UpdatedAt:   updatedRule.UpdatedAt,
+	}
+
+	// Возвращаем успешный ответ
+	// TODO: добавить метрики для мониторинга обновлений правил (ticket-1236)
+	return &apiRule, nil
 }
 
 func (h *handlerAdapter) APIV1FraudRulesPost(ctx context.Context, req *antifraud_v1.FraudRuleCreateRequest) (antifraud_v1.APIV1FraudRulesPostRes, error) {
