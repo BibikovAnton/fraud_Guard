@@ -18,12 +18,12 @@ func NewSecurityHandlerAdapter() antifraud_v1.SecurityHandler {
 }
 
 func (s *SecurityHandler) HandleBearerAuth(ctx context.Context, operationName antifraud_v1.OperationName, t antifraud_v1.BearerAuth) (context.Context, error) {
-	isValid, data, err := jwt.NewJWT(config.AppConfig().RandomSecret.RANDOM_SECRET()).Parse(t.Token)
-	if err != nil {
-		return ctx, err
+	if t.Token == "" {
+		return ctx, ogenerrors.ErrSkipServerSecurity
 	}
 
-	if !isValid || data == nil {
+	isValid, data, err := jwt.NewJWT(config.AppConfig().RandomSecret.RANDOM_SECRET()).Parse(t.Token)
+	if err != nil || !isValid || data == nil {
 		return ctx, ogenerrors.ErrSecurityRequirementIsNotSatisfied
 	}
 
