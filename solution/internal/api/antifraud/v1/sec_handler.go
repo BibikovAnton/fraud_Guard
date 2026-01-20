@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"fmt"
 	"solution/internal/config"
 	"solution/internal/middleware"
 	"solution/pkg/jwt"
@@ -24,15 +25,15 @@ func (s *SecurityHandler) HandleBearerAuth(ctx context.Context, operationName an
 	}
 
 	if !isValid || data == nil {
-		return ctx, nil
+		return ctx, fmt.Errorf("invalid token")
 	}
 
 	if data.UserID == "" {
-		return ctx, nil
+		return ctx, fmt.Errorf("invalid token: missing user ID")
 	}
 
 	if data.Role != "USER" && data.Role != "ADMIN" {
-		return ctx, nil
+		return ctx, fmt.Errorf("invalid token: invalid role")
 	}
 
 	// Устанавливаем данные пользователя в контекст
