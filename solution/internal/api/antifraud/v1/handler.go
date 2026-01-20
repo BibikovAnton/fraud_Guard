@@ -3,7 +3,6 @@ package v1
 import (
 	"context"
 	"fmt"
-	"solution/internal/middleware"
 	"solution/internal/model"
 	"solution/internal/service"
 	"strings"
@@ -259,7 +258,7 @@ func (h *handlerAdapter) APIV1FraudRulesPost(ctx context.Context, req *antifraud
 		}, nil
 	}
 	
-	userRole, ok := ctx.Value(middleware.ContextRoleKey).(string)
+	userRole, ok := ctx.Value(ContextRoleKey).(string)
 	if !ok || userRole != "ADMIN" {
 		return &antifraud_v1.APIV1FraudRulesPostUnauthorized{
 			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
@@ -320,7 +319,7 @@ func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *a
 		}, nil
 	}
 	
-	userRole, ok := ctx.Value(middleware.ContextRoleKey).(string)
+	userRole, ok := ctx.Value(ContextRoleKey).(string)
 	if !ok || userRole != "ADMIN" {
 		return &antifraud_v1.APIV1FraudRulesValidatePostUnauthorized{
 			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
@@ -387,7 +386,7 @@ func (h *handlerAdapter) APIV1TransactionsPost(ctx context.Context, req *antifra
 		}, nil
 	}
 	
-	userRole, ok := ctx.Value(middleware.ContextRoleKey).(string)
+	userRole, ok := ctx.Value(ContextRoleKey).(string)
 	if !ok {
 		return &antifraud_v1.APIV1TransactionsPostUnauthorized{
 			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
@@ -399,7 +398,7 @@ func (h *handlerAdapter) APIV1TransactionsPost(ctx context.Context, req *antifra
 		}, nil
 	}
 
-	userID, ok := ctx.Value(middleware.ContextUserIDKey).(string)
+	userID, ok := ctx.Value(ContextUserIDKey).(string)
 	if !ok {
 		return &antifraud_v1.APIV1TransactionsPostUnauthorized{
 			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
@@ -462,7 +461,7 @@ func (h *handlerAdapter) APIV1UsersGet(ctx context.Context, params antifraud_v1.
 		}, nil
 	}
 	
-	userRole, ok := ctx.Value(middleware.ContextRoleKey).(string)
+	userRole, ok := ctx.Value(ContextRoleKey).(string)
 	if !ok || userRole != "ADMIN" {
 		return &antifraud_v1.APIV1UsersGetUnauthorized{
 			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
@@ -514,7 +513,7 @@ func (h *handlerAdapter) APIV1UsersIDDelete(ctx context.Context, params antifrau
 		}, nil
 	}
 	
-	userRole, ok := ctx.Value(middleware.ContextRoleKey).(string)
+	userRole, ok := ctx.Value(ContextRoleKey).(string)
 	if !ok || userRole != "ADMIN" {
 		return &antifraud_v1.APIV1UsersIDDeleteUnauthorized{
 			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
@@ -556,7 +555,7 @@ func (h *handlerAdapter) APIV1UsersIDGet(ctx context.Context, params antifraud_v
 		return nil, fmt.Errorf("context is nil")
 	}
 	
-	userRole, ok := ctx.Value(middleware.ContextRoleKey).(string)
+	userRole, ok := ctx.Value(ContextRoleKey).(string)
 	if !ok {
 		return &antifraud_v1.APIV1UsersIDGetUnauthorized{
 			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
@@ -568,7 +567,7 @@ func (h *handlerAdapter) APIV1UsersIDGet(ctx context.Context, params antifraud_v
 		}, nil
 	}
 
-	userID, ok := ctx.Value(middleware.ContextUserIDKey).(string)
+	userID, ok := ctx.Value(ContextUserIDKey).(string)
 	if !ok {
 		return &antifraud_v1.APIV1UsersIDGetUnauthorized{
 			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
@@ -616,7 +615,7 @@ func (h *handlerAdapter) APIV1UsersIDPut(ctx context.Context, req *antifraud_v1.
 		return nil, fmt.Errorf("context is nil")
 	}
 	
-	userRole, ok := ctx.Value(middleware.ContextRoleKey).(string)
+	userRole, ok := ctx.Value(ContextRoleKey).(string)
 	if !ok {
 		return &antifraud_v1.APIV1UsersIDPutUnauthorized{
 			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
@@ -628,7 +627,7 @@ func (h *handlerAdapter) APIV1UsersIDPut(ctx context.Context, req *antifraud_v1.
 		}, nil
 	}
 
-	userID, ok := ctx.Value(middleware.ContextUserIDKey).(string)
+	userID, ok := ctx.Value(ContextUserIDKey).(string)
 	if !ok {
 		return &antifraud_v1.APIV1UsersIDPutUnauthorized{
 			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
@@ -755,7 +754,7 @@ func (h *handlerAdapter) APIV1UsersMeGet(ctx context.Context) (antifraud_v1.APIV
 		return nil, fmt.Errorf("context is nil")
 	}
 	
-	userID, ok := ctx.Value(middleware.ContextUserIDKey).(string)
+	userID, ok := ctx.Value(ContextUserIDKey).(string)
 	if !ok {
 		return nil, fmt.Errorf("user ID not found in context")
 	}
@@ -781,7 +780,7 @@ func (h *handlerAdapter) APIV1UsersMePut(ctx context.Context, req *antifraud_v1.
 		}, nil
 	}
 	
-	userID, ok := ctx.Value(middleware.ContextUserIDKey).(string)
+	userID, ok := ctx.Value(ContextUserIDKey).(string)
 	if !ok {
 		return &antifraud_v1.APIV1UsersMePutUnauthorized{
 			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
@@ -871,7 +870,7 @@ func (h *handlerAdapter) APIV1UsersPost(ctx context.Context, req *antifraud_v1.U
 		}, nil
 	}
 	
-	userRole, ok := ctx.Value(middleware.ContextRoleKey).(string)
+	userRole, ok := ctx.Value(ContextRoleKey).(string)
 	if !ok || userRole != "ADMIN" {
 		return &antifraud_v1.APIV1UsersPostUnauthorized{
 			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,

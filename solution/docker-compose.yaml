@@ -1,6 +1,6 @@
 services:
   antifraud-service:
-    image: "${IMAGE_NAME}"
+    build: .
     networks: [isolated]
     depends_on:
       postgres:
