@@ -329,8 +329,90 @@ func (h *handlerAdapter) APIV1FraudRulesIDDelete(ctx context.Context, params ant
 	return nil, nil
 }
 
+// APIV1FraudRulesIDGet - получение правила по ID
+// Из прошлого проекта с банком: детальная информация нужна для аудита
 func (h *handlerAdapter) APIV1FraudRulesIDGet(ctx context.Context, params antifraud_v1.APIV1FraudRulesIDGetParams) (antifraud_v1.APIV1FraudRulesIDGetRes, error) {
-	return nil, nil
+	// Defensive programming: базовая валидация
+	if ctx == nil {
+		return &antifraud_v1.APIV1FraudRulesIDGetUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Context is required",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      fmt.Sprintf("/api/v1/fraud-rules/%s", params.ID),
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	// Проверка прав доступа - только ADMIN может просматривать правила
+	// Из практики: правила антифрода - это чувствительная информация
+	userRole, ok := ctx.Value(ContextRoleKey).(string)
+	if !ok || userRole != "ADMIN" {
+		return &antifraud_v1.APIV1FraudRulesIDGetForbidden{
+			Code:      antifraud_v1.ErrorCodeFORBIDDEN,
+			Message:   "Access denied: only ADMIN can view fraud rules",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      fmt.Sprintf("/api/v1/fraud-rules/%s", params.ID),
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	// Валидация ID - защитимся от невалидных UUID
+	// TODO: добавить валидацию UUID на уровне middleware (ticket-5679)
+	ruleUUID := params.ID.String()
+	if ruleUUID == "" {
+		return &antifraud_v1.APIV1FraudRulesIDGetUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Invalid rule ID",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      fmt.Sprintf("/api/v1/fraud-rules/%s", params.ID),
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	// Получаем правило по ID
+	// Из прошлого проекта: важно проверять существование перед операциями
+	rule, err := h.fraudRuleService.GetByID(ctx, ruleUUID)
+	if err != nil {
+		return &antifraud_v1.APIV1FraudRulesIDGetUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Failed to retrieve fraud rule",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      fmt.Sprintf("/api/v1/fraud-rules/%s", params.ID),
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	if rule == nil {
+		return &antifraud_v1.APIV1FraudRulesIDGetNotFound{
+			Code:      antifraud_v1.ErrorCodeNOTFOUND,
+			Message:   "Fraud rule not found",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      fmt.Sprintf("/api/v1/fraud-rules/%s", params.ID),
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	// Конвертируем в OpenAPI формат
+	// Из прошлого проекта: консистентность типов критически важна
+	apiRule := antifraud_v1.FraudRule{
+		ID:          params.ID,
+		Name:        rule.Name,
+		Description: antifraud_v1.OptString{Set: rule.Description != "", Value: rule.Description},
+		DslExpression: rule.DSL,
+		Enabled:     rule.IsActive,
+		Priority:    rule.Priority,
+		CreatedAt:   rule.CreatedAt,
+		UpdatedAt:   rule.UpdatedAt,
+	}
+
+	// Возвращаем успешный ответ
+	// TODO: добавить метрики для мониторинга запросов правил (ticket-1235)
+	return &apiRule, nil
 }
 
 func (h *handlerAdapter) APIV1FraudRulesIDPut(ctx context.Context, req *antifraud_v1.FraudRuleUpdateRequest, params antifraud_v1.APIV1FraudRulesIDPutParams) (antifraud_v1.APIV1FraudRulesIDPutRes, error) {
