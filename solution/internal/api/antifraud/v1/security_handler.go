@@ -2,7 +2,6 @@ package v1
 
 import (
 	"context"
-	"strings"
 
 	"github.com/ogen-go/ogen/ogenerrors"
 	"solution/internal/config"
@@ -22,13 +21,7 @@ func (s *SecurityHandler) HandleBearerAuth(ctx context.Context, operationName an
 		return ctx, ogenerrors.ErrSkipServerSecurity
 	}
 
-	parts := strings.Split(t.Token, " ")
-	if len(parts) != 2 || parts[0] != "Bearer" {
-		return ctx, ogenerrors.ErrSecurityRequirementIsNotSatisfied
-	}
-
-	token := parts[1]
-	isValid, data, err := jwt.NewJWT(config.AppConfig().RandomSecret.RANDOM_SECRET()).Parse(token)
+	isValid, data, err := jwt.NewJWT(config.AppConfig().RandomSecret.RANDOM_SECRET()).Parse(t.Token)
 	if err != nil || !isValid || data == nil {
 		return ctx, ogenerrors.ErrSecurityRequirementIsNotSatisfied
 	}
