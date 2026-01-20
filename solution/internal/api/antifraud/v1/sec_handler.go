@@ -2,7 +2,8 @@ package v1
 
 import (
 	"context"
-	"fmt"
+
+	"github.com/ogen-go/ogen/ogenerrors"
 	"solution/internal/config"
 	"solution/internal/middleware"
 	"solution/pkg/jwt"
@@ -16,27 +17,24 @@ func NewSecurityHandlerAdapter() antifraud_v1.SecurityHandler {
 	return &SecurityHandler{}
 }
 
-// Реализация
 func (s *SecurityHandler) HandleBearerAuth(ctx context.Context, operationName antifraud_v1.OperationName, t antifraud_v1.BearerAuth) (context.Context, error) {
-	// Валидация JWT токена
 	isValid, data, err := jwt.NewJWT(config.AppConfig().RandomSecret.RANDOM_SECRET()).Parse(t.Token)
 	if err != nil {
 		return ctx, err
 	}
 
 	if !isValid || data == nil {
-		return ctx, fmt.Errorf("invalid token")
+		return ctx, ogenerrors.ErrSecurityRequirementIsNotSatisfied
 	}
 
 	if data.UserID == "" {
-		return ctx, fmt.Errorf("invalid token: missing user ID")
+		return ctx, ogenerrors.ErrSecurityRequirementIsNotSatisfied
 	}
 
 	if data.Role != "USER" && data.Role != "ADMIN" {
-		return ctx, fmt.Errorf("invalid token: invalid role")
+		return ctx, ogenerrors.ErrSecurityRequirementIsNotSatisfied
 	}
 
-	// Устанавливаем данные пользователя в контекст
 	ctx = context.WithValue(ctx, middleware.ContextUserIDKey, data.UserID)
 	ctx = context.WithValue(ctx, middleware.ContextRoleKey, data.Role)
 	ctx = context.WithValue(ctx, middleware.ContextJWTDataKey, data)
