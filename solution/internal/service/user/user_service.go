@@ -7,6 +7,7 @@ import (
 	"solution/internal/repository"
 	"solution/pkg/jwt"
 	"time"
+	v1 "solution/internal/api/antifraud/v1"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -169,6 +170,19 @@ func (s *userService) CreateByAdmin(ctx context.Context, req model.UserCreateReq
 }
 
 func (s *userService) GetByID(ctx context.Context, userID string) (*model.User, error) {
+	userRole := ctx.Value(v1.ContextRoleKey).(string)
+	
+	if userRole == "ADMIN" {
+		user, err := s.userRepo.GetByIDIncludingInactive(ctx, userID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get user by ID: %w", err)
+		}
+		if user == nil {
+			return nil, fmt.Errorf("user not found")
+		}
+		return user, nil
+	}
+	
 	user, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user by ID: %w", err)

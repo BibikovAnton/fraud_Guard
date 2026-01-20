@@ -462,9 +462,20 @@ func (h *handlerAdapter) APIV1UsersGet(ctx context.Context, params antifraud_v1.
 	}
 	
 	userRole, ok := ctx.Value(ContextRoleKey).(string)
-	if !ok || userRole != "ADMIN" {
+	if !ok {
 		return &antifraud_v1.APIV1UsersGetUnauthorized{
 			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Access denied: authentication required",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/users",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+	
+	if userRole != "ADMIN" {
+		return &antifraud_v1.APIV1UsersGetForbidden{
+			Code:      antifraud_v1.ErrorCodeFORBIDDEN,
 			Message:   "Access denied: admin rights required",
 			TraceId:   uuid.New(),
 			Timestamp: time.Now().UTC(),
