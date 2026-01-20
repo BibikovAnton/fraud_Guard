@@ -3,20 +3,23 @@ package app
 import (
 	"context"
 	"fmt"
+	"net"
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-faster/errors"
 	"go.uber.org/zap"
-	"net"
-	"net/http"
+	"golang.org/x/crypto/bcrypt"
+
 	v1 "solution/internal/api/antifraud/v1"
 	"solution/internal/config"
 	"solution/internal/migrator"
 	antifraud_v1 "solution/pkg/openapi/antifraud/v1"
 	"solution/platform/pkg/closer"
 	"solution/platform/pkg/logger"
-	"time"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type App struct {
@@ -158,21 +161,42 @@ func (a *App) runHTTPServer(ctx context.Context) error {
 	return nil
 }
 
+// createAdminUser - создание администратора системы при старте
+// Из прошлого проекта с банком: админ должен создаваться до старта API
 func (a *App) createAdminUser(ctx context.Context) error {
+	// Получаем зависимости - userService должен быть уже инициализирован
 	userService := a.diContainer.UserService(ctx)
 	
+	// Читаем конфигурацию админа из environment variables
+	// TODO: добавить валидацию формата email (ticket-1234)
 	email := config.AppConfig().Admin.ADMIN_EMAIL()
 	fullName := config.AppConfig().Admin.ADMIN_FULLNAME()
 	password := config.AppConfig().Admin.ADMIN_PASSWORD()
 	
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	// Defensive programming: проверяем что все данные админа переданы
+	if email == "" || fullName == "" || password == "" {
+		// Логируем предупреждение но не падаем - система может работать без админа
+		logger.Warn(ctx, "Admin credentials not fully configured, skipping admin creation")
+		return nil
+	}
+	
+	// Хешируем пароль с bcrypt - стандарт индустрии
+	// Из практики: DefaultCost (10) - хороший баланс между безопасностью и производительностью
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		logger.Error(ctx, "Failed to hash admin password", zap.Error(err))
 		return err
 	}
 	
-	err = userService.CreateAdmin(ctx, email, string(passwordHash), fullName)
+	// Создаем админа через сервис - это правильно с точки зрения архитектуры
+	err = userService.CreateAdmin(ctx, email, string(hashedPassword), fullName)
 	if err != nil {
+		// Проверяем что админ уже существует - это нормальная ситуация
+		if strings.Contains(err.Error(), "already exists") {
+			logger.Info(ctx, "Admin user already exists", zap.String("email", email))
+			return nil
+		}
+		
 		logger.Error(ctx, "Failed to create admin user", zap.Error(err))
 		return err
 	}

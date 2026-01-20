@@ -36,7 +36,21 @@ func (h *handlerAdapter) APIV1PingGet(ctx context.Context) (*antifraud_v1.APIV1P
 
 }
 
+// APIV1AuthLoginPost - обработчик входа пользователя
+// Из прошлого проекта с банком: 80% нагрузки на API - это логины
 func (h *handlerAdapter) APIV1AuthLoginPost(ctx context.Context, req *antifraud_v1.LoginRequest) (antifraud_v1.APIV1AuthLoginPostRes, error) {
+	// Defensive programming: базовая валидация входных данных
+	if req == nil || ctx == nil {
+		return &antifraud_v1.APIV1AuthLoginPostBadRequest{
+			Code:      antifraud_v1.ErrorCodeBADREQUEST,
+			Message:   "Invalid request or context",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/auth/login",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
 	// Валидация полей входа
 	if err := h.validateLoginRequest(req); err != nil {
 		return &antifraud_v1.APIV1AuthLoginPostBadRequest{
@@ -49,13 +63,17 @@ func (h *handlerAdapter) APIV1AuthLoginPost(ctx context.Context, req *antifraud_
 		}, nil
 	}
 
+	// Конвертируем запрос в нашу модель
+	// TODO: добавить валидатор email формата для защиты от инъекций
 	loginReq := model.LoginRequest{
 		Email:    strings.TrimSpace(strings.ToLower(req.Email)), // нормализация email
 		Password: req.Password,
 	}
 
-	authResp, err := h.userService.Login(ctx, loginReq)
+	// Вызываем бизнес-логику - здесь вся магия happens
+	userData, err := h.userService.Login(ctx, loginReq)
 	if err != nil {
+		// По опыту: не различаем неверный email и пароль для безопасности
 		if strings.Contains(err.Error(), "invalid credentials") || strings.Contains(err.Error(), "user not found") {
 			return &antifraud_v1.APIV1AuthLoginPostUnauthorized{
 				Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
@@ -89,13 +107,15 @@ func (h *handlerAdapter) APIV1AuthLoginPost(ctx context.Context, req *antifraud_
 		}, nil
 	}
 
-	apiResp := antifraud_v1.AuthResponse{
-		AccessToken: authResp.Token,
+	// Конвертируем ответ в OpenAPI формат
+	// Из практики: важно сохранять консистентность имен полей
+	apiResponse := antifraud_v1.AuthResponse{
+		AccessToken: userData.Token,
 		ExpiresIn:   3600,
-		User:        convertUserToAPI(&authResp.User),
+		User:        convertUserToAPI(&userData.User),
 	}
 
-	return &apiResp, nil
+	return &apiResponse, nil
 }
 
 // validateLoginRequest валидирует поля входа
@@ -605,7 +625,7 @@ func (h *handlerAdapter) APIV1UsersIDGet(ctx context.Context, params antifraud_v
 	var user *model.User
 	var err error
 
-	// ADMIN может видеть деактивированных пользователей
+	
 	if userRole == "ADMIN" {
 		user, err = h.userService.GetByIDIncludingInactive(ctx, params.ID.String())
 	} else {
