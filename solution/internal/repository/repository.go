@@ -15,6 +15,7 @@ type AntifraudRepository interface {
 type UserRepository interface {
 	// Базовые операции
 	Create(ctx context.Context, user model.User) error
+	CreateAdmin(ctx context.Context, email, passwordHash, fullName string) error
 	FindByEmail(ctx context.Context, email string) (*model.User, error)
 	ExistsByEmail(ctx context.Context, email string) (bool, error)
 	FindByEmailIncludingInactive(ctx context.Context, email string) (*model.User, error)

@@ -16,6 +16,7 @@ import (
 	"solution/platform/pkg/closer"
 	"solution/platform/pkg/logger"
 	"time"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type App struct {
@@ -47,6 +48,7 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initListener,
 		a.initHTTPServer,
 		a.runMigrations,
+		a.createAdminUser,
 	}
 
 	for _, f := range inits {
@@ -153,5 +155,28 @@ func (a *App) runHTTPServer(ctx context.Context) error {
 		return err
 	}
 
+	return nil
+}
+
+func (a *App) createAdminUser(ctx context.Context) error {
+	userService := a.diContainer.UserService(ctx)
+	
+	email := config.AppConfig().Admin.ADMIN_EMAIL()
+	fullName := config.AppConfig().Admin.ADMIN_FULLNAME()
+	password := config.AppConfig().Admin.ADMIN_PASSWORD()
+	
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		logger.Error(ctx, "Failed to hash admin password", zap.Error(err))
+		return err
+	}
+	
+	err = userService.CreateAdmin(ctx, email, string(passwordHash), fullName)
+	if err != nil {
+		logger.Error(ctx, "Failed to create admin user", zap.Error(err))
+		return err
+	}
+	
+	logger.Info(ctx, "Admin user created successfully", zap.String("email", email))
 	return nil
 }

@@ -82,6 +82,18 @@ func (s *userService) Login(ctx context.Context, req model.LoginRequest) (*model
 	}, nil
 }
 
+func (s *userService) CreateAdmin(ctx context.Context, email, passwordHash, fullName string) error {
+	exists, err := s.userRepo.ExistsByEmail(ctx, email)
+	if err != nil {
+		return fmt.Errorf("failed to check email existence: %w", err)
+	}
+	if exists {
+		return nil // admin already exists, skip creation
+	}
+
+	return s.userRepo.CreateAdmin(ctx, email, passwordHash, fullName)
+}
+
 func (s *userService) GetMe(ctx context.Context, userID string) (*model.User, error) {
 	user, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {

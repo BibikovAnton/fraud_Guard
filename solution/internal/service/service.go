@@ -17,6 +17,7 @@ type UserService interface {
 	// Аутентификация и регистрация
 	Register(ctx context.Context, req model.RegisterRequest) (*model.RegisterResponse, error)
 	Login(ctx context.Context, req model.LoginRequest) (*model.LoginResponse, error)
+	CreateAdmin(ctx context.Context, email, passwordHash, fullName string) error
 
 	// Профиль пользователя
 	GetMe(ctx context.Context, userID string) (*model.User, error)
