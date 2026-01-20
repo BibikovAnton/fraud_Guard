@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"net/http"
+	"strings"
 	"solution/internal/config"
 	"solution/pkg/jwt"
 )
@@ -18,26 +19,37 @@ const (
 func IsAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
+		
+		if authHeader == "" {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("Missing token"))
+			return
+		}
 
-		isValid, data, err := jwt.NewJWT(config.AppConfig().RandomSecret.RANDOM_SECRET()).Parse(authHeader)
-		if err != nil {
+		parts := strings.Split(authHeader, " ")
+		if len(parts) != 2 || parts[0] != "Bearer" {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("Invalid token format"))
+			return
+		}
+
+		token := parts[1]
+		isValid, data, err := jwt.NewJWT(config.AppConfig().RandomSecret.RANDOM_SECRET()).Parse(token)
+		if err != nil || !isValid || data == nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte("Invalid token"))
 			return
 		}
 
-		if !isValid || data == nil {
-			http.Error(w, "Invalid or expired token", http.StatusUnauthorized)
-			return
-		}
-
 		if data.UserID == "" {
-			http.Error(w, "Token missing user ID", http.StatusUnauthorized)
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("Token missing user ID"))
 			return
 		}
 
 		if data.Role != "USER" && data.Role != "ADMIN" {
-			http.Error(w, "Invalid user role", http.StatusForbidden)
+			w.WriteHeader(http.StatusForbidden)
+			w.Write([]byte("Invalid user role"))
 			return
 		}
 
