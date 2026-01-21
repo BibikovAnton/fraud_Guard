@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"solution/internal/model"
+	"strings"
 	"time"
 )
 
@@ -69,7 +70,7 @@ func (r *repository) Update(ctx context.Context, id string, req model.FraudRuleU
 		return existing, nil
 	}
 
-	query += fmt.Sprintf("%s WHERE id = $%d", fmt.Sprintf("%s", updates), argIndex)
+	query += fmt.Sprintf("%s WHERE id = $%d", strings.Join(updates, ", "), argIndex)
 	args = append(args, id)
 
 	_, err = r.db.Exec(ctx, query, args...)
