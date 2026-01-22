@@ -3,3 +3,5 @@ package-lock.json
 package.json
 bin/
 Taskfile.yaml
+.DS_Store
+*/.DS_Store
