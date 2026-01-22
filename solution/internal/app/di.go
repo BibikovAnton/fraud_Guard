@@ -9,18 +9,15 @@ import (
 	"solution/internal/api/antifraud/v1"
 	"solution/internal/config"
 	"solution/internal/repository"
-	repositoryAntifraud "solution/internal/repository/antifraud"
 	repositoryFraudRules "solution/internal/repository/fraud_rules"
 	repositoryUser "solution/internal/repository/user"
 	"solution/internal/service"
-	serviceAntifraud "solution/internal/service/antifraurd"
 	serviceFraudRules "solution/internal/service/fraud_rules"
 	serviceUser "solution/internal/service/user"
 	"solution/platform/pkg/closer"
 )
 
 type diContainer struct {
-	antifraudService service.AntifraudService
 	userService      service.UserService
 	fraudRuleService service.FraudRuleService
 
@@ -36,15 +33,8 @@ func NewDIContainer() *diContainer {
 	return &diContainer{}
 }
 
-func (d *diContainer) AntifraudV1API(ctx context.Context) {
-	v1.NewAPI(d.AntifraudService(ctx))
-}
-
-func (d *diContainer) AntifraudService(ctx context.Context) service.AntifraudService {
-	if d.antifraudService == nil {
-		d.antifraudService = serviceAntifraud.NewService(d.AntifraudRepository(ctx))
-	}
-	return d.antifraudService
+func (d *diContainer) V1API(ctx context.Context) {
+	v1.NewAPI(d.UserService(ctx), d.FraudRuleService(ctx))
 }
 
 func (d *diContainer) UserService(ctx context.Context) service.UserService {
@@ -59,13 +49,6 @@ func (d *diContainer) FraudRuleService(ctx context.Context) service.FraudRuleSer
 		d.fraudRuleService = serviceFraudRules.NewService(d.FraudRuleRepository(ctx))
 	}
 	return d.fraudRuleService
-}
-
-func (d *diContainer) AntifraudRepository(ctx context.Context) repository.AntifraudRepository {
-	if d.antifraudRepository == nil {
-		d.antifraudRepository = repositoryAntifraud.NewRepository(d.PostgresDBHandle(ctx))
-	}
-	return d.antifraudRepository
 }
 
 func (d *diContainer) UserRepository(ctx context.Context) repository.UserRepository {

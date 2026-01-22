@@ -1,13 +1,20 @@
 package v1
 
-import "solution/internal/service"
+import (
+	"solution/internal/service"
+)
 
-type api struct {
-	antiFraudService service.AntifraudService
+type API struct {
+	userService      service.UserService
+	fraudRuleService service.FraudRuleService
 }
 
-func NewAPI(antiFraudService service.AntifraudService) *api {
-	return &api{
-		antiFraudService: antiFraudService,
+func NewAPI(
+	userService service.UserService,
+	fraudRuleService service.FraudRuleService,
+) *API {
+	return &API{
+		userService:      userService,
+		fraudRuleService: fraudRuleService,
 	}
 }

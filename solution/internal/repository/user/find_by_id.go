@@ -7,8 +7,6 @@ import (
 	"solution/internal/model"
 )
 
-// GetByID - поиск пользователя по ID с фильтрацией активных
-// Из прошлого проекта с банком: 95% запросов - это поиск активных пользователей
 func (r *repo) GetByID(ctx context.Context, userID string) (*model.User, error) {
 	// SQL запрос с защитой от SQL-инъекций через параметризацию
 	// TODO: добавить индекс по is_active для оптимизации производительности
@@ -80,8 +78,6 @@ func (r *repo) GetByID(ctx context.Context, userID string) (*model.User, error) 
 	return &user, nil
 }
 
-// GetByIDIncludingInactive - поиск пользователя по ID включая деактивированных
-// Нужен для ADMIN функций - может видеть всех пользователей системы
 func (r *repo) GetByIDIncludingInactive(ctx context.Context, userID string) (*model.User, error) {
 	// Аналогичный запрос но БЕЗ фильтра is_active = true
 	// TODO:可以考虑添加缓存 для ADMIN запросов - они реже но важнее

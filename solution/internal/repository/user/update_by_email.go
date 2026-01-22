@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func (r *repo) Update(ctx context.Context, userID string, req model.UserUpdateRequest) (*model.User, error) {
+func (r *repo) UpdateByAdmin(ctx context.Context, userID string, req model.UserUpdateRequest) (*model.User, error) {
 	now := time.Now().UTC()
 
 	var updates []string
@@ -21,7 +21,6 @@ func (r *repo) Update(ctx context.Context, userID string, req model.UserUpdateRe
 		args = append(args, *req.FullName)
 		argIndex++
 	}
-
 	var age sql.NullInt32
 	if req.Age != nil {
 		age = sql.NullInt32{Int32: int32(*req.Age), Valid: true}
@@ -54,17 +53,29 @@ func (r *repo) Update(ctx context.Context, userID string, req model.UserUpdateRe
 	args = append(args, maritalStatus)
 	argIndex++
 
+	if req.Role != nil {
+		updates = append(updates, fmt.Sprintf("role = $%d", argIndex))
+		args = append(args, string(*req.Role))
+		argIndex++
+	}
+
+	if req.IsActive != nil {
+		updates = append(updates, fmt.Sprintf("is_active = $%d", argIndex))
+		args = append(args, *req.IsActive)
+		argIndex++
+	}
+
 	updates = append(updates, fmt.Sprintf("updated_at = $%d", argIndex))
 	args = append(args, now)
 
-	query := fmt.Sprintf("UPDATE users SET %s WHERE id = $%d AND is_active = true",
+	query := fmt.Sprintf("UPDATE users SET %s WHERE id = $%d",
 		strings.Join(updates, ", "), argIndex+1)
 
 	args = append(args, userID)
 
 	_, err := r.db.Exec(ctx, query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("failed to update user: %w", err)
+		return nil, fmt.Errorf("failed to update user by admin: %w", err)
 	}
 
 	return r.GetByID(ctx, userID)

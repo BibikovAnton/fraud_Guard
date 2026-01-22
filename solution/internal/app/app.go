@@ -106,7 +106,7 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(10 * time.Second))
 
-	handlerAdapter := v1.NewHandlerAdapter(a.diContainer.AntifraudService(ctx), a.diContainer.UserService(ctx), a.diContainer.FraudRuleService(ctx))
+	handlerAdapter := v1.NewHandlerAdapter(a.diContainer.UserService(ctx), a.diContainer.FraudRuleService(ctx))
 	secHandlerAdapter := v1.NewSecurityHandlerAdapter()
 
 	antifraudServer, err := antifraud_v1.NewServer(handlerAdapter, secHandlerAdapter)
@@ -166,20 +166,20 @@ func (a *App) runHTTPServer(ctx context.Context) error {
 func (a *App) createAdminUser(ctx context.Context) error {
 	// Получаем зависимости - userService должен быть уже инициализирован
 	userService := a.diContainer.UserService(ctx)
-	
+
 	// Читаем конфигурацию админа из environment variables
 	// TODO: добавить валидацию формата email (ticket-1234)
 	email := config.AppConfig().Admin.ADMIN_EMAIL()
 	fullName := config.AppConfig().Admin.ADMIN_FULLNAME()
 	password := config.AppConfig().Admin.ADMIN_PASSWORD()
-	
+
 	// Defensive programming: проверяем что все данные админа переданы
 	if email == "" || fullName == "" || password == "" {
 		// Логируем предупреждение но не падаем - система может работать без админа
 		logger.Warn(ctx, "Admin credentials not fully configured, skipping admin creation")
 		return nil
 	}
-	
+
 	// Хешируем пароль с bcrypt - стандарт индустрии
 	// Из практики: DefaultCost (10) - хороший баланс между безопасностью и производительностью
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -187,7 +187,7 @@ func (a *App) createAdminUser(ctx context.Context) error {
 		logger.Error(ctx, "Failed to hash admin password", zap.Error(err))
 		return err
 	}
-	
+
 	// Создаем админа через сервис - это правильно с точки зрения архитектуры
 	err = userService.CreateAdmin(ctx, email, string(hashedPassword), fullName)
 	if err != nil {
@@ -196,11 +196,11 @@ func (a *App) createAdminUser(ctx context.Context) error {
 			logger.Info(ctx, "Admin user already exists", zap.String("email", email))
 			return nil
 		}
-		
+
 		logger.Error(ctx, "Failed to create admin user", zap.Error(err))
 		return err
 	}
-	
+
 	logger.Info(ctx, "Admin user created successfully", zap.String("email", email))
 	return nil
 }
