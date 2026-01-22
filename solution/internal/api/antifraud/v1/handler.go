@@ -25,5 +25,4 @@ func (h *handlerAdapter) APIV1PingGet(ctx context.Context) (*antifraud_v1.APIV1P
 	return &antifraud_v1.APIV1PingGetOK{
 		Status: opt,
 	}, nil
-
 }

@@ -25,6 +25,7 @@ func (h *handlerAdapter) APIV1AuthRegisterPost(ctx context.Context, req *antifra
 
 	registerReq := model.RegisterRequest{
 		Email:    strings.TrimSpace(strings.ToLower(req.Email)),
+		Password: req.Password,
 		FullName: strings.TrimSpace(req.FullName),
 	}
 

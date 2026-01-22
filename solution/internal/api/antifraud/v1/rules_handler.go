@@ -472,6 +472,12 @@ func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *a
 
 	return &antifraud_v1.DslValidateResponse{
 		IsValid: validation.IsValid,
+		NormalizedExpression: func() antifraud_v1.OptNilString {
+			if validation.IsValid {
+				return antifraud_v1.OptNilString{Set: true, Value: req.DslExpression}
+			}
+			return antifraud_v1.OptNilString{Set: false}
+		}(),
 		Errors: func() []antifraud_v1.DslError {
 			if validation.IsValid {
 				return []antifraud_v1.DslError{}
