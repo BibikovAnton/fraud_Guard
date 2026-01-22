@@ -456,28 +456,33 @@ func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *a
 		}, nil
 	}
 
-	_, err := h.fraudRuleService.ValidateDSL(ctx, req.DslExpression)
+	validation, err := h.fraudRuleService.ValidateDSL(ctx, req.DslExpression)
 	if err != nil {
 		return &antifraud_v1.DslValidateResponse{
 			IsValid: false,
 			Errors: []antifraud_v1.DslError{
 				{
-					Code:     "DSL_UNSUPPORTED_TIER",
-					Message:  "DSL parsing not supported at current tier",
-					Position: antifraud_v1.OptNilInt{Set: true, Value: 0},
+					Code:     "DSL_PARSE_ERROR",
+					Message:  err.Error(),
+					Position: antifraud_v1.OptNilInt{Set: false},
 				},
 			},
 		}, nil
 	}
 
 	return &antifraud_v1.DslValidateResponse{
-		IsValid: false,
-		Errors: []antifraud_v1.DslError{
-			{
-				Code:     "DSL_UNSUPPORTED_TIER",
-				Message:  "DSL parsing not supported at current tier",
-				Position: antifraud_v1.OptNilInt{Set: true, Value: 0},
-			},
-		},
+		IsValid: validation.IsValid,
+		Errors: func() []antifraud_v1.DslError {
+			if validation.IsValid {
+				return []antifraud_v1.DslError{}
+			}
+			return []antifraud_v1.DslError{
+				{
+					Code:     "DSL_VALIDATION_FAILED",
+					Message:  validation.Error,
+					Position: antifraud_v1.OptNilInt{Set: false},
+				},
+			}
+		}(),
 	}, nil
 }

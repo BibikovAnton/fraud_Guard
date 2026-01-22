@@ -326,41 +326,17 @@ func (h *handlerAdapter) APIV1UsersIDPut(ctx context.Context, req *antifraud_v1.
 
 func (h *handlerAdapter) APIV1UsersMeGet(ctx context.Context) (antifraud_v1.APIV1UsersMeGetRes, error) {
 	if ctx == nil {
-		return &antifraud_v1.User{
-			ID:        uuid.New(),
-			Email:     "unknown@example.com",
-			FullName:  "Unknown User",
-			Role:      "USER",
-			IsActive:  false,
-			CreatedAt: time.Now().UTC(),
-			UpdatedAt: time.Now().UTC(),
-		}, nil
+		return nil, fmt.Errorf("context is nil")
 	}
 
 	userID, ok := ctx.Value(ContextUserIDKey).(string)
 	if !ok {
-		return &antifraud_v1.User{
-			ID:        uuid.New(),
-			Email:     "unknown@example.com",
-			FullName:  "Unknown User",
-			Role:      "USER",
-			IsActive:  false,
-			CreatedAt: time.Now().UTC(),
-			UpdatedAt: time.Now().UTC(),
-		}, nil
+		return nil, fmt.Errorf("user ID not found in context")
 	}
 
 	user, err := h.userService.GetMe(ctx, userID)
 	if err != nil {
-		return &antifraud_v1.User{
-			ID:        uuid.New(),
-			Email:     "error@example.com",
-			FullName:  "Error User",
-			Role:      "USER",
-			IsActive:  false,
-			CreatedAt: time.Now().UTC(),
-			UpdatedAt: time.Now().UTC(),
-		}, nil
+		return nil, fmt.Errorf("failed to get user profile: %w", err)
 	}
 
 	apiUser := convertor.ConvertUserToAPI(user)
