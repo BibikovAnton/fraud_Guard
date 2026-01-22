@@ -72,7 +72,77 @@ func (h *handlerAdapter) APIV1FraudRulesGet(ctx context.Context) (antifraud_v1.A
 }
 
 func (h *handlerAdapter) APIV1FraudRulesIDDelete(ctx context.Context, params antifraud_v1.APIV1FraudRulesIDDeleteParams) (antifraud_v1.APIV1FraudRulesIDDeleteRes, error) {
-	return nil, nil
+	if ctx == nil {
+		return &antifraud_v1.APIV1FraudRulesIDDeleteUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Context is required",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      fmt.Sprintf("/api/v1/fraud-rules/%s", params.ID),
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	userRole, ok := ctx.Value(ContextRoleKey).(string)
+	if !ok || userRole != "ADMIN" {
+		return &antifraud_v1.APIV1FraudRulesIDDeleteForbidden{
+			Code:      antifraud_v1.ErrorCodeFORBIDDEN,
+			Message:   "Access denied: only ADMIN can delete fraud rules",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      fmt.Sprintf("/api/v1/fraud-rules/%s", params.ID),
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	ruleUUID := params.ID.String()
+	if ruleUUID == "" {
+		return &antifraud_v1.APIV1FraudRulesIDDeleteUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Invalid rule ID",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      fmt.Sprintf("/api/v1/fraud-rules/%s", params.ID),
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	existingRule, err := h.fraudRuleService.GetByID(ctx, ruleUUID)
+	if err != nil {
+		return &antifraud_v1.APIV1FraudRulesIDDeleteUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Failed to check fraud rule existence",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      fmt.Sprintf("/api/v1/fraud-rules/%s", params.ID),
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	if existingRule == nil {
+		return &antifraud_v1.APIV1FraudRulesIDDeleteNotFound{
+			Code:      antifraud_v1.ErrorCodeNOTFOUND,
+			Message:   "Fraud rule not found",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      fmt.Sprintf("/api/v1/fraud-rules/%s", params.ID),
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	err = h.fraudRuleService.Delete(ctx, ruleUUID)
+	if err != nil {
+		return &antifraud_v1.APIV1FraudRulesIDDeleteUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Failed to delete fraud rule",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      fmt.Sprintf("/api/v1/fraud-rules/%s", params.ID),
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	return &antifraud_v1.APIV1FraudRulesIDDeleteNoContent{}, nil
 }
 
 func (h *handlerAdapter) APIV1FraudRulesIDGet(ctx context.Context, params antifraud_v1.APIV1FraudRulesIDGetParams) (antifraud_v1.APIV1FraudRulesIDGetRes, error) {
@@ -393,6 +463,6 @@ func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *a
 
 	return &antifraud_v1.DslValidateResponse{
 		IsValid: validation.IsValid,
-		Errors:  []antifraud_v1.DslError{}, // TODO: конвертация ошибок - нужно парсить позиции токенов для UI
+		Errors:  []antifraud_v1.DslError{},
 	}, nil
 }
