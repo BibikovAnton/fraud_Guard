@@ -326,17 +326,38 @@ func (h *handlerAdapter) APIV1UsersIDPut(ctx context.Context, req *antifraud_v1.
 
 func (h *handlerAdapter) APIV1UsersMeGet(ctx context.Context) (antifraud_v1.APIV1UsersMeGetRes, error) {
 	if ctx == nil {
-		return nil, fmt.Errorf("context is nil")
+		return &antifraud_v1.APIV1UsersMeGetUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Context is required",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/users/me",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
 	}
 
 	userID, ok := ctx.Value(ContextUserIDKey).(string)
 	if !ok {
-		return nil, fmt.Errorf("user ID not found in context")
+		return &antifraud_v1.APIV1UsersMeGetUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "User ID not found in context",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/users/me",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
 	}
 
 	user, err := h.userService.GetMe(ctx, userID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get user profile: %w", err)
+		return &antifraud_v1.APIV1UsersMeGetUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Failed to get user profile",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/users/me",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
 	}
 
 	apiUser := convertor.ConvertUserToAPI(user)

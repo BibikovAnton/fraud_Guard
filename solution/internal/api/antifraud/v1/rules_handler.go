@@ -458,7 +458,19 @@ func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *a
 
 	validation, err := h.fraudRuleService.ValidateDSL(ctx, req.DslExpression)
 	if err != nil {
-		return nil, fmt.Errorf("failed to validate DSL: %w", err)
+		return &antifraud_v1.ValidationError{
+			Code:      string(antifraud_v1.ErrorCodeVALIDATIONFAILED),
+			Message:   "DSL validation failed: " + err.Error(),
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/fraud-rules/validate",
+			FieldErrors: []antifraud_v1.FieldError{
+				{
+					Field: "dslExpression",
+					Issue: err.Error(),
+				},
+			},
+		}, nil
 	}
 
 	return &antifraud_v1.DslValidateResponse{
