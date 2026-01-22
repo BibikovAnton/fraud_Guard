@@ -462,9 +462,9 @@ func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *a
 			IsValid: false,
 			Errors: []antifraud_v1.DslError{
 				{
+					Code:    "VALIDATION_ERROR",
 					Message: err.Error(),
-					Line:    1,
-					Column:  1,
+					Position: antifraud_v1.OptNilInt{Set: true, Value: 0},
 				},
 			},
 		}, nil
