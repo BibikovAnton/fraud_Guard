@@ -172,31 +172,31 @@ func (e *evaluator) compareValues(field, operator, value string, transaction *mo
 
 func (e *evaluator) getFieldValue(field string, transaction *model.Transaction, user *model.User) (interface{}, error) {
 	switch field {
-	case "amount":
+	case "amount", "AMOUNT":
 		return transaction.Amount, nil
-	case "currency":
+	case "currency", "CURRENCY":
 		return string(transaction.Currency), nil
-	case "merchantId":
+	case "merchantId", "MERCHANTID", "MERCHANT_ID":
 		if transaction.MerchantID == nil {
 			return "", nil
 		}
 		return *transaction.MerchantID, nil
-	case "ipAddress":
+	case "ipAddress", "IPADDRESS", "IP_ADDRESS":
 		if transaction.IPAddress == nil {
 			return "", nil
 		}
 		return transaction.IPAddress.String(), nil
-	case "deviceId":
+	case "deviceId", "DEVICEID", "DEVICE_ID":
 		if transaction.DeviceID == nil {
 			return "", nil
 		}
 		return *transaction.DeviceID, nil
-	case "user.age":
+	case "user.age", "user.AGE", "USER.age", "USER.AGE":
 		if user.Age == nil {
 			return nil, nil // null - правило не сработает
 		}
 		return *user.Age, nil
-	case "user.region":
+	case "user.region", "user.REGION", "USER.region", "USER.REGION":
 		if user.Region == nil {
 			return nil, nil // null - правило не сработает
 		}
