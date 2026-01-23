@@ -12,6 +12,7 @@ type Repository interface {
 	GetByID(ctx context.Context, id string) (*model.FraudRule, error)
 	GetByName(ctx context.Context, name string) (*model.FraudRule, error)
 	GetAll(ctx context.Context, activeOnly bool) ([]*model.FraudRule, error)
+	GetActiveRules(ctx context.Context) ([]*model.FraudRule, error)
 	Update(ctx context.Context, id string, req model.FraudRuleUpdateRequest) (*model.FraudRule, error)
 	Delete(ctx context.Context, id string) error
 

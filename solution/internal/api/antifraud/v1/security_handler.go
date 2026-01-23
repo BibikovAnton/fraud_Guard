@@ -25,8 +25,6 @@ func (s *SecurityHandler) HandleBearerAuth(ctx context.Context, operationName an
 	isValid, jwtData, parseErr := jwtValidator.Parse(t.Token)
 
 	if parseErr != nil || !isValid || jwtData == nil {
-		// Логируем неудачные попытки для мониторинга атак
-		// TODO: добавить метрики для rate limiting по IP
 		return ctx, ogenerrors.ErrSecurityRequirementIsNotSatisfied
 	}
 
@@ -38,8 +36,8 @@ func (s *SecurityHandler) HandleBearerAuth(ctx context.Context, operationName an
 		return ctx, ogenerrors.ErrSecurityRequirementIsNotSatisfied
 	}
 
-	authCtx := context.WithValue(ctx, ContextUserIDKey, jwtData.UserID)
-	authCtx = context.WithValue(authCtx, ContextRoleKey, jwtData.Role)
+	authCtx := context.WithValue(ctx, ContextKey("user_id"), jwtData.UserID)
+	authCtx = context.WithValue(authCtx, ContextKey("user_role"), jwtData.Role)
 	authCtx = context.WithValue(authCtx, ContextJWTDataKey, jwtData)
 
 	return authCtx, nil
@@ -48,7 +46,5 @@ func (s *SecurityHandler) HandleBearerAuth(ctx context.Context, operationName an
 type ContextKey string
 
 const (
-	ContextUserIDKey  ContextKey = "user_id"
-	ContextRoleKey    ContextKey = "user_role"
 	ContextJWTDataKey ContextKey = "jwt_data"
 )

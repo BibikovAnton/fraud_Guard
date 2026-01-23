@@ -6,27 +6,23 @@ import (
 	"github.com/google/uuid"
 )
 
-// TransactionStatus - статус транзакции
 type TransactionStatus string
 
 const (
 	TransactionStatusPending   TransactionStatus = "PENDING"
 	TransactionStatusApproved  TransactionStatus = "APPROVED"
-	TransactionStatusRejected  TransactionStatus = "REJECTED"
-	TransactionStatusProcessed TransactionStatus = "PROCESSED"
+	TransactionStatusDeclined TransactionStatus = "DECLINED"
 )
 
-// TransactionChannel - канал транзакции
 type TransactionChannel string
 
 const (
-	TransactionChannelOnline TransactionChannel = "ONLINE"
-	TransactionChannelPOS    TransactionChannel = "POS"
+	TransactionChannelWeb   TransactionChannel = "WEB"
 	TransactionChannelMobile TransactionChannel = "MOBILE"
-	TransactionChannelATM    TransactionChannel = "ATM"
+	TransactionChannelPOS    TransactionChannel = "POS"
+	TransactionChannelOther TransactionChannel = "OTHER"
 )
 
-// CurrencyCode - код валюты
 type CurrencyCode string
 
 const (
@@ -35,22 +31,17 @@ const (
 	CurrencyRUB CurrencyCode = "RUB"
 )
 
-// MCCCode - код категории мерчанта
 type MCCCode string
 
-// TransactionLocation - геолокация
 type TransactionLocation struct {
-	Latitude  float64 `json:"latitude"`
-	Longitude float64 `json:"longitude"`
 	Country   string  `json:"country"`
 	City      string  `json:"city"`
+	Latitude  *float64 `json:"latitude,omitempty"`
+	Longitude *float64 `json:"longitude,omitempty"`
 }
 
-// TransactionMetadata - метаданные транзакции
 type TransactionMetadata map[string]interface{}
 
-// Transaction - модель транзакции
-// Из прошлого проекта: важна производительность на 10k RPS
 type Transaction struct {
 	ID                   uuid.UUID            `json:"id" db:"id"`
 	UserID               uuid.UUID            `json:"user_id" db:"user_id"`
@@ -70,7 +61,6 @@ type Transaction struct {
 	UpdatedAt            time.Time            `json:"updated_at" db:"updated_at"`
 }
 
-// TransactionCreateRequest - запрос на создание транзакции
 type TransactionCreateRequest struct {
 	UserID               uuid.UUID            `json:"user_id"`
 	Amount               float64              `json:"amount"`
@@ -85,37 +75,51 @@ type TransactionCreateRequest struct {
 	Metadata             *TransactionMetadata `json:"metadata,omitempty"`
 }
 
-// TransactionBatchCreateRequest - запрос на создание пачки транзакций
-type TransactionBatchCreateRequest struct {
-	Transactions []TransactionCreateRequest `json:"transactions"`
-}
-
-// TransactionBatchResult - результат обработки пачки
-type TransactionBatchResult struct {
-	Processed int                    `json:"processed"`
-	Success   int                    `json:"success"`
-	Failed    int                    `json:"failed"`
-	Results   []TransactionBatchItem `json:"results"`
-}
-
-// TransactionBatchItem - элемент результата пачки
-type TransactionBatchItem struct {
-	Index   int          `json:"index"`
-	Success bool         `json:"success"`
-	Error   *string      `json:"error,omitempty"`
-	Data    *Transaction `json:"data,omitempty"`
-}
-
-// TransactionUpdateRequest - запрос на обновление транзакции
 type TransactionUpdateRequest struct {
 	Status   *TransactionStatus   `json:"status,omitempty"`
 	IsFraud  *bool                `json:"is_fraud,omitempty"`
 	Metadata *TransactionMetadata `json:"metadata,omitempty"`
 }
 
-// Constants
 const (
-	MaxTransactionAmount = 1000000.0 // 1 миллион
-	MinTransactionAmount = 0.01      // 1 цент
-	MaxBatchSize         = 1000      // максимум 1000 транзакций в пачке
+	MaxTransactionAmount = 999999999.99 // максимум из OpenAPI
+	MinTransactionAmount = 0.01         // минимум из OpenAPI
+	MaxBatchSize         = 500          // максимум из OpenAPI
 )
+
+type RuleResult struct {
+	RuleID      string `json:"ruleId"`
+	RuleName    string `json:"ruleName"`
+	Priority    int    `json:"priority"`
+	Enabled     bool   `json:"enabled"`
+	Matched     bool   `json:"matched"`
+	Description string `json:"description"`
+}
+
+type TransactionDecision struct {
+	Transaction *Transaction   `json:"transaction"`
+	RuleResults []RuleResult  `json:"ruleResults"`
+}
+
+type ApiError struct {
+	Code      string                 `json:"code"`
+	Message   string                 `json:"message"`
+	TraceID   uuid.UUID              `json:"traceId"`
+	Timestamp time.Time              `json:"timestamp"`
+	Path      string                 `json:"path"`
+	Details   map[string]interface{} `json:"details,omitempty"`
+}
+
+type TransactionBatchCreateRequest struct {
+	Items []TransactionCreateRequest `json:"items"`
+}
+
+type TransactionBatchResult struct {
+	Items []TransactionBatchItem `json:"items"`
+}
+
+type TransactionBatchItem struct {
+	Index    int                    `json:"index"`
+	Decision *TransactionDecision   `json:"decision,omitempty"`
+	Error    *ApiError              `json:"error,omitempty"`
+}

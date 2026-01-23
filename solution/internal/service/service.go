@@ -27,5 +27,13 @@ type FraudRuleService interface {
 	GetAll(ctx context.Context, activeOnly bool) ([]*model.FraudRule, error)
 	Update(ctx context.Context, id string, req model.FraudRuleUpdateRequest) (*model.FraudRule, error)
 	Delete(ctx context.Context, id string) error
-	ValidateDSL(ctx context.Context, dsl string) (*model.FraudRuleValidateResponse, error)
+	ValidateDSL(ctx context.Context, dsl string) (*model.DslValidateResponse, error)
+}
+
+type StatsService interface {
+	GetOverview(ctx context.Context, params model.StatsOverviewParams) (*model.StatsOverview, error)
+	GetTransactionsTimeSeries(ctx context.Context, params model.TimeSeriesParams) (*model.TransactionsTimeSeries, error)
+	GetRuleMatches(ctx context.Context, params model.RuleMatchesParams) (*model.RuleMatchStats, error)
+	GetMerchantRisk(ctx context.Context, params model.MerchantRiskParams) (*model.MerchantRiskStats, error)
+	GetUserRiskProfile(ctx context.Context, userID string) (*model.UserRiskProfile, error)
 }

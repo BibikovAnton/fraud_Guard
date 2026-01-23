@@ -58,8 +58,8 @@ func (h *handlerAdapter) APIV1FraudRulesGet(ctx context.Context) (antifraud_v1.A
 			ID:            ruleUUID,
 			Name:          rule.Name,
 			Description:   antifraud_v1.OptString{Set: rule.Description != "", Value: rule.Description},
-			DslExpression: rule.DSL,
-			Enabled:       rule.IsActive,
+			DslExpression: rule.DslExpression,
+			Enabled:       rule.Enabled,
 			Priority:      rule.Priority,
 			CreatedAt:     rule.CreatedAt,
 			UpdatedAt:     rule.UpdatedAt,
@@ -208,8 +208,8 @@ func (h *handlerAdapter) APIV1FraudRulesIDGet(ctx context.Context, params antifr
 		ID:            params.ID,
 		Name:          rule.Name,
 		Description:   antifraud_v1.OptString{Set: rule.Description != "", Value: rule.Description},
-		DslExpression: rule.DSL,
-		Enabled:       rule.IsActive,
+		DslExpression: rule.DslExpression,
+		Enabled:       rule.Enabled,
 		Priority:      rule.Priority,
 		CreatedAt:     rule.CreatedAt,
 		UpdatedAt:     rule.UpdatedAt,
@@ -310,12 +310,15 @@ func (h *handlerAdapter) APIV1FraudRulesIDPut(ctx context.Context, req *antifrau
 	name := strings.TrimSpace(req.Name)
 	dsl := strings.TrimSpace(req.DslExpression)
 
+	priority := req.Priority
+	enabled := req.Enabled
+
 	updateReq := model.FraudRuleUpdateRequest{
-		Name:        &name,
-		Description: &description,
-		DSL:         &dsl,
-		IsActive:    &req.Enabled,
-		Priority:    &req.Priority,
+		Name:         &name,
+		Description:  &description,
+		DslExpression: &dsl,
+		Priority:     &priority,
+		Enabled:      &enabled,
 	}
 
 	updatedRule, err := h.fraudRuleService.Update(ctx, ruleUUID, updateReq)
@@ -361,8 +364,8 @@ func (h *handlerAdapter) APIV1FraudRulesIDPut(ctx context.Context, req *antifrau
 		ID:            params.ID,
 		Name:          updatedRule.Name,
 		Description:   antifraud_v1.OptString{Set: updatedRule.Description != "", Value: updatedRule.Description},
-		DslExpression: updatedRule.DSL,
-		Enabled:       updatedRule.IsActive,
+		DslExpression: updatedRule.DslExpression,
+		Enabled:       updatedRule.Enabled,
 		Priority:      updatedRule.Priority,
 		CreatedAt:     updatedRule.CreatedAt,
 		UpdatedAt:     updatedRule.UpdatedAt,
@@ -395,14 +398,21 @@ func (h *handlerAdapter) APIV1FraudRulesPost(ctx context.Context, req *antifraud
 		}, nil
 	}
 
-	createReq := model.FraudRuleCreateRequest{
-		Name:        req.Name,
-		Description: req.Description.Value,
-		DSL:         req.DslExpression,
+	var priority *int
+	if req.Priority.Set {
+		priority = &req.Priority.Value
+	}
+	var enabled *bool
+	if req.Enabled.Set {
+		enabled = &req.Enabled.Value
 	}
 
-	if req.Priority.Set {
-		createReq.Priority = &req.Priority.Value
+	createReq := model.FraudRuleCreateRequest{
+		Name:         req.Name,
+		Description:  req.Description.Value,
+		DslExpression: req.DslExpression,
+		Enabled:      enabled,
+		Priority:     priority,
 	}
 
 	rule, err := h.fraudRuleService.Create(ctx, createReq)
@@ -485,7 +495,7 @@ func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *a
 			return []antifraud_v1.DslError{
 				{
 					Code:     "DSL_VALIDATION_FAILED",
-					Message:  validation.Error,
+					Message:  "DSL validation failed",
 					Position: antifraud_v1.OptNilInt{Set: false},
 				},
 			}

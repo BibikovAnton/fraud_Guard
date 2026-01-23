@@ -10,20 +10,25 @@ import (
 	"solution/internal/config"
 	"solution/internal/repository"
 	repositoryFraudRules "solution/internal/repository/fraud_rules"
+	repositoryTransactions "solution/internal/repository/transactions"
 	repositoryUser "solution/internal/repository/user"
 	"solution/internal/service"
+	serviceDSL "solution/internal/service/dsl"
 	serviceFraudRules "solution/internal/service/fraud_rules"
+	serviceTransactions "solution/internal/service/transactions"
 	serviceUser "solution/internal/service/user"
 	"solution/platform/pkg/closer"
 )
 
 type diContainer struct {
-	userService      service.UserService
-	fraudRuleService service.FraudRuleService
+	userService       service.UserService
+	fraudRuleService  service.FraudRuleService
+	transactionService service.TransactionService
+	dslEvaluator      serviceDSL.Evaluator
 
-	antifraudRepository repository.AntifraudRepository
-	userRepository      repository.UserRepository
-	fraudRuleRepository repository.FraudRuleRepository
+	userRepository        repository.UserRepository
+	fraudRuleRepository   repositoryFraudRules.Repository
+	transactionRepository repositoryTransactions.Repository
 
 	postgresConn     *pgx.Conn
 	postgresDBHandle *sql.DB
@@ -51,6 +56,25 @@ func (d *diContainer) FraudRuleService(ctx context.Context) service.FraudRuleSer
 	return d.fraudRuleService
 }
 
+func (d *diContainer) TransactionService(ctx context.Context) service.TransactionService {
+	if d.transactionService == nil {
+		d.transactionService = serviceTransactions.NewService(
+			d.TransactionRepository(ctx),
+			d.UserRepository(ctx),
+			d.FraudRuleRepository(ctx),
+			d.DSLEvaluator(ctx),
+		)
+	}
+	return d.transactionService
+}
+
+func (d *diContainer) DSLEvaluator(ctx context.Context) serviceDSL.Evaluator {
+	if d.dslEvaluator == nil {
+		d.dslEvaluator = serviceDSL.NewEvaluator(1) // Уровень 1 - базовый парсер
+	}
+	return d.dslEvaluator
+}
+
 func (d *diContainer) UserRepository(ctx context.Context) repository.UserRepository {
 	if d.userRepository == nil {
 		d.userRepository = repositoryUser.NewRepository(d.PostgresDBClient(ctx))
@@ -58,11 +82,18 @@ func (d *diContainer) UserRepository(ctx context.Context) repository.UserReposit
 	return d.userRepository
 }
 
-func (d *diContainer) FraudRuleRepository(ctx context.Context) repository.FraudRuleRepository {
+func (d *diContainer) FraudRuleRepository(ctx context.Context) repositoryFraudRules.Repository {
 	if d.fraudRuleRepository == nil {
 		d.fraudRuleRepository = repositoryFraudRules.NewRepository(d.PostgresDBClient(ctx))
 	}
 	return d.fraudRuleRepository
+}
+
+func (d *diContainer) TransactionRepository(ctx context.Context) repositoryTransactions.Repository {
+	if d.transactionRepository == nil {
+		d.transactionRepository = repositoryTransactions.NewRepository(d.PostgresDBClient(ctx))
+	}
+	return d.transactionRepository
 }
 
 func (d *diContainer) PostgresDBClient(ctx context.Context) *pgx.Conn {

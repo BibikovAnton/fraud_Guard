@@ -42,9 +42,9 @@ func (r *repository) Create(ctx context.Context, rule model.FraudRule) error {
 		rule.ID,
 		rule.Name,
 		rule.Description,
-		rule.DSL,
+		rule.DslExpression,
 		rule.Priority,
-		rule.IsActive,
+		rule.Enabled,
 		rule.CreatedAt,
 		rule.UpdatedAt,
 	)

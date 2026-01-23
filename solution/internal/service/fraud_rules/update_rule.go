@@ -15,13 +15,13 @@ func (s *service) Update(ctx context.Context, id string, req model.FraudRuleUpda
 		return nil, fmt.Errorf("fraud rule not found")
 	}
 
-	if req.DSL != nil && *req.DSL != existing.DSL {
-		validation, err := s.ValidateDSL(ctx, *req.DSL)
+	if req.DslExpression != nil && *req.DslExpression != existing.DslExpression {
+		validation, err := s.ValidateDSL(ctx, *req.DslExpression)
 		if err != nil {
 			return nil, fmt.Errorf("DSL validation failed: %w", err)
 		}
 		if !validation.IsValid {
-			return nil, fmt.Errorf("invalid DSL: %s", validation.Error)
+			return nil, fmt.Errorf("invalid DSL: %s", validation.Errors)
 		}
 	}
 

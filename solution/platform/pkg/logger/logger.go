@@ -17,19 +17,16 @@ const (
 	userIDKey  Key = "user_id"
 )
 
-// Глобальный singleton логгер
 var (
 	globalLogger *logger
 	initOnce     sync.Once
 	dynamicLevel zap.AtomicLevel
 )
 
-// logger обёртка над zap.Logger с enrich поддержкой контекста
 type logger struct {
 	zapLogger *zap.Logger
 }
 
-// Init инициализирует глобальный логгер.
 func Init(levelStr string, asJSON bool) error {
 	initOnce.Do(func() {
 		dynamicLevel = zap.NewAtomicLevelAt(parseLevel(levelStr))
@@ -76,7 +73,6 @@ func buildProductionEncoderConfig() zapcore.EncoderConfig {
 	}
 }
 
-// SetLevel динамически меняет уровень логирования
 func SetLevel(levelStr string) {
 	if dynamicLevel == (zap.AtomicLevel{}) {
 		return
@@ -93,20 +89,16 @@ func InitForBenchmark() {
 	}
 }
 
-// logger возвращает глобальный enrich-aware логгер
 func Logger() *logger {
 	return globalLogger
 }
 
-// NopLogger устанавливает глобальный логгер в no-op режим.
-// Идеально для юнит-тестов.
 func SetNopLogger() {
 	globalLogger = &logger{
 		zapLogger: zap.NewNop(),
 	}
 }
 
-// Sync сбрасывает буферы логгера
 func Sync() error {
 	if globalLogger != nil {
 		return globalLogger.zapLogger.Sync()
@@ -115,7 +107,6 @@ func Sync() error {
 	return nil
 }
 
-// With создает новый enrich-aware логгер с дополнительными полями
 func With(fields ...zap.Field) *logger {
 	if globalLogger == nil {
 		return &logger{zapLogger: zap.NewNop()}
@@ -126,7 +117,6 @@ func With(fields ...zap.Field) *logger {
 	}
 }
 
-// WithContext создает enrich-aware логгер с контекстом
 func WithContext(ctx context.Context) *logger {
 	if globalLogger == nil {
 		return &logger{zapLogger: zap.NewNop()}
@@ -137,32 +127,26 @@ func WithContext(ctx context.Context) *logger {
 	}
 }
 
-// Debug enrich-aware debug log
 func Debug(ctx context.Context, msg string, fields ...zap.Field) {
 	globalLogger.Debug(ctx, msg, fields...)
 }
 
-// Info enrich-aware info log
 func Info(ctx context.Context, msg string, fields ...zap.Field) {
 	globalLogger.Info(ctx, msg, fields...)
 }
 
-// Warn enrich-aware warn log
 func Warn(ctx context.Context, msg string, fields ...zap.Field) {
 	globalLogger.Warn(ctx, msg, fields...)
 }
 
-// Error enrich-aware error log
 func Error(ctx context.Context, msg string, fields ...zap.Field) {
 	globalLogger.Error(ctx, msg, fields...)
 }
 
-// Fatal enrich-aware fatal log
 func Fatal(ctx context.Context, msg string, fields ...zap.Field) {
 	globalLogger.Fatal(ctx, msg, fields...)
 }
 
-// Instance methods для enrich loggers (logger)
 
 func (l *logger) Debug(ctx context.Context, msg string, fields ...zap.Field) {
 	allFields := append(fieldsFromContext(ctx), fields...)
@@ -189,7 +173,6 @@ func (l *logger) Fatal(ctx context.Context, msg string, fields ...zap.Field) {
 	l.zapLogger.Fatal(msg, allFields...)
 }
 
-// parseLevel конвертирует строковый уровень в zapcore.Level
 func parseLevel(levelStr string) zapcore.Level {
 	switch strings.ToLower(levelStr) {
 	case "debug":
@@ -205,7 +188,6 @@ func parseLevel(levelStr string) zapcore.Level {
 	}
 }
 
-// fieldsFromContext вытаскивает enrich-поля из контекста
 func fieldsFromContext(ctx context.Context) []zap.Field {
 	fields := make([]zap.Field, 0)
 

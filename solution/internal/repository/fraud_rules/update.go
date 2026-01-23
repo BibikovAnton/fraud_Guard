@@ -44,9 +44,9 @@ func (r *repository) Update(ctx context.Context, id string, req model.FraudRuleU
 		argIndex++
 	}
 
-	if req.DSL != nil {
+	if req.DslExpression != nil {
 		updates = append(updates, fmt.Sprintf("dsl = $%d", argIndex))
-		args = append(args, *req.DSL)
+		args = append(args, *req.DslExpression)
 		argIndex++
 	}
 
@@ -56,9 +56,9 @@ func (r *repository) Update(ctx context.Context, id string, req model.FraudRuleU
 		argIndex++
 	}
 
-	if req.IsActive != nil {
+	if req.Enabled != nil {
 		updates = append(updates, fmt.Sprintf("is_active = $%d", argIndex))
-		args = append(args, *req.IsActive)
+		args = append(args, *req.Enabled)
 		argIndex++
 	}
 

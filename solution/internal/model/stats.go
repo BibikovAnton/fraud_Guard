@@ -2,47 +2,99 @@ package model
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
-// TransactionStats - статистика по транзакциям
-type TransactionStats struct {
-	StatusCounts   map[TransactionStatus]int64 `json:"status_counts"`
-	FraudLast24h   int64                       `json:"fraud_last_24h"`
-	TotalAmountUSD float64                     `json:"total_amount_usd"`
-	TotalAmountEUR float64                     `json:"total_amount_eur"`
-	TotalAmountRUB float64                     `json:"total_amount_rub"`
-	GeneratedAt    time.Time                   `json:"generated_at"`
+type StatsOverview struct {
+	From            time.Time              `json:"from"`
+	To              time.Time              `json:"to"`
+	Volume          int64                  `json:"volume"`
+	GMV             float64                `json:"gmv"`
+	ApprovalRate    float64                `json:"approvalRate"`
+	DeclineRate     float64                `json:"declineRate"`
+	TopRiskMerchants []MerchantRiskMetrics `json:"topRiskMerchants"`
 }
 
-// MerchantRiskStats - статистика рисков по мерчантам
+type MerchantRiskMetrics struct {
+	MerchantID           string  `json:"merchantId"`
+	MerchantCategoryCode *string `json:"merchantCategoryCode,omitempty"`
+	TxCount              int64   `json:"txCount"`
+	GMV                  float64 `json:"gmv"`
+	DeclineRate          float64 `json:"declineRate"`
+}
+
+type TransactionsTimeSeries struct {
+	Points []TimeSeriesPoint `json:"points"`
+}
+
+type TimeSeriesPoint struct {
+	BucketStart time.Time `json:"bucketStart"`
+	TxCount     int64     `json:"txCount"`
+	GMV         float64   `json:"gmv"`
+	ApprovalRate float64  `json:"approvalRate"`
+	DeclineRate  float64  `json:"declineRate"`
+}
+
+type RuleMatchStats struct {
+	Items []RuleMatchMetrics `json:"items"`
+}
+
+type RuleMatchMetrics struct {
+	RuleID          string  `json:"ruleId"`
+	RuleName        string  `json:"ruleName"`
+	Matches         int64   `json:"matches"`
+	UniqueUsers     int64   `json:"uniqueUsers"`
+	UniqueMerchants *int64  `json:"uniqueMerchants,omitempty"`
+	ShareOfDeclines float64 `json:"shareOfDeclines"`
+}
+
 type MerchantRiskStats struct {
-	MerchantID       string    `json:"merchant_id"`
-	TransactionCount int64     `json:"transaction_count"`
-	FraudCount       int64     `json:"fraud_count"`
-	RiskScore        float64   `json:"risk_score"`
-	TotalAmount      float64   `json:"total_amount"`
-	FraudAmount      float64   `json:"fraud_amount"`
-	LastTransaction  time.Time `json:"last_transaction"`
+	Items []MerchantRiskMetrics `json:"items"`
 }
 
-// UserRiskProfile - профиль риска пользователя
 type UserRiskProfile struct {
-	UserID           uuid.UUID `json:"user_id"`
-	TransactionCount int64     `json:"transaction_count"`
-	FraudCount       int64     `json:"fraud_count"`
-	RiskScore        float64   `json:"risk_score"`
-	AverageAmount    float64   `json:"average_amount"`
-	MaxAmount        float64   `json:"max_amount"`
-	LastTransaction  time.Time `json:"last_transaction"`
+	UserID             string     `json:"userId"`
+	TxCount24h         int        `json:"txCount_24h"`
+	GMV24h             float64    `json:"gmv_24h"`
+	DistinctDevices24h int        `json:"distinctDevices_24h"`
+	DistinctIps24h     int        `json:"distinctIps_24h"`
+	DistinctCities24h  int        `json:"distinctCities_24h"`
+	DeclineRate30d     float64    `json:"declineRate_30d"`
+	LastSeenAt         *time.Time `json:"lastSeenAt,omitempty"`
 }
 
-// FraudRuleMatch - результат срабатывания правила
-type FraudRuleMatch struct {
-	RuleID        uuid.UUID `json:"rule_id"`
-	RuleName      string    `json:"rule_name"`
-	TransactionID uuid.UUID `json:"transaction_id"`
-	MatchedAt     time.Time `json:"matched_at"`
-	Description   string    `json:"description"`
+type GroupByType string
+
+const (
+	GroupByHour  GroupByType = "hour"
+	GroupByDay   GroupByType = "day"
+	GroupByWeek  GroupByType = "week"
+)
+
+type StatsOverviewParams struct {
+	From     *time.Time
+	To       *time.Time
+	Timezone string
 }
+
+type TimeSeriesParams struct {
+	From     *time.Time
+	To       *time.Time
+	GroupBy  GroupByType
+	Timezone string
+	Channel  *TransactionChannel
+}
+
+type RuleMatchesParams struct {
+	From *time.Time
+	To   *time.Time
+	Top  int
+}
+
+type MerchantRiskParams struct {
+	From                *time.Time
+	To                  *time.Time
+	MerchantCategoryCode *string
+	Top                 int
+}
+
+type Time = time.Time

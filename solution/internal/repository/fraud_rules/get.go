@@ -18,9 +18,9 @@ func (r *repository) GetByID(ctx context.Context, id string) (*model.FraudRule, 
 		&rule.ID,
 		&rule.Name,
 		&rule.Description,
-		&rule.DSL,
+		&rule.DslExpression,
 		&rule.Priority,
-		&rule.IsActive,
+		&rule.Enabled,
 		&rule.CreatedAt,
 		&rule.UpdatedAt,
 	)
@@ -47,9 +47,9 @@ func (r *repository) GetByName(ctx context.Context, name string) (*model.FraudRu
 		&rule.ID,
 		&rule.Name,
 		&rule.Description,
-		&rule.DSL,
+		&rule.DslExpression,
 		&rule.Priority,
-		&rule.IsActive,
+		&rule.Enabled,
 		&rule.CreatedAt,
 		&rule.UpdatedAt,
 	)
@@ -89,9 +89,9 @@ func (r *repository) GetAll(ctx context.Context, activeOnly bool) ([]*model.Frau
 			&rule.ID,
 			&rule.Name,
 			&rule.Description,
-			&rule.DSL,
+			&rule.DslExpression,
 			&rule.Priority,
-			&rule.IsActive,
+			&rule.Enabled,
 			&rule.CreatedAt,
 			&rule.UpdatedAt,
 		)
@@ -108,7 +108,10 @@ func (r *repository) GetAll(ctx context.Context, activeOnly bool) ([]*model.Frau
 	return rules, nil
 }
 
+func (r *repository) GetActiveRules(ctx context.Context) ([]*model.FraudRule, error) {
+	return r.GetAll(ctx, true)
+}
+
 func isNotFoundErr(err error) bool {
-	// TODO: добавить более точную проверку для pgx
 	return err != nil
 }

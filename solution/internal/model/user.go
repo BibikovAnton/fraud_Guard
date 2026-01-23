@@ -86,8 +86,6 @@ type UserUpdateRequest struct {
 	IsActive      *bool          `json:"isActive,omitempty"`
 }
 
-// NewUser создает нового пользователя с базовыми полями
-// Используем UUID v4 для гарантии уникальности - проверял на нагрузке 10k RPS
 func NewUser(email, passwordHash, fullName string, role UserRole) User {
 	now := time.Now().UTC() // всегда храним время в UTC для консистентности
 	return User{
