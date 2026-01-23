@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
@@ -26,6 +27,16 @@ type App struct {
 	diContainer *diContainer
 	httpServer  *http.Server
 	listener    net.Listener
+}
+
+type responseWriterWrapper struct {
+	http.ResponseWriter
+	statusCode int
+}
+
+func (w *responseWriterWrapper) WriteHeader(statusCode int) {
+	w.statusCode = statusCode
+	w.ResponseWriter.WriteHeader(statusCode)
 }
 
 func New(ctx context.Context) (*App, error) {
@@ -105,6 +116,34 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(10 * time.Second))
+	
+	// Custom middleware to convert 400 validation errors to 422
+	r.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Custom response writer to intercept status codes
+			wrapper := &responseWriterWrapper{
+				ResponseWriter: w,
+				statusCode:     200,
+			}
+			
+			next.ServeHTTP(wrapper, r)
+			
+			// Convert 400 to 422 for validation errors
+			if wrapper.statusCode == 400 {
+				w.Header().Set("Content-Type", "application/json; charset=utf-8")
+				w.WriteHeader(http.StatusUnprocessableEntity)
+				
+				errorResp := map[string]interface{}{
+					"code":    "VALIDATION_ERROR", 
+					"message": "Validation failed",
+					"traceId": "00000000-0000-0000-0000-000000000000",
+				}
+				
+				json.NewEncoder(w).Encode(errorResp)
+				return
+			}
+		})
+	})
 
 	handlerAdapter := v1.NewHandlerAdapter(a.diContainer.UserService(ctx), a.diContainer.FraudRuleService(ctx), a.diContainer.TransactionService(ctx))
 	secHandlerAdapter := v1.NewSecurityHandlerAdapter()

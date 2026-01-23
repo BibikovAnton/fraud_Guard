@@ -503,7 +503,7 @@ func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *a
 	return &antifraud_v1.DslValidateResponse{
 		IsValid: validation.IsValid,
 		NormalizedExpression: func() antifraud_v1.OptNilString {
-			if validation.IsValid && validation.NormalizedExpression != nil {
+			if validation.NormalizedExpression != nil {
 				return antifraud_v1.OptNilString{
 					Set:   true,
 					Value: *validation.NormalizedExpression,
