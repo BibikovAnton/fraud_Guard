@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"solution/internal/model"
+	"strings"
 )
 
 func (s *service) Update(ctx context.Context, id string, req model.FraudRuleUpdateRequest) (*model.FraudRule, error) {
@@ -21,7 +22,11 @@ func (s *service) Update(ctx context.Context, id string, req model.FraudRuleUpda
 			return nil, fmt.Errorf("DSL validation failed: %w", err)
 		}
 		if !validation.IsValid {
-			return nil, fmt.Errorf("invalid DSL: %s", validation.Errors)
+			var errorStrings []string
+			for _, dslError := range validation.Errors {
+				errorStrings = append(errorStrings, fmt.Sprintf("%s: %s", dslError.Code, dslError.Message))
+			}
+			return nil, fmt.Errorf("invalid DSL: %s", strings.Join(errorStrings, "; "))
 		}
 	}
 

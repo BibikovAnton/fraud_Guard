@@ -135,11 +135,99 @@ func (h *handlerAdapter) APIV1TransactionsBatchPost(ctx context.Context, req *an
 }
 
 func (h *handlerAdapter) APIV1TransactionsGet(ctx context.Context, params antifraud_v1.APIV1TransactionsGetParams) (antifraud_v1.APIV1TransactionsGetRes, error) {
-	return nil, fmt.Errorf("not implemented yet")
+	userRole, ok := ctx.Value(ContextRoleKey).(string)
+	if !ok || userRole != "ADMIN" {
+		return nil, fmt.Errorf("access denied: only ADMIN can view all transactions")
+	}
+
+	// Convert params to service format
+	var filterUserID *string
+	if params.UserId.Set {
+		userIDStr := params.UserId.Value.String()
+		filterUserID = &userIDStr
+	}
+
+	var filterStatus *model.TransactionStatus
+	if params.Status.Set {
+		status := model.TransactionStatus(params.Status.Value)
+		filterStatus = &status
+	}
+
+	var filterIsFraud *bool
+	if params.IsFraud.Set {
+		filterIsFraud = &params.IsFraud.Value
+	}
+
+	serviceParams := service.TransactionListParams{
+		UserID:  filterUserID,
+		Status:  filterStatus,
+		IsFraud: filterIsFraud,
+		Page:    0,
+		Size:    100,
+	}
+
+	pagedTransactions, err := h.transactionService.GetList(ctx, serviceParams)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get transactions: %w", err)
+	}
+
+	// Convert to API format
+	apiTransactions := make([]antifraud_v1.Transaction, len(pagedTransactions.Transactions))
+	for i, txDecision := range pagedTransactions.Transactions {
+		apiTransactions[i] = convertTransactionToAPI(txDecision.Transaction)
+	}
+
+	result := antifraud_v1.PagedTransactions{
+		Items: apiTransactions,
+		Total: int(pagedTransactions.Total),
+		Page:  pagedTransactions.Page,
+	}
+
+	return &result, nil
 }
 
 func (h *handlerAdapter) APIV1TransactionsIDGet(ctx context.Context, params antifraud_v1.APIV1TransactionsIDGetParams) (antifraud_v1.APIV1TransactionsIDGetRes, error) {
-	return nil, fmt.Errorf("not implemented yet")
+	userRole, ok := ctx.Value(ContextRoleKey).(string)
+	if !ok {
+		return nil, fmt.Errorf("access denied: authentication required")
+	}
+
+	userID, ok := ctx.Value(ContextUserIDKey).(string)
+	if !ok {
+		return nil, fmt.Errorf("access denied: user ID not found")
+	}
+
+	txDecision, err := h.transactionService.GetByID(ctx, params.ID.String())
+	if err != nil {
+		return nil, fmt.Errorf("transaction not found: %w", err)
+	}
+
+	// Check access: users can only see their own transactions, admins can see all
+	if userRole != "ADMIN" && txDecision.Transaction.UserID.String() != userID {
+		return nil, fmt.Errorf("access denied: users can only view their own transactions")
+	}
+
+	apiTransaction := convertTransactionToAPI(txDecision.Transaction)
+	
+	// Convert rule results
+	ruleResults := make([]antifraud_v1.FraudRuleEvaluationResult, len(txDecision.RuleResults))
+	for i, rule := range txDecision.RuleResults {
+		ruleUUID, _ := uuid.Parse(rule.RuleID)
+		ruleResults[i] = antifraud_v1.FraudRuleEvaluationResult{
+			RuleId:      ruleUUID,
+			RuleName:    rule.RuleName,
+			Priority:    rule.Priority,
+			Enabled:     rule.Enabled,
+			Matched:     rule.Matched,
+			Description: antifraud_v1.OptString{Value: rule.Description, Set: rule.Description != ""},
+		}
+	}
+	
+	transactionDecision := antifraud_v1.TransactionDecision{
+		Transaction: apiTransaction,
+		RuleResults: ruleResults,
+	}
+	return &transactionDecision, nil
 }
 
 func convertTransactionCreateRequest(req *antifraud_v1.TransactionCreateRequest, userID string) model.TransactionCreateRequest {

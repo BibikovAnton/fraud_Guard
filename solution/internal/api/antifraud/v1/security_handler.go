@@ -36,8 +36,8 @@ func (s *SecurityHandler) HandleBearerAuth(ctx context.Context, operationName an
 		return ctx, ogenerrors.ErrSecurityRequirementIsNotSatisfied
 	}
 
-	authCtx := context.WithValue(ctx, ContextKey("user_id"), jwtData.UserID)
-	authCtx = context.WithValue(authCtx, ContextKey("user_role"), jwtData.Role)
+	authCtx := context.WithValue(ctx, ContextUserIDKey, jwtData.UserID)
+	authCtx = context.WithValue(authCtx, ContextRoleKey, jwtData.Role)
 	authCtx = context.WithValue(authCtx, ContextJWTDataKey, jwtData)
 
 	return authCtx, nil
