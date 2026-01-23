@@ -504,9 +504,13 @@ func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *a
 		IsValid: validation.IsValid,
 		NormalizedExpression: func() antifraud_v1.OptNilString {
 			if validation.IsValid && validation.NormalizedExpression != nil {
-				return antifraud_v1.OptNilString{Set: true, Value: *validation.NormalizedExpression}
+				return antifraud_v1.OptNilString{
+					Set:   true,
+					Value: *validation.NormalizedExpression,
+					Null:  false,
+				}
 			}
-			return antifraud_v1.OptNilString{Set: false}
+			return antifraud_v1.OptNilString{Set: false, Null: false}
 		}(),
 		Errors: apiErrors,
 	}, nil
