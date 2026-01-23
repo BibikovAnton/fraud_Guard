@@ -195,7 +195,7 @@ func (e *evaluator) getFieldValue(field string, transaction *model.Transaction, 
 		if user.Age == nil {
 			return nil, nil // null - правило не сработает
 		}
-		return *user.Age, nil
+		return float64(*user.Age), nil
 	case "user.region", "user.REGION", "USER.region", "USER.REGION":
 		if user.Region == nil {
 			return nil, nil // null - правило не сработает
