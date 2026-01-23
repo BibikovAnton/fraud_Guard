@@ -51,10 +51,15 @@ test:
     - docker compose version
     - docker pull registry.prodcontest.com:443/2026-test-repos/backend/checker:$BACKEND_CHECKER_TAG
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
-    - docker-compose build
-    - docker-compose up --abort-on-container-exit --exit-code-from antifraud-checker
+    - export COMPOSE_PROJECT_NAME=test
+    - docker compose up -d --wait
+    - CHECKER_ID=$(docker compose ps -q antifraud-checker)
+    - docker wait "$CHECKER_ID"
+    - docker logs "$CHECKER_ID"
+    - EXIT_CODE=$(docker inspect "$CHECKER_ID" --format='{{.State.ExitCode}}')
+    - exit "$EXIT_CODE"
   after_script:
-    - docker-compose down -v
+    - docker compose down -v
   artifacts:
     when: always
     paths:
