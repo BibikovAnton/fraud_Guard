@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/stdlib"
-	"solution/internal/api/antifraud/v1"
 	"solution/internal/config"
 	"solution/internal/repository"
 	repositoryFraudRules "solution/internal/repository/fraud_rules"
@@ -18,6 +17,8 @@ import (
 	serviceTransactions "solution/internal/service/transactions"
 	serviceUser "solution/internal/service/user"
 	"solution/platform/pkg/closer"
+	antifraud_v1 "solution/pkg/openapi/antifraud/v1"
+	"solution/internal/api/antifraud/v1"
 )
 
 type diContainer struct {
@@ -38,8 +39,8 @@ func NewDIContainer() *diContainer {
 	return &diContainer{}
 }
 
-func (d *diContainer) V1API(ctx context.Context) {
-	v1.NewAPI(d.UserService(ctx), d.FraudRuleService(ctx))
+func (d *diContainer) V1API(ctx context.Context) antifraud_v1.Handler {
+	return v1.NewHandlerAdapter(d.UserService(ctx), d.FraudRuleService(ctx), d.TransactionService(ctx))
 }
 
 func (d *diContainer) UserService(ctx context.Context) service.UserService {
