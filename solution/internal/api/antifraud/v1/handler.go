@@ -3,6 +3,7 @@ package v1
 import (
 	"context"
 	"fmt"
+	"net/netip"
 	"strings"
 	"time"
 	"github.com/google/uuid"
@@ -305,10 +306,8 @@ func (h *handlerAdapter) APIV1TransactionsIDGet(ctx context.Context, params anti
 }
 
 func convertTransactionCreateRequest(req *antifraud_v1.TransactionCreateRequest, userID string) model.TransactionCreateRequest {
-	userUUID, _ := uuid.Parse(userID)
-	
 	createReq := model.TransactionCreateRequest{
-		UserID:               userUUID,
+		UserID:               req.UserId,
 		Amount:               req.Amount,
 		Currency:             model.CurrencyCode(req.Currency),
 		Timestamp:            req.Timestamp,
@@ -324,7 +323,9 @@ func convertTransactionCreateRequest(req *antifraud_v1.TransactionCreateRequest,
 	}
 
 	if req.IpAddress.Set {
-		createReq.IPAddress = &req.IpAddress.Value
+		if ip, err := netip.ParseAddr(req.IpAddress.Value); err == nil {
+			createReq.IPAddress = &ip
+		}
 	}
 
 	if req.DeviceId.Set {
@@ -381,7 +382,7 @@ func convertTransactionToAPI(t *model.Transaction) antifraud_v1.Transaction {
 	}
 
 	if t.IPAddress != nil {
-		transaction.IpAddress = antifraud_v1.OptString{Set: true, Value: *t.IPAddress}
+		transaction.IpAddress = antifraud_v1.OptString{Set: true, Value: t.IPAddress.String()}
 	}
 
 	if t.DeviceID != nil {

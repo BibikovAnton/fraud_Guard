@@ -1,6 +1,7 @@
 package model
 
 import (
+	"net/netip"
 	"time"
 
 	"github.com/google/uuid"
@@ -51,7 +52,7 @@ type Transaction struct {
 	MerchantID           *string              `json:"merchant_id,omitempty" db:"merchant_id"`
 	MerchantCategoryCode *MCCCode             `json:"merchant_category_code,omitempty" db:"merchant_category_code"`
 	Timestamp            time.Time            `json:"timestamp" db:"timestamp"`
-	IPAddress            *string              `json:"ip_address,omitempty" db:"ip_address"`
+	IPAddress            *netip.Addr         `json:"ip_address,omitempty" db:"ip_address"`
 	DeviceID             *string              `json:"device_id,omitempty" db:"device_id"`
 	Channel              *TransactionChannel  `json:"channel,omitempty" db:"channel"`
 	Location             *TransactionLocation `json:"location,omitempty" db:"location"`
@@ -68,7 +69,7 @@ type TransactionCreateRequest struct {
 	MerchantID           *string              `json:"merchant_id,omitempty"`
 	MerchantCategoryCode *MCCCode             `json:"merchant_category_code,omitempty"`
 	Timestamp            time.Time            `json:"timestamp"`
-	IPAddress            *string              `json:"ip_address,omitempty"`
+	IPAddress            *netip.Addr         `json:"ip_address,omitempty"`
 	DeviceID             *string              `json:"device_id,omitempty"`
 	Channel              *TransactionChannel  `json:"channel,omitempty"`
 	Location             *TransactionLocation `json:"location,omitempty"`

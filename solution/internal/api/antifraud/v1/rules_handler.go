@@ -480,7 +480,7 @@ func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *a
 		}, nil
 	}
 
-	// Convert validation errors to API format
+	
 	var apiErrors []antifraud_v1.DslError
 	for _, dslError := range validation.Errors {
 		apiError := antifraud_v1.DslError{
@@ -503,8 +503,8 @@ func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *a
 	return &antifraud_v1.DslValidateResponse{
 		IsValid: validation.IsValid,
 		NormalizedExpression: func() antifraud_v1.OptNilString {
-			if validation.IsValid {
-				return antifraud_v1.OptNilString{Set: true, Value: req.DslExpression}
+			if validation.IsValid && validation.NormalizedExpression != nil {
+				return antifraud_v1.OptNilString{Set: true, Value: *validation.NormalizedExpression}
 			}
 			return antifraud_v1.OptNilString{Set: false}
 		}(),
