@@ -255,6 +255,9 @@ func (s *Service) applyFraudRules(ctx context.Context, transaction *model.Transa
 			description = fmt.Sprintf("Error evaluating rule: %s", err.Error())
 		}
 
+		// Debug: log rule evaluation
+		fmt.Printf("DEBUG: Rule %s: matched=%v, description=%s\n", rule.Name, matched, description)
+
 		result := model.RuleResult{
 			RuleID:      rule.ID,
 			RuleName:    rule.Name,
