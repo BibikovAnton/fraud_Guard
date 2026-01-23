@@ -131,7 +131,81 @@ func (h *handlerAdapter) APIV1TransactionsPost(ctx context.Context, req *antifra
 }
 
 func (h *handlerAdapter) APIV1TransactionsBatchPost(ctx context.Context, req *antifraud_v1.TransactionBatchCreateRequest) (antifraud_v1.APIV1TransactionsBatchPostRes, error) {
-	return nil, fmt.Errorf("not implemented yet")
+	if ctx == nil {
+		return nil, fmt.Errorf("context is required")
+	}
+
+	userID, ok := ctx.Value(ContextUserIDKey).(string)
+	if !ok {
+		return nil, fmt.Errorf("access denied: user ID not found")
+	}
+
+	if req == nil || len(req.Items) == 0 {
+		return nil, fmt.Errorf("batch request cannot be empty")
+	}
+
+	// Convert API request to service format
+	serviceRequests := make([]model.TransactionCreateRequest, len(req.Items))
+	for i, item := range req.Items {
+		serviceRequests[i] = convertTransactionCreateRequest(&item, userID)
+	}
+
+	// Create batch request for service
+	batchRequest := model.TransactionBatchCreateRequest{
+		Items: serviceRequests,
+	}
+
+	// Call service to create batch
+	results, err := h.transactionService.CreateBatch(ctx, batchRequest)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create batch transactions: %w", err)
+	}
+
+	// Convert results to API format
+	apiItems := make([]antifraud_v1.TransactionBatchResultItem, len(results.Items))
+	for i, item := range results.Items {
+		if item.Decision != nil {
+			apiTransaction := convertTransactionToAPI(item.Decision.Transaction)
+			
+			// Convert rule results
+			ruleResults := make([]antifraud_v1.FraudRuleEvaluationResult, len(item.Decision.RuleResults))
+			for j, rule := range item.Decision.RuleResults {
+				ruleUUID, _ := uuid.Parse(rule.RuleID)
+				ruleResults[j] = antifraud_v1.FraudRuleEvaluationResult{
+					RuleId:      ruleUUID,
+					RuleName:    rule.RuleName,
+					Priority:    rule.Priority,
+					Enabled:     rule.Enabled,
+					Matched:     rule.Matched,
+					Description: antifraud_v1.OptString{Value: rule.Description, Set: rule.Description != ""},
+				}
+			}
+			
+			apiItems[i] = antifraud_v1.TransactionBatchResultItem{
+				Index: item.Index,
+				Decision: antifraud_v1.OptTransactionDecision{
+					Value: antifraud_v1.TransactionDecision{
+						Transaction: apiTransaction,
+						RuleResults: ruleResults,
+					},
+					Set: true,
+				},
+			}
+		} else if item.Error != nil {
+			apiItems[i] = antifraud_v1.TransactionBatchResultItem{
+				Index: item.Index,
+				Error: antifraud_v1.OptApiError{
+					Value: antifraud_v1.ApiError{
+						Code:    antifraud_v1.ErrorCode(item.Error.Code),
+						Message: item.Error.Message,
+					},
+					Set: true,
+				},
+			}
+		}
+	}
+
+	return &antifraud_v1.APIV1TransactionsBatchPostCreated{}, nil
 }
 
 func (h *handlerAdapter) APIV1TransactionsGet(ctx context.Context, params antifraud_v1.APIV1TransactionsGetParams) (antifraud_v1.APIV1TransactionsGetRes, error) {
