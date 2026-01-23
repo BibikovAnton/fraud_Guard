@@ -87,6 +87,9 @@ func (s *Service) Create(ctx context.Context, req model.TransactionCreateRequest
 	if err != nil {
 		return nil, fmt.Errorf("failed to get fraud rules: %w", err)
 	}
+	
+	// Debug: log number of rules loaded
+	fmt.Printf("DEBUG: Loaded %d active rules\n", len(rules))
 
 	ruleResults := s.applyFraudRules(ctx, transaction, user, rules)
 
