@@ -71,7 +71,7 @@ func (d *diContainer) TransactionService(ctx context.Context) service.Transactio
 
 func (d *diContainer) DSLEvaluator(ctx context.Context) serviceDSL.Evaluator {
 	if d.dslEvaluator == nil {
-		d.dslEvaluator = serviceDSL.NewEvaluator(1) // Уровень 1 - базовый парсер
+		d.dslEvaluator = serviceDSL.NewEvaluator(0) // Временно tier 0 для диагностики
 	}
 	return d.dslEvaluator
 }
