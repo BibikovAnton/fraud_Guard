@@ -90,7 +90,8 @@ func (e *evaluator) Validate(ctx context.Context, dsl string) (*model.DslValidat
 	if e.tier >= 1 {
 		if nodeCount := e.countNodes(normalized); nodeCount > model.MaxASTNodes {
 			return &model.DslValidateResponse{
-				IsValid: false,
+				IsValid:            false,
+				NormalizedExpression: &normalized,
 				Errors: []model.DSLError{
 					{
 						Code:    "DSL_TOO_COMPLEX",
@@ -184,7 +185,7 @@ func (e *evaluator) getFieldValue(field string, transaction *model.Transaction, 
 		if transaction.IPAddress == nil {
 			return "", nil
 		}
-		return *transaction.IPAddress, nil
+		return transaction.IPAddress.String(), nil
 	case "deviceId":
 		if transaction.DeviceID == nil {
 			return "", nil

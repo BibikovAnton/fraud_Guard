@@ -164,6 +164,8 @@ func (h *handlerAdapter) APIV1TransactionsBatchPost(ctx context.Context, req *an
 
 	// Convert results to API format
 	apiItems := make([]antifraud_v1.TransactionBatchResultItem, len(results.Items))
+	hasErrors := false
+	
 	for i, item := range results.Items {
 		if item.Decision != nil {
 			apiTransaction := convertTransactionToAPI(item.Decision.Transaction)
@@ -193,6 +195,7 @@ func (h *handlerAdapter) APIV1TransactionsBatchPost(ctx context.Context, req *an
 				},
 			}
 		} else if item.Error != nil {
+			hasErrors = true
 			apiItems[i] = antifraud_v1.TransactionBatchResultItem{
 				Index: item.Index,
 				Error: antifraud_v1.OptApiError{
@@ -206,7 +209,20 @@ func (h *handlerAdapter) APIV1TransactionsBatchPost(ctx context.Context, req *an
 		}
 	}
 
-	return &antifraud_v1.APIV1TransactionsBatchPostCreated{}, nil
+	batchResult := antifraud_v1.TransactionBatchResult{
+		Items: apiItems,
+	}
+
+	// Return 207 for partial success, 201 for complete success
+	if hasErrors {
+		return &antifraud_v1.APIV1TransactionsBatchPostMultiStatus{
+			Items: batchResult.Items,
+		}, nil
+	}
+
+	return &antifraud_v1.APIV1TransactionsBatchPostCreated{
+		Items: batchResult.Items,
+	}, nil
 }
 
 func (h *handlerAdapter) APIV1TransactionsGet(ctx context.Context, params antifraud_v1.APIV1TransactionsGetParams) (antifraud_v1.APIV1TransactionsGetRes, error) {
