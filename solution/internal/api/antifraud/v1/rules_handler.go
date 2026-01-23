@@ -480,6 +480,26 @@ func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *a
 		}, nil
 	}
 
+	// Convert validation errors to API format
+	var apiErrors []antifraud_v1.DslError
+	for _, dslError := range validation.Errors {
+		apiError := antifraud_v1.DslError{
+			Code:    dslError.Code,
+			Message: dslError.Message,
+		}
+		if dslError.Position != nil {
+			apiError.Position = antifraud_v1.OptNilInt{Set: true, Value: *dslError.Position}
+		} else {
+			apiError.Position = antifraud_v1.OptNilInt{Set: false}
+		}
+		if dslError.Near != nil {
+			apiError.Near = antifraud_v1.OptNilString{Set: true, Value: *dslError.Near}
+		} else {
+			apiError.Near = antifraud_v1.OptNilString{Set: false}
+		}
+		apiErrors = append(apiErrors, apiError)
+	}
+
 	return &antifraud_v1.DslValidateResponse{
 		IsValid: validation.IsValid,
 		NormalizedExpression: func() antifraud_v1.OptNilString {
@@ -488,17 +508,6 @@ func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *a
 			}
 			return antifraud_v1.OptNilString{Set: false}
 		}(),
-		Errors: func() []antifraud_v1.DslError {
-			if validation.IsValid {
-				return []antifraud_v1.DslError{}
-			}
-			return []antifraud_v1.DslError{
-				{
-					Code:     "DSL_VALIDATION_FAILED",
-					Message:  "DSL validation failed",
-					Position: antifraud_v1.OptNilInt{Set: false},
-				},
-			}
-		}(),
+		Errors: apiErrors,
 	}, nil
 }
