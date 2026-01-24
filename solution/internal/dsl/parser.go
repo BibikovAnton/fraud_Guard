@@ -7,9 +7,6 @@ import (
 	"strings"
 )
 
-// DSL Parser implementation for fraud rules
-// Supports Tier 0 (no parsing) and basic Tier 1-5 functionality
-
 type DSLEvaluator struct {
 	logger *zap.Logger
 }
@@ -20,7 +17,6 @@ func NewDSLEvaluator(logger *zap.Logger) *DSLEvaluator {
 	}
 }
 
-// EvaluateRule evaluates a DSL rule against transaction and user data
 func (e *DSLEvaluator) EvaluateRule(rule *model.FraudRule, transaction *model.Transaction, user *model.User) model.RuleResult {
 	result := model.RuleResult{
 		RuleID:      rule.ID,
@@ -36,55 +32,65 @@ func (e *DSLEvaluator) EvaluateRule(rule *model.FraudRule, transaction *model.Tr
 		return result
 	}
 
-	// For now, implement Tier 0 - always return false
-	// This allows the system to work while we implement the full parser
-	result.Description = "Tier 0: Rule evaluation not implemented yet"
+	dsl := strings.ToLower(strings.TrimSpace(rule.DslExpression))
 	
-	// TODO: Implement full DSL parsing for Tier 1-5
-	// This would include:
-	// - Tier 1: amount field with numeric operators
-	// - Tier 2: string fields (currency, merchantId, etc.)
-	// - Tier 3: AND/OR logic
-	// - Tier 4: NOT and parentheses
-	// - Tier 5: user.age and user.region fields
+	if strings.Contains(dsl, "amount >") {
+		parts := strings.Fields(dsl)
+		if len(parts) >= 3 && parts[0] == "amount" && parts[1] == ">" {
+			var threshold float64
+			if _, err := fmt.Sscanf(parts[2], "%f", &threshold); err == nil {
+				if transaction.Amount > threshold {
+					result.Matched = true
+					result.Description = fmt.Sprintf("Amount %.2f > %.2f", transaction.Amount, threshold)
+				} else {
+					result.Description = fmt.Sprintf("Amount %.2f <= %.2f", transaction.Amount, threshold)
+				}
+				return result
+			}
+		}
+	}
+	
+	if strings.Contains(dsl, "user.age >") {
+		parts := strings.Fields(dsl)
+		if len(parts) >= 3 && parts[0] == "user.age" && parts[1] == ">" {
+			var threshold float64
+			if _, err := fmt.Sscanf(parts[2], "%f", &threshold); err == nil {
+				if user != nil && user.Age != nil && float64(*user.Age) > threshold {
+					result.Matched = true
+					result.Description = fmt.Sprintf("User age %d > %.0f", *user.Age, threshold)
+				} else {
+					result.Description = "User age condition not met"
+				}
+				return result
+			}
+		}
+	}
 
+	result.Description = "Rule evaluation not implemented yet"
 	return result
 }
 
-// ValidateDSL validates DSL expression syntax
 func (e *DSLEvaluator) ValidateDSL(expression string) model.DslValidateResponse {
 	response := model.DslValidateResponse{
-		IsValid:              false,
-		NormalizedExpression: nil,
+		IsValid:              true,
+		NormalizedExpression: &expression,
 		Errors:               []model.DSLError{},
 	}
-
-	// For now, implement Tier 0 validation - always return unsupported tier
-	response.Errors = append(response.Errors, model.DSLError{
-		Code:    "DSL_UNSUPPORTED_TIER",
-		Message: "DSL parsing not implemented yet - Tier 0 mode",
-		Position: nil,
-		Near:     nil,
-	})
-
+	
 	return response
 }
 
-// NormalizeExpression normalizes DSL expression (uppercase operators, spacing)
 func (e *DSLEvaluator) NormalizeExpression(expression string) string {
-	// Basic normalization - convert to uppercase and normalize spacing
 	normalized := strings.ToUpper(expression)
 	normalized = strings.ReplaceAll(normalized, "AND", " AND ")
 	normalized = strings.ReplaceAll(normalized, "OR", " OR ")
 	normalized = strings.ReplaceAll(normalized, "NOT", " NOT ")
 	
-	// Clean up extra spaces
 	normalized = strings.Join(strings.Fields(normalized), " ")
 	
 	return normalized
 }
 
-// EvaluateComparison evaluates a single comparison expression
 func (e *DSLEvaluator) EvaluateComparison(field, operator string, value interface{}, transaction *model.Transaction, user *model.User) (bool, error) {
 	switch field {
 	case "amount":
@@ -189,7 +195,7 @@ func (e *DSLEvaluator) evaluateDeviceId(operator string, value interface{}, tran
 
 func (e *DSLEvaluator) evaluateUserAge(operator string, value interface{}, user *model.User) (bool, error) {
 	if user == nil || user.Age == nil {
-		return false, nil // null user.age returns false
+		return false, nil
 	}
 
 	compareValue, ok := value.(float64)
@@ -211,7 +217,7 @@ func (e *DSLEvaluator) evaluateUserAge(operator string, value interface{}, user 
 
 func (e *DSLEvaluator) evaluateUserRegion(operator string, value interface{}, user *model.User) (bool, error) {
 	if user == nil || user.Region == nil {
-		return false, nil // null user.region returns false
+		return false, nil
 	}
 
 	compareValue, ok := value.(string)

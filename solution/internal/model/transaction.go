@@ -83,9 +83,9 @@ type TransactionUpdateRequest struct {
 }
 
 const (
-	MaxTransactionAmount = 999999999.99 // максимум из OpenAPI
-	MinTransactionAmount = 0.01         // минимум из OpenAPI
-	MaxBatchSize         = 500          // максимум из OpenAPI
+	MaxTransactionAmount = 999999999.99
+	MinTransactionAmount = 0.01
+	MaxBatchSize         = 500
 )
 
 type RuleResult struct {

@@ -92,7 +92,6 @@ func (s *Service) Create(ctx context.Context, req model.TransactionCreateRequest
 		return nil, fmt.Errorf("failed to get fraud rules: %w", err)
 	}
 	
-	// Debug: log number of rules loaded
 	fmt.Printf("DEBUG: Loaded %d active rules\n", len(rules))
 
 	ruleResults := s.applyFraudRules(ctx, transaction, user, rules)
@@ -196,12 +195,25 @@ func (s *Service) GetList(ctx context.Context, params service.TransactionListPar
 }
 
 func (s *Service) validateCreateRequest(ctx context.Context, req model.TransactionCreateRequest) error {
-	if req.Amount < model.MinTransactionAmount || req.Amount > model.MaxTransactionAmount {
-		return fmt.Errorf("amount must be between %.2f and %.2f", model.MinTransactionAmount, model.MaxTransactionAmount)
+	if req.Amount <= 0 {
+		return fmt.Errorf("must be greater > 0")
+	}
+	
+	if req.Amount > model.MaxTransactionAmount {
+		return fmt.Errorf("must be less than or equal to %.2f", model.MaxTransactionAmount)
 	}
 
 	if req.Currency == "" {
 		return fmt.Errorf("currency is required")
+	}
+
+	validCurrencies := map[model.CurrencyCode]bool{
+		model.CurrencyUSD: true,
+		model.CurrencyEUR: true,
+		model.CurrencyRUB: true,
+	}
+	if !validCurrencies[req.Currency] {
+		return fmt.Errorf("invalid currency code: %s", req.Currency)
 	}
 
 	if req.Timestamp.IsZero() {
@@ -216,20 +228,25 @@ func (s *Service) validateCreateRequest(ctx context.Context, req model.Transacti
 		if req.Location.Country == "" {
 			return fmt.Errorf("location.country is required when location is provided")
 		}
+		
+		if len(req.Location.Country) > 2 {
+			return fmt.Errorf("location.country must be at most 2 characters")
+		}
+		
 		if (req.Location.Latitude != nil && req.Location.Longitude == nil) ||
 			(req.Location.Latitude == nil && req.Location.Longitude != nil) {
-			return fmt.Errorf("both latitude and longitude must be provided together")
+			return fmt.Errorf("longitude and latitude must be provided together")
 		}
 		if req.Location.Latitude != nil {
 			lat := *req.Location.Latitude
 			if lat < -90 || lat > 90 {
-				return fmt.Errorf("latitude must be between -90 and 90")
+				return fmt.Errorf("must be between -90 and 90")
 			}
 		}
 		if req.Location.Longitude != nil {
 			lon := *req.Location.Longitude
 			if lon < -180 || lon > 180 {
-				return fmt.Errorf("longitude must be between -180 and 180")
+				return fmt.Errorf("must be between -180 and 180")
 			}
 		}
 	}
@@ -252,7 +269,6 @@ func (s *Service) applyFraudRules(ctx context.Context, transaction *model.Transa
 		}
 	}
 
-	// Debug: log all rules
 	fmt.Printf("DEBUG: Processing %d rules for transaction %s\n", len(sortedRules), transaction.ID.String())
 	for i, rule := range sortedRules {
 		fmt.Printf("DEBUG: Rule[%d]: ID=%s, Name=%s, DSL=%s, Priority=%d, Active=%v\n", 
@@ -260,10 +276,8 @@ func (s *Service) applyFraudRules(ctx context.Context, transaction *model.Transa
 	}
 
 	for _, rule := range sortedRules {
-		// Use DSL evaluator to evaluate the rule
 		ruleResult := s.dslEvaluator.EvaluateRule(rule, transaction, user)
 		
-		// Debug: log rule evaluation
 		fmt.Printf("DEBUG: Rule %s: matched=%v, description=%s\n", rule.Name, ruleResult.Matched, ruleResult.Description)
 
 		results = append(results, ruleResult)
