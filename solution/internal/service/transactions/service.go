@@ -52,15 +52,20 @@ func NewService(txRepo transactionsRepo.Repository, userRepo repository.UserRepo
 }
 
 func (s *Service) Create(ctx context.Context, req model.TransactionCreateRequest) (*model.TransactionDecision, error) {
+	fmt.Printf("DEBUG: Creating transaction for user %s, amount %.2f\n", req.UserID.String(), req.Amount)
+	
 	if err := s.validateCreateRequest(ctx, req); err != nil {
+		fmt.Printf("DEBUG: Validation failed: %v\n", err)
 		return nil, err
 	}
 
 	user, err := s.userRepo.GetByID(ctx, req.UserID.String())
 	if err != nil {
+		fmt.Printf("DEBUG: Failed to get user: %v\n", err)
 		return nil, fmt.Errorf("failed to get user: %w", err)
 	}
 	if !user.IsActive {
+		fmt.Printf("DEBUG: User is deactivated\n")
 		return nil, fmt.Errorf("user is deactivated")
 	}
 
