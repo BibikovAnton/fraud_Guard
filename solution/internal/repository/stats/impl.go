@@ -2,7 +2,6 @@ package stats
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"time"
 
@@ -46,12 +45,6 @@ func (r *repository) GetOverviewStats(ctx context.Context, from, to time.Time) (
 }
 
 func (r *repository) GetTransactionsTimeSeries(ctx context.Context, from, to time.Time, interval string) ([]TimeSeriesPoint, error) {
-	// For now, implement daily buckets
-	bucketFormat := "YYYY-MM-DD"
-	if interval == "hour" {
-		bucketFormat = "YYYY-MM-DD HH24:00:00"
-	}
-
 	query := fmt.Sprintf(`
 		SELECT 
 			date_trunc('%s', created_at) as bucket_start,
