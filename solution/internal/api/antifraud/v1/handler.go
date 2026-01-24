@@ -11,6 +11,7 @@ import (
 	antifraud_v1 "solution/pkg/openapi/antifraud/v1"
 	"solution/internal/model"
 	"solution/internal/service"
+	"solution/internal/service/stats"
 )
 
 const (
@@ -43,7 +44,7 @@ func (h *handlerAdapter) APIV1PingGet(ctx context.Context) (*antifraud_v1.APIV1P
 	}, nil
 }
 
-// Stats methods - delegate to statsHandler
+
 func (h *handlerAdapter) APIV1StatsOverviewGet(ctx context.Context, params antifraud_v1.APIV1StatsOverviewGetParams) (antifraud_v1.APIV1StatsOverviewGetRes, error) {
 	return h.statsHandler.APIV1StatsOverviewGet(ctx, params)
 }

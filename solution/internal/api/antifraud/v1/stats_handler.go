@@ -42,17 +42,17 @@ func (h *statsHandlerAdapter) APIV1StatsOverviewGet(ctx context.Context, params 
 	for i, merchant := range result.TopRiskMerchants {
 		topRiskMerchants[i] = antifraud_v1.MerchantRiskRow{
 			MerchantId:           merchant.MerchantID,
-			MerchantCategoryCode: merchant.MerchantCategoryCode,
-			TxCount:              merchant.TxCount,
-			GMV:                  merchant.GMV,
+			MerchantCategoryCode: antifraud_v1.OptMccCode{Value: merchant.MerchantCategoryCode, Set: true},
+			TxCount:              int(merchant.TxCount),
+			Gmv:                  merchant.GMV,
 			DeclineRate:          merchant.DeclineRate,
 		}
 	}
 
 	return &antifraud_v1.StatsOverview{
-		From:            result.From.Format(time.RFC3339),
-		To:              result.To.Format(time.RFC3339),
-		Volume:          result.Volume,
+		From:            result.From,
+		To:              result.To,
+		Volume:          int(result.Volume),
 		Gmv:             result.GMV,
 		ApprovalRate:    result.ApprovalRate,
 		DeclineRate:     result.DeclineRate,
@@ -72,9 +72,6 @@ func (h *statsHandlerAdapter) APIV1StatsTransactionsTimeseriesGet(ctx context.Co
 	if params.To.Set {
 		to = params.To.Value
 	}
-	if params.Interval.Set {
-		interval = params.Interval.Value
-	}
 
 	// Get time series from service
 	result, err := h.statsService.GetTransactionsTimeSeries(ctx, from, to, interval)
@@ -86,7 +83,7 @@ func (h *statsHandlerAdapter) APIV1StatsTransactionsTimeseriesGet(ctx context.Co
 	points := make([]antifraud_v1.TransactionsTimePoint, len(result.Points))
 	for i, point := range result.Points {
 		points[i] = antifraud_v1.TransactionsTimePoint{
-			BucketStart:  point.BucketStart.Format(time.RFC3339),
+			BucketStart:  point.BucketStart,
 			TxCount:      point.TxCount,
 			Gmv:          point.GMV,
 			ApprovalRate: point.ApprovalRate,
@@ -161,8 +158,8 @@ func (h *statsHandlerAdapter) APIV1StatsMerchantsRiskGet(ctx context.Context, pa
 	for i, item := range result.Items {
 		items[i] = antifraud_v1.MerchantRiskRow{
 			MerchantId:           item.MerchantID,
-			MerchantCategoryCode: item.MerchantCategoryCode,
-			TxCount:              item.TxCount,
+			MerchantCategoryCode: antifraud_v1.OptMccCode{Value: item.MerchantCategoryCode, Set: true},
+			TxCount:              int(item.TxCount),
 			Gmv:                  item.GMV,
 			DeclineRate:          item.DeclineRate,
 		}
@@ -190,6 +187,6 @@ func (h *statsHandlerAdapter) APIV1StatsUsersIDRiskProfileGet(ctx context.Contex
 		DistinctIps24h:      result.DistinctIPs24h,
 		DistinctCities24h:    result.DistinctCities24h,
 		DeclineRate30d:      result.DeclineRate30d,
-		LastSeenAt:          result.LastSeenAt.Format(time.RFC3339),
+		LastSeenAt:          result.LastSeenAt,
 	}, nil
 }
