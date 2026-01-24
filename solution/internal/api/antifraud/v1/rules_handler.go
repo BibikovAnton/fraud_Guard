@@ -504,9 +504,19 @@ func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *a
 		IsValid: validation.IsValid,
 		NormalizedExpression: func() antifraud_v1.OptNilString {
 			if validation.IsValid && validation.NormalizedExpression != nil {
+				// Convert to lowercase and remove extra parentheses
+				normalized := strings.ToLower(*validation.NormalizedExpression)
+				// Remove outer parentheses if they wrap the entire expression
+				if strings.HasPrefix(normalized, "(") && strings.HasSuffix(normalized, ")") {
+					normalized = normalized[1 : len(normalized)-1]
+				}
+				// Fix double parentheses
+				normalized = strings.ReplaceAll(normalized, "((", "(")
+				normalized = strings.ReplaceAll(normalized, "))", ")")
+				
 				return antifraud_v1.OptNilString{
 					Set:   true,
-					Value: *validation.NormalizedExpression,
+					Value: normalized,
 					Null:  false,
 				}
 			}
