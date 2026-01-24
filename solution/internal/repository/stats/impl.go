@@ -22,8 +22,14 @@ func (r *repository) GetOverviewStats(ctx context.Context, from, to time.Time) (
 		SELECT 
 			COUNT(*) as volume,
 			COALESCE(SUM(amount), 0) as gmv,
-			COUNT(*) FILTER (WHERE status = 'APPROVED')::float / COUNT(*) as approval_rate,
-			COUNT(*) FILTER (WHERE status = 'DECLINED')::float / COUNT(*) as decline_rate
+			CASE 
+				WHEN COUNT(*) > 0 THEN COUNT(*) FILTER (WHERE status = 'APPROVED')::float / COUNT(*)
+				ELSE 0 
+			END as approval_rate,
+			CASE 
+				WHEN COUNT(*) > 0 THEN COUNT(*) FILTER (WHERE status = 'DECLINED')::float / COUNT(*)
+				ELSE 0 
+			END as decline_rate
 		FROM transactions 
 		WHERE created_at BETWEEN $1 AND $2
 	`

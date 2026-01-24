@@ -124,9 +124,22 @@ func (h *handlerAdapter) APIV1TransactionsPost(ctx context.Context, req *antifra
 	}
 
 	apiTransaction := convertTransactionToAPI(decision.Transaction)
+	
+	ruleResults := make([]antifraud_v1.FraudRuleEvaluationResult, len(decision.RuleResults))
+	for i, rule := range decision.RuleResults {
+		ruleUUID, _ := uuid.Parse(rule.RuleID)
+		ruleResults[i] = antifraud_v1.FraudRuleEvaluationResult{
+			RuleId:      ruleUUID,
+			RuleName:    rule.RuleName,
+			Priority:    rule.Priority,
+			Matched:     rule.Matched,
+			Description: rule.Description,
+		}
+	}
+	
 	transactionDecision := antifraud_v1.TransactionDecision{
 		Transaction: apiTransaction,
-		RuleResults: []antifraud_v1.FraudRuleEvaluationResult{},
+		RuleResults: ruleResults,
 	}
 	return &transactionDecision, nil
 }

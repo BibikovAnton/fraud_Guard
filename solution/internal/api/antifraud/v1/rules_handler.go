@@ -444,15 +444,39 @@ func (h *handlerAdapter) APIV1FraudRulesPost(ctx context.Context, req *antifraud
 }
 
 func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *antifraud_v1.DslValidateRequest) (antifraud_v1.APIV1FraudRulesValidatePostRes, error) {
-	// TODO: Implement DSL validation when DSL service is ready
-	return &antifraud_v1.DslValidateResponse{
-		IsValid: false,
-		Errors: []antifraud_v1.DslError{
-			{
-				Code:     "DSL_PARSE_ERROR",
-				Message:  "DSL validation not implemented yet",
-				Position: antifraud_v1.OptNilInt{Set: false},
-			},
-		},
-	}, nil
+	validateReq := model.DslValidateRequest{
+		DslExpression: req.DslExpression,
+	}
+	
+	result := h.fraudRuleService.ValidateDSL(ctx, validateReq)
+	
+	errors := make([]antifraud_v1.DslError, len(result.Errors))
+	for i, err := range result.Errors {
+		errors[i] = antifraud_v1.DslError{
+			Code:     err.Code,
+			Message:  err.Message,
+			Position: antifraud_v1.OptNilInt{Set: false},
+		}
+		if err.Position != nil {
+			errors[i].Position = antifraud_v1.OptNilInt{
+				Value: *err.Position,
+				Set:   true,
+			}
+		}
+	}
+	
+	response := antifraud_v1.DslValidateResponse{
+		IsValid:              result.IsValid,
+		NormalizedExpression: antifraud_v1.OptNilString{Set: false},
+		Errors:               errors,
+	}
+	
+	if result.NormalizedExpression != nil {
+		response.NormalizedExpression = antifraud_v1.OptNilString{
+			Value: *result.NormalizedExpression,
+			Set:   true,
+		}
+	}
+	
+	return &response, nil
 }
