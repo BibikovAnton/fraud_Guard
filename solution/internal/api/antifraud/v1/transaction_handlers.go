@@ -537,15 +537,17 @@ func (h *TransactionHandler) extractFieldErrors(errMsg string, rawRequest map[st
 	}
 	
 	if strings.Contains(errMsg, "location.country must be at most 2 characters") {
+		var rejectedValue interface{}
 		if location, ok := rawRequest["location"].(map[string]interface{}); ok {
 			if val, countryOk := location["country"]; countryOk {
-				fieldErrors = append(fieldErrors, map[string]interface{}{
-					"field":        "location.country",
-					"issue":        "location.country must be at most 2 characters",
-					"rejectedValue": val,
-				})
+				rejectedValue = val
 			}
 		}
+		fieldErrors = append(fieldErrors, map[string]interface{}{
+			"field":        "location.country",
+			"issue":        "location.country must be at most 2 characters",
+			"rejectedValue": rejectedValue,
+		})
 	}
 	
 	if strings.Contains(errMsg, "longitude and latitude must be provided together") {
@@ -557,27 +559,31 @@ func (h *TransactionHandler) extractFieldErrors(errMsg string, rawRequest map[st
 	}
 	
 	if strings.Contains(errMsg, "must be between -90 and 90") {
+		var rejectedValue interface{}
 		if location, ok := rawRequest["location"].(map[string]interface{}); ok {
 			if val, latOk := location["latitude"]; latOk {
-				fieldErrors = append(fieldErrors, map[string]interface{}{
-					"field":        "location.latitude",
-					"issue":        "must be between -90 and 90",
-					"rejectedValue": val,
-				})
+				rejectedValue = val
 			}
 		}
+		fieldErrors = append(fieldErrors, map[string]interface{}{
+			"field":        "location.latitude",
+			"issue":        "must be between -90 and 90",
+			"rejectedValue": rejectedValue,
+		})
 	}
 	
 	if strings.Contains(errMsg, "must be between -180 and 180") {
+		var rejectedValue interface{}
 		if location, ok := rawRequest["location"].(map[string]interface{}); ok {
 			if val, lonOk := location["longitude"]; lonOk {
-				fieldErrors = append(fieldErrors, map[string]interface{}{
-					"field":        "location.longitude",
-					"issue":        "must be between -180 and 180",
-					"rejectedValue": val,
-				})
+				rejectedValue = val
 			}
 		}
+		fieldErrors = append(fieldErrors, map[string]interface{}{
+			"field":        "location.longitude",
+			"issue":        "must be between -180 and 180",
+			"rejectedValue": rejectedValue,
+		})
 	}
 	
 	// User ID validation errors

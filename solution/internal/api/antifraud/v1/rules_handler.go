@@ -485,13 +485,14 @@ func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *a
 			Position: antifraud_v1.OptNilInt{Set: false},
 			Near:     antifraud_v1.OptNilString{Set: false},
 		}
-		if err.Position != nil {
+		// Only include position and near if they have meaningful values
+		if err.Position != nil && *err.Position > 0 {
 			errors[i].Position = antifraud_v1.OptNilInt{
 				Value: *err.Position,
 				Set:   true,
 			}
 		}
-		if err.Near != nil {
+		if err.Near != nil && *err.Near != "" {
 			errors[i].Near = antifraud_v1.OptNilString{
 				Value: *err.Near,
 				Set:   true,
