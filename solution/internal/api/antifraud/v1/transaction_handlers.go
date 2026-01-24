@@ -478,6 +478,7 @@ func writeErrorResponseWithPath(w http.ResponseWriter, statusCode int, code, mes
 func (h *TransactionHandler) extractFieldErrors(errMsg string, rawRequest map[string]interface{}) []map[string]interface{} {
 	var fieldErrors []map[string]interface{}
 	
+	// Amount validation errors
 	if strings.Contains(errMsg, "must be greater > 0") {
 		if val, ok := rawRequest["amount"]; ok {
 			fieldErrors = append(fieldErrors, map[string]interface{}{
@@ -498,6 +499,7 @@ func (h *TransactionHandler) extractFieldErrors(errMsg string, rawRequest map[st
 		}
 	}
 	
+	// Currency validation errors
 	if strings.Contains(errMsg, "currency is required") {
 		fieldErrors = append(fieldErrors, map[string]interface{}{
 			"field":        "currency",
@@ -506,6 +508,17 @@ func (h *TransactionHandler) extractFieldErrors(errMsg string, rawRequest map[st
 		})
 	}
 	
+	if strings.Contains(errMsg, "invalid currency code") {
+		if val, ok := rawRequest["currency"]; ok {
+			fieldErrors = append(fieldErrors, map[string]interface{}{
+				"field":        "currency",
+				"issue":        "invalid currency code",
+				"rejectedValue": val,
+			})
+		}
+	}
+	
+	// Timestamp validation errors
 	if strings.Contains(errMsg, "timestamp is required") {
 		fieldErrors = append(fieldErrors, map[string]interface{}{
 			"field":        "timestamp",
@@ -514,6 +527,60 @@ func (h *TransactionHandler) extractFieldErrors(errMsg string, rawRequest map[st
 		})
 	}
 	
+	// Location validation errors
+	if strings.Contains(errMsg, "location.country is required") {
+		fieldErrors = append(fieldErrors, map[string]interface{}{
+			"field":        "location.country",
+			"issue":        "location.country is required",
+			"rejectedValue": nil,
+		})
+	}
+	
+	if strings.Contains(errMsg, "location.country must be at most 2 characters") {
+		if location, ok := rawRequest["location"].(map[string]interface{}); ok {
+			if val, countryOk := location["country"]; countryOk {
+				fieldErrors = append(fieldErrors, map[string]interface{}{
+					"field":        "location.country",
+					"issue":        "location.country must be at most 2 characters",
+					"rejectedValue": val,
+				})
+			}
+		}
+	}
+	
+	if strings.Contains(errMsg, "longitude and latitude must be provided together") {
+		fieldErrors = append(fieldErrors, map[string]interface{}{
+			"field":        "location",
+			"issue":        "longitude and latitude must be provided together",
+			"rejectedValue": rawRequest["location"],
+		})
+	}
+	
+	if strings.Contains(errMsg, "must be between -90 and 90") {
+		if location, ok := rawRequest["location"].(map[string]interface{}); ok {
+			if val, latOk := location["latitude"]; latOk {
+				fieldErrors = append(fieldErrors, map[string]interface{}{
+					"field":        "location.latitude",
+					"issue":        "must be between -90 and 90",
+					"rejectedValue": val,
+				})
+			}
+		}
+	}
+	
+	if strings.Contains(errMsg, "must be between -180 and 180") {
+		if location, ok := rawRequest["location"].(map[string]interface{}); ok {
+			if val, lonOk := location["longitude"]; lonOk {
+				fieldErrors = append(fieldErrors, map[string]interface{}{
+					"field":        "location.longitude",
+					"issue":        "must be between -180 and 180",
+					"rejectedValue": val,
+				})
+			}
+		}
+	}
+	
+	// User ID validation errors
 	if strings.Contains(errMsg, "userId is required for admin") {
 		fieldErrors = append(fieldErrors, map[string]interface{}{
 			"field":        "userId",
