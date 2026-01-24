@@ -248,6 +248,13 @@ func (s *Service) applyFraudRules(ctx context.Context, transaction *model.Transa
 		}
 	}
 
+	// Debug: log all rules
+	fmt.Printf("DEBUG: Processing %d rules for transaction %s\n", len(sortedRules), transaction.ID.String())
+	for i, rule := range sortedRules {
+		fmt.Printf("DEBUG: Rule[%d]: ID=%s, Name=%s, DSL=%s, Priority=%d, Active=%v\n", 
+			i, rule.ID.String(), rule.Name, rule.DslExpression, rule.Priority, rule.IsActive)
+	}
+
 	for _, rule := range sortedRules {
 		matched, description, err := s.dslEvaluator.Evaluate(ctx, rule.DslExpression, transaction, user)
 		if err != nil {
@@ -262,7 +269,7 @@ func (s *Service) applyFraudRules(ctx context.Context, transaction *model.Transa
 			RuleID:      rule.ID,
 			RuleName:    rule.Name,
 			Priority:    rule.Priority,
-			Enabled:     rule.Enabled,
+			Enabled:     rule.IsActive,
 			Matched:     matched,
 			Description: description,
 		}
