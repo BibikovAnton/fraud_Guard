@@ -120,7 +120,7 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 	handlerAdapter := v1.NewHandlerAdapter(a.diContainer.UserService(ctx), a.diContainer.FraudRuleService(ctx), a.diContainer.TransactionService(ctx), a.diContainer.StatsService(ctx))
 	secHandlerAdapter := v1.NewSecurityHandlerAdapter()
 
-	transactionHandler := v1.NewTransactionHandler(a.diContainer.UserService(ctx), a.diContainer.TransactionService(ctx))
+	transactionHandler := v1.NewTransactionHandler(a.diContainer.UserService(ctx), a.diContainer.TransactionService(ctx), a.diContainer.FraudRuleService(ctx))
 
 	loggingMiddleware := func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -15,12 +15,14 @@ import (
 type TransactionHandler struct {
 	userService        service.UserService
 	transactionService service.TransactionService
+	fraudRuleService   service.FraudRuleService
 }
 
-func NewTransactionHandler(userService service.UserService, transactionService service.TransactionService) *TransactionHandler {
+func NewTransactionHandler(userService service.UserService, transactionService service.TransactionService, fraudRuleService service.FraudRuleService) *TransactionHandler {
 	return &TransactionHandler{
 		userService:        userService,
 		transactionService: transactionService,
+		fraudRuleService:   fraudRuleService,
 	}
 }
 
