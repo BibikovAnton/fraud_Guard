@@ -154,7 +154,24 @@ func (e *evaluator) validateTier2(normalized string) (*model.DslValidateResponse
 		}, nil
 	}
 
-	// For simple expressions, use tier 1 logic
+	// For simple expressions without AND/OR, use tier 1 logic
+	// But first check if it has parentheses - if so, clean them and try again
+	simple := strings.ReplaceAll(normalized, "(", "")
+	simple = strings.ReplaceAll(simple, ")", "")
+	
+	if strings.Contains(simple, " AND ") || strings.Contains(simple, " OR ") {
+		// After removing parentheses we see AND/OR
+		cleaned := strings.ReplaceAll(simple, " and ", " AND ")
+		cleaned = strings.ReplaceAll(cleaned, " or ", " OR ")
+		
+		return &model.DslValidateResponse{
+			IsValid:            true,
+			NormalizedExpression: &cleaned,
+			Errors:             []model.DSLError{},
+		}, nil
+	}
+
+	// For truly simple expressions, use tier 1 logic
 	return e.validateTier1(normalized)
 }
 
