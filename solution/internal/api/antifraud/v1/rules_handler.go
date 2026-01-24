@@ -3,6 +3,7 @@ package v1
 import (
 	"context"
 	"fmt"
+	"os"
 	"github.com/google/uuid"
 	"solution/internal/api/antifraud/v1/convertor"
 	"solution/internal/model"
@@ -466,11 +467,13 @@ func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *a
 		}, nil
 	}
 
-	fmt.Printf("DEBUG: ValidateDsl input: '%s'\n", req.DslExpression)
+	// Debug logs to stderr - they should appear in CI output
+	fmt.Fprintf(os.Stderr, "=== VALIDATE_DSL DEBUG ===\n")
+	fmt.Fprintf(os.Stderr, "INPUT DSL: '%s'\n", req.DslExpression)
 
 	validation, err := h.fraudRuleService.ValidateDSL(ctx, req.DslExpression)
 	if err != nil {
-		fmt.Printf("DEBUG: ValidateDsl error: %v\n", err)
+		fmt.Fprintf(os.Stderr, "VALIDATION ERROR: %v\n", err)
 		return &antifraud_v1.DslValidateResponse{
 			IsValid: false,
 			Errors: []antifraud_v1.DslError{
@@ -482,6 +485,13 @@ func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *a
 			},
 		}, nil
 	}
+
+	normalizedExpr := ""
+	if validation.NormalizedExpression != nil {
+		normalizedExpr = *validation.NormalizedExpression
+	}
+	fmt.Fprintf(os.Stderr, "RESULT: IsValid=%v, Normalized='%s'\n", validation.IsValid, normalizedExpr)
+	fmt.Fprintf(os.Stderr, "=== END VALIDATE_DSL DEBUG ===\n")
 
 	var apiErrors []antifraud_v1.DslError
 	for _, dslError := range validation.Errors {
@@ -501,12 +511,6 @@ func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *a
 		}
 		apiErrors = append(apiErrors, apiError)
 	}
-
-	normalizedExpr := ""
-	if validation.NormalizedExpression != nil {
-		normalizedExpr = *validation.NormalizedExpression
-	}
-	fmt.Printf("DEBUG: ValidateDsl result: IsValid=%v, Normalized='%s'\n", validation.IsValid, normalizedExpr)
 
 	return &antifraud_v1.DslValidateResponse{
 		IsValid: validation.IsValid,

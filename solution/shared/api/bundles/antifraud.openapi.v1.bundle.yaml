@@ -82,6 +82,8 @@ info:
     - GET /transactions/{id} возвращает сохранённые ruleResults (не пересчитывает)
     - DELETE /users/{id} ставит isActive=false (не удаляет физически)
     - DELETE /fraud-rules/{id} ставит enabled=false (не удаляет физически)
+servers:
+  - url: /api/v1
 security:
   - BearerAuth: []
 tags:
@@ -158,6 +160,7 @@ paths:
                   summary: Токен + профиль
                   value:
                     accessToken: eyJhbGciOi...
+                    expiresIn: 3600
                     user:
                       id: 550e8400-e29b-41d4-a716-446655440000
                       email: user@example.com
@@ -499,15 +502,15 @@ paths:
 
         **Алгоритм проверки антифрода:**
         1. Получить профиль пользователя (userId) из БД
-        2. Загрузить все активные правила (enabled=true), отсортированные по priority ASC, затем по id ASC
-        3. Для каждого правила: распарсить dslExpression и вычислить результат
+        2. Загрузить все активные правила (enabled=true), отсортированные по priority ASC
+        3. Для каждого правила: распарсить dslExpression и вычислить результат (matched=False для правил с невалидным DSL)
         4. Если хотя бы одно правило matched=true => status=DECLINED, isFraud=true
         5. Иначе => status=APPROVED, isFraud=false
         6. Сохранить транзакцию вместе с результатами всех правил (ruleResults)
 
         **Коды ответов:**
         - 201: транзакция создана (APPROVED или DECLINED)
-        - 403: USER пытается создать транзакцию для другого пользователя
+        - 403: USER пытается создать транзакцию для другого пользователя или пользователь деактивирован
         - 404: пользователь с указанным userId не найден
         - 422: невалидные поля (amount <= 0, некорректная валюта и т.д.)
       x-roles:
@@ -576,7 +579,6 @@ paths:
                       - ruleId: 550e8400-e29b-41d4-a716-446655440004
                         ruleName: High amount check
                         priority: 10
-                        enabled: true
                         matched: false
                         description: amount <= 10000, правило не сработало
                 declined:
@@ -604,7 +606,6 @@ paths:
                       - ruleId: 550e8400-e29b-41d4-a716-446655440004
                         ruleName: High amount check
                         priority: 10
-                        enabled: true
                         matched: true
                         description: amount > 10000, правило сработало
         '400':
@@ -622,7 +623,7 @@ paths:
               examples:
                 userNotFound:
                   value:
-                    code: USER_NOT_FOUND
+                    code: NOT_FOUND
                     message: Пользователь не найден
                     traceId: '[UUID67]'
                     timestamp: '2025-12-15T10:00:00Z'
@@ -654,7 +655,7 @@ paths:
           schema:
             type: string
             format: uuid
-          description: Фильтр по пользователю (только ADMIN)
+          description: Фильтр по пользователю (только ADMIN, для USER игнорируется)
         - in: query
           name: status
           schema:
@@ -749,6 +750,9 @@ paths:
       summary: Список правил фрода
       description: |
         Только ADMIN.
+
+        Сортировка: `priority` ASC
+
         Сценарии:
         - 200: список правил
       x-roles:
@@ -773,14 +777,16 @@ paths:
       description: |
         Только ADMIN.
 
+        Допускается любой DSL
+
         Валидация:
         - name: 3..120 символов
-        - dslExpression: обязателен, должен парситься по спецификации DSL
+        - dslExpression: обязателен
         - priority: >=1 (меньше — выше приоритет)
         Сценарии:
         - 201: создано
-        - 422: невалидные поля или DSL синтаксически неверен
-        - 409: правило с таким именем уже есть (если включена уникальность имени)
+        - 422: невалидные поля
+        - 409: правило с таким именем уже есть
       x-roles:
         - ADMIN
       requestBody:
@@ -904,7 +910,10 @@ paths:
       summary: Обновить правило фрода
       description: |
         Только ADMIN. Полное обновление.
-        422 возвращается при невалидном DSL/полях.
+
+        Допускается любой DSL
+
+        422 возвращается при невалидных полях.
       x-roles:
         - ADMIN
       requestBody:
@@ -926,6 +935,8 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
         '422':
           $ref: '#/components/responses/ValidationFailed'
     delete:
@@ -986,7 +997,6 @@ paths:
       parameters:
         - $ref: '#/components/parameters/From'
         - $ref: '#/components/parameters/To'
-        - $ref: '#/components/parameters/Timezone'
       responses:
         '200':
           description: Overview статистики
@@ -1203,6 +1213,7 @@ components:
         type: integer
         minimum: 0
         default: 0
+      description: page = 0 — 1-я страница
     Size:
       in: query
       name: size
@@ -1225,6 +1236,7 @@ components:
         - Разница между from и to не более 90 дней (иначе 422)
 
         **По умолчанию:**
+        - /transactions: to - 90 дней
         - /stats/overview: now - 30 дней
         - /stats/transactions/timeseries: now - 7 дней
         - /stats/rules/matches: now - 30 дней
@@ -1267,7 +1279,6 @@ components:
         Неверный запрос на уровне транспорта/формата:
         - невалидный JSON
         - неподдерживаемый Content-Type
-        - слишком большой payload
       content:
         application/json:
           schema:
@@ -1368,6 +1379,7 @@ components:
             inactive:
               value:
                 code: USER_INACTIVE
+                traceId: 550e8400-e29b-41d4-a716-446655440015
                 message: Пользователь деактивирован
                 timestamp: '2025-12-15T10:00:00Z'
                 path: /api/v1/auth/login
@@ -1375,21 +1387,35 @@ components:
     ErrorCode:
       type: string
       description: |
-        Код ошибки (машиночитаемый).
-        Используется для программной обработки ошибок на клиенте.
+        Машиночитаемый код ошибки.
+
+        HTTP-коды:
+        - `BAD_REQUEST` (400) — невалидный JSON, неподдерживаемый Content-Type
+        - `VALIDATION_FAILED` (422) — поля не прошли валидацию
+        - `UNAUTHORIZED` (401) — токен отсутствует/невалиден/истёк; неверный email или пароль в /auth/login
+        - `FORBIDDEN` (403) — недостаточно прав или доступ к чужому ресурсу
+        - `NOT_FOUND` (404) — ресурс не найден
+        - `EMAIL_ALREADY_EXISTS` (409) — email уже занят
+        - `USER_INACTIVE` (423) — пользователь деактивирован
+        - `RULE_NAME_ALREADY_EXISTS` (409) — правило с таким именем уже существует
+        - `INTERNAL_SERVER_ERROR` (500) — внутренняя ошибка сервера
+
+        DSL-коды (в `errors[].code` ответа `/fraud-rules/validate`, HTTP = 200):
+        - `DSL_PARSE_ERROR` — синтаксическая ошибка (`position` и `near` обязательны, но тест-системой будет проверяться только их наличие)
+        - `DSL_INVALID_FIELD` — неизвестное поле DSL
+        - `DSL_INVALID_OPERATOR` — оператор неприменим к типу
       enum:
         - BAD_REQUEST
         - VALIDATION_FAILED
         - UNAUTHORIZED
         - FORBIDDEN
         - NOT_FOUND
-        - USER_NOT_FOUND
         - EMAIL_ALREADY_EXISTS
         - USER_INACTIVE
+        - RULE_NAME_ALREADY_EXISTS
         - DSL_PARSE_ERROR
         - DSL_INVALID_FIELD
         - DSL_INVALID_OPERATOR
-        - RULE_NAME_ALREADY_EXISTS
         - INTERNAL_SERVER_ERROR
     ApiError:
       type: object
@@ -1541,6 +1567,7 @@ components:
             - Минимум 8 символов
             - Минимум 1 буква (A-Z или a-z)
             - Минимум 1 цифра (0-9)
+          example: Qwerty_123
         fullName:
           type: string
           minLength: 2
@@ -1668,6 +1695,7 @@ components:
           maxLength: 72
           pattern: ^(?=.*[A-Za-z])(?=.*\d).+$
           writeOnly: true
+          example: Qwerty_123
         fullName:
           type: string
           minLength: 2
@@ -1809,7 +1837,7 @@ components:
           format: double
           minimum: 0.01
           maximum: 999999999.99
-          description: Сумма транзакции
+          description: Сумма транзакции, хранится с точностью до 2 знаков после запятой (иначе округление по правилам математики)
           example: 1999.99
         currency:
           $ref: '#/components/schemas/CurrencyCode'
@@ -1871,6 +1899,7 @@ components:
           format: double
           minimum: 0.01
           maximum: 999999999.99
+          description: Хранится с точностью до 2 знаков после запятой (иначе округление по правилам математики)
         currency:
           $ref: '#/components/schemas/CurrencyCode'
         merchantId:
@@ -1914,7 +1943,7 @@ components:
         - ruleId
         - ruleName
         - priority
-        - enabled
+        - description
         - matched
       description: Результат проверки одной транзакции по одному правилу фрода.
       properties:
@@ -1926,8 +1955,6 @@ components:
         priority:
           type: integer
           minimum: 1
-        enabled:
-          type: boolean
         matched:
           type: boolean
           description: true если правило сработало (условие выполнено)
@@ -2140,11 +2167,10 @@ components:
         position:
           type: integer
           nullable: true
-          description: Позиция ошибки в выражении (0-based)
+          description: Позиция ошибки в выражении
         near:
           type: string
           nullable: true
-          description: Фрагмент выражения рядом с ошибкой
     StatsOverview:
       type: object
       required:
@@ -2178,6 +2204,7 @@ components:
           description: |
             Gross Merchandise Value — сумма amount всех транзакций.
             Включает и APPROVED, и DECLINED транзакции.
+            Хранится с точностью до 2 знаков после запятой.
         approvalRate:
           type: number
           format: double
@@ -2185,7 +2212,8 @@ components:
           maximum: 1
           description: |
             Доля APPROVED транзакций (0..1).
-            approvalRate + declineRate = 1
+            approvalRate + declineRate = 1 (если volume != 0)
+            0, если volume = 0
         declineRate:
           type: number
           format: double
@@ -2194,6 +2222,7 @@ components:
           description: |
             Доля DECLINED транзакций (0..1).
             Эквивалентно доле транзакций с isFraud=true.
+            0, если volume = 0
         topRiskMerchants:
           type: array
           description: Топ-10 мерчантов с наибольшим declineRate
@@ -2204,6 +2233,7 @@ components:
       required:
         - merchantId
         - txCount
+        - gmv
         - declineRate
       properties:
         merchantId:
@@ -2218,12 +2248,16 @@ components:
           type: number
           format: double
           minimum: 0
+          description: |
+            Gross Merchandise Value — сумма amount всех транзакций.
+            Включает и APPROVED, и DECLINED транзакции.
+            Хранится с точностью до 2 знаков после запятой.
         declineRate:
           type: number
           format: double
           minimum: 0
           maximum: 1
-          description: Доля отклонённых транзакций
+          description: Доля отклонённых транзакций (0, если txCount = 0)
     TransactionsTimeSeries:
       type: object
       required:
@@ -2255,19 +2289,22 @@ components:
           type: number
           format: double
           minimum: 0
-          description: Сумма транзакций в интервале
+          description: |
+            Сумма транзакций в интервале.
+            Включает и APPROVED, и DECLINED транзакции.
+            Хранится с точностью до 2 знаков после запятой.
         approvalRate:
           type: number
           format: double
           minimum: 0
           maximum: 1
-          description: Доля APPROVED транзакций (0..1)
+          description: Доля APPROVED транзакций (0..1) (0, если volume = 0)
         declineRate:
           type: number
           format: double
           minimum: 0
           maximum: 1
-          description: Доля DECLINED транзакций (0..1)
+          description: Доля DECLINED транзакций (0..1) (0, если volume = 0)
     RuleMatchStats:
       type: object
       required:
@@ -2340,7 +2377,9 @@ components:
           type: number
           format: double
           minimum: 0
-          description: Сумма транзакций за последние 24 часа
+          description: |
+            Сумма транзакций за последние 24 часа.
+            Хранится с точностью до 2 знаков после запятой.
         distinctDevices_24h:
           type: integer
           minimum: 0
@@ -2363,7 +2402,7 @@ components:
           type: string
           format: date-time
           nullable: true
-          description: Время последней активности
+          description: Время последней активности (любое действие пользователя, включая создание администратором транзакции пользователя)
 x-ogen:
   target: pkg/openapi/antifraud/v1
   package: antifraud_v1

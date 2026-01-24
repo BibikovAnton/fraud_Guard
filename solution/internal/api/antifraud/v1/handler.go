@@ -3,15 +3,15 @@ package v1
 import (
 	"context"
 	"fmt"
-	"net/netip"
-	"strings"
-	"time"
-	"github.com/google/uuid"
 	"github.com/go-faster/jx"
-	antifraud_v1 "solution/pkg/openapi/antifraud/v1"
+	"github.com/google/uuid"
+	"net/netip"
 	"solution/internal/model"
 	"solution/internal/service"
 	"solution/internal/service/stats"
+	antifraud_v1 "solution/pkg/openapi/antifraud/v1"
+	"strings"
+	"time"
 )
 
 const (
@@ -20,18 +20,18 @@ const (
 )
 
 type handlerAdapter struct {
-	userService       service.UserService
-	fraudRuleService  service.FraudRuleService
+	userService        service.UserService
+	fraudRuleService   service.FraudRuleService
 	transactionService service.TransactionService
-	statsHandler      *statsHandlerAdapter
+	statsHandler       *statsHandlerAdapter
 }
 
 func NewHandlerAdapter(userService service.UserService, fraudRuleService service.FraudRuleService, transactionService service.TransactionService, statsService stats.Service) antifraud_v1.Handler {
 	return &handlerAdapter{
-		userService:       userService,
-		fraudRuleService:  fraudRuleService,
+		userService:        userService,
+		fraudRuleService:   fraudRuleService,
 		transactionService: transactionService,
-		statsHandler:      NewStatsHandlerAdapter(statsService),
+		statsHandler:       NewStatsHandlerAdapter(statsService),
 	}
 }
 
@@ -43,7 +43,6 @@ func (h *handlerAdapter) APIV1PingGet(ctx context.Context) (*antifraud_v1.APIV1P
 		Status: opt,
 	}, nil
 }
-
 
 func (h *handlerAdapter) APIV1StatsOverviewGet(ctx context.Context, params antifraud_v1.APIV1StatsOverviewGetParams) (antifraud_v1.APIV1StatsOverviewGetRes, error) {
 	return h.statsHandler.APIV1StatsOverviewGet(ctx, params)
@@ -175,26 +174,22 @@ func (h *handlerAdapter) APIV1TransactionsBatchPost(ctx context.Context, req *an
 		serviceRequests[i] = convertTransactionCreateRequest(&item, userID)
 	}
 
-	// Create batch request for service
 	batchRequest := model.TransactionBatchCreateRequest{
 		Items: serviceRequests,
 	}
 
-	// Call service to create batch
 	results, err := h.transactionService.CreateBatch(ctx, batchRequest)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create batch transactions: %w", err)
 	}
 
-	// Convert results to API format
 	apiItems := make([]antifraud_v1.TransactionBatchResultItem, len(results.Items))
 	hasErrors := false
-	
+
 	for i, item := range results.Items {
 		if item.Decision != nil {
 			apiTransaction := convertTransactionToAPI(item.Decision.Transaction)
-			
-			// Convert rule results
+
 			ruleResults := make([]antifraud_v1.FraudRuleEvaluationResult, len(item.Decision.RuleResults))
 			for j, rule := range item.Decision.RuleResults {
 				ruleUUID, _ := uuid.Parse(rule.RuleID)
@@ -207,7 +202,7 @@ func (h *handlerAdapter) APIV1TransactionsBatchPost(ctx context.Context, req *an
 					Description: antifraud_v1.OptString{Value: rule.Description, Set: rule.Description != ""},
 				}
 			}
-			
+
 			apiItems[i] = antifraud_v1.TransactionBatchResultItem{
 				Index: item.Index,
 				Decision: antifraud_v1.OptTransactionDecision{
@@ -323,7 +318,7 @@ func (h *handlerAdapter) APIV1TransactionsIDGet(ctx context.Context, params anti
 	}
 
 	apiTransaction := convertTransactionToAPI(txDecision.Transaction)
-	
+
 	// Convert rule results
 	ruleResults := make([]antifraud_v1.FraudRuleEvaluationResult, len(txDecision.RuleResults))
 	for i, rule := range txDecision.RuleResults {
@@ -337,7 +332,7 @@ func (h *handlerAdapter) APIV1TransactionsIDGet(ctx context.Context, params anti
 			Description: antifraud_v1.OptString{Value: rule.Description, Set: rule.Description != ""},
 		}
 	}
-	
+
 	transactionDecision := antifraud_v1.TransactionDecision{
 		Transaction: apiTransaction,
 		RuleResults: ruleResults,
@@ -347,10 +342,10 @@ func (h *handlerAdapter) APIV1TransactionsIDGet(ctx context.Context, params anti
 
 func convertTransactionCreateRequest(req *antifraud_v1.TransactionCreateRequest, userID string) model.TransactionCreateRequest {
 	createReq := model.TransactionCreateRequest{
-		UserID:               req.UserId,
-		Amount:               req.Amount,
-		Currency:             model.CurrencyCode(req.Currency),
-		Timestamp:            req.Timestamp,
+		UserID:    req.UserId,
+		Amount:    req.Amount,
+		Currency:  model.CurrencyCode(req.Currency),
+		Timestamp: req.Timestamp,
 	}
 
 	if req.MerchantId.Set {
@@ -402,14 +397,14 @@ func convertTransactionCreateRequest(req *antifraud_v1.TransactionCreateRequest,
 
 func convertTransactionToAPI(t *model.Transaction) antifraud_v1.Transaction {
 	transaction := antifraud_v1.Transaction{
-		ID:       t.ID,
-		UserId:   t.UserID,
-		Amount:   t.Amount,
-		Currency: antifraud_v1.CurrencyCode(t.Currency),
-		Status:   antifraud_v1.TransactionStatus(t.Status),
+		ID:        t.ID,
+		UserId:    t.UserID,
+		Amount:    t.Amount,
+		Currency:  antifraud_v1.CurrencyCode(t.Currency),
+		Status:    antifraud_v1.TransactionStatus(t.Status),
 		Timestamp: t.Timestamp,
-		Channel:  antifraud_v1.OptTransactionChannel{},
-		IsFraud:  t.IsFraud,
+		Channel:   antifraud_v1.OptTransactionChannel{},
+		IsFraud:   t.IsFraud,
 		CreatedAt: t.CreatedAt,
 	}
 
