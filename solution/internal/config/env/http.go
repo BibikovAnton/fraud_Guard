@@ -2,7 +2,6 @@ package env
 
 import (
 	"github.com/caarlos0/env/v11"
-	"os"
 )
 
 type HTTPEnvConfig struct {
