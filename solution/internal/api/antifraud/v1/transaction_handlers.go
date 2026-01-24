@@ -204,7 +204,7 @@ func (h *TransactionHandler) GetTransaction(w http.ResponseWriter, r *http.Reque
 func (h *TransactionHandler) GetTransactions(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	
-	_, err := h.extractUserIDFromToken(r)
+	userID, err := h.extractUserIDFromToken(r)
 	if err != nil {
 		writeErrorResponse(w, http.StatusUnauthorized, "UNAUTHORIZED", "Access denied: authentication required")
 		return
@@ -216,14 +216,19 @@ func (h *TransactionHandler) GetTransactions(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if userRole != "ADMIN" {
-		writeErrorResponse(w, http.StatusForbidden, "FORBIDDEN", "Access denied: only ADMIN can view all transactions")
-		return
-	}
-
 	userIDStr := r.URL.Query().Get("userId")
 	statusStr := r.URL.Query().Get("status")
 	isFraudStr := r.URL.Query().Get("isFraud")
+
+	// USER can only view their own transactions
+	if userRole != "ADMIN" {
+		if userIDStr != "" && userIDStr != userID {
+			writeErrorResponse(w, http.StatusForbidden, "FORBIDDEN", "USER can only view their own transactions")
+			return
+		}
+		// Force filter to current user's ID for non-admin
+		userIDStr = userID
+	}
 
 	params := service.TransactionListParams{
 		Page: 1,
@@ -264,21 +269,25 @@ func (h *TransactionHandler) validateAndConvertTransaction(raw map[string]interf
 
 	amountRaw, ok := raw["amount"].(float64)
 	if !ok {
-		return nil, fmt.Errorf("amount is required and must be number")
+		return nil, fmt.Errorf("must be greater > 0")
 	}
 	if amountRaw <= 0 {
 		return nil, fmt.Errorf("must be greater > 0")
 	}
-	if amountRaw > 999999999.99 {
-		return nil, fmt.Errorf("must be less than or equal to 999999999.99")
+	if amountRaw > model.MaxTransactionAmount {
+		return nil, fmt.Errorf("must be less than or equal to %.2f", model.MaxTransactionAmount)
 	}
 
 	currencyRaw, ok := raw["currency"].(string)
 	if !ok || currencyRaw == "" {
 		return nil, fmt.Errorf("currency is required")
 	}
-	validCurrencies := map[string]bool{"USD": true, "EUR": true, "RUB": true}
-	if !validCurrencies[currencyRaw] {
+	validCurrencies := map[model.CurrencyCode]bool{
+		model.CurrencyUSD: true,
+		model.CurrencyEUR: true,
+		model.CurrencyRUB: true,
+	}
+	if !validCurrencies[model.CurrencyCode(currencyRaw)] {
 		return nil, fmt.Errorf("invalid currency code: %s", currencyRaw)
 	}
 
@@ -288,7 +297,10 @@ func (h *TransactionHandler) validateAndConvertTransaction(raw map[string]interf
 	}
 	timestamp, err := time.Parse(time.RFC3339, timestampRaw)
 	if err != nil {
-		return nil, fmt.Errorf("invalid timestamp format")
+		return nil, fmt.Errorf("timestamp is required")
+	}
+	if timestamp.After(time.Now().Add(5 * time.Minute)) {
+		return nil, fmt.Errorf("timestamp cannot be more than 5 minutes in the future")
 	}
 
 	userUUID, err := uuid.Parse(userID)
@@ -433,13 +445,22 @@ func (h *TransactionHandler) extractUserRoleFromToken(r *http.Request) (string, 
 }
 
 func writeErrorResponse(w http.ResponseWriter, statusCode int, code, message string) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	response := map[string]interface{}{
 		"code":      code,
 		"message":   message,
 		"traceId":   uuid.New().String(),
-		"timestamp": time.Now().UTC(),
+		"timestamp": time.Now().UTC().Format(time.RFC3339),
 		"path":      "/api/v1/transactions",
-	})
+	}
+	
+	// Add details for specific error codes
+	if code == "NOT_FOUND" && strings.Contains(message, "User not found") {
+		response["details"] = map[string]interface{}{
+			"userId": "unknown",
+		}
+	}
+	
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+	json.NewEncoder(w).Encode(response)
 }
