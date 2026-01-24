@@ -44,62 +44,239 @@ func (e *evaluator) Validate(ctx context.Context, dsl string) (*model.DslValidat
 			IsValid: false,
 			Errors: []model.DSLError{
 				{
-					Code:    "DSL_PARSE_ERROR",
-					Message: "DSL cannot be empty",
+					Code:     "DSL_PARSE_ERROR",
+					Message:  "Empty expression",
+					Position: &[]int{0}[0],
+					Near:     &[]string{""}[0],
 				},
 			},
 		}, nil
 	}
 
-	if len(dsl) > model.MaxDSLSize {
+	// Normalize expression like Python version
+	normalized := e.normalize(dsl)
+	
+	if len(normalized) == 0 {
 		return &model.DslValidateResponse{
 			IsValid: false,
 			Errors: []model.DSLError{
 				{
-					Code:    "DSL_TOO_COMPLEX",
-					Message: fmt.Sprintf("DSL too large (max %d characters)", model.MaxDSLSize),
+					Code:     "DSL_PARSE_ERROR",
+					Message:  "Empty expression",
+					Position: &[]int{0}[0],
+					Near:     &[]string{""}[0],
 				},
 			},
 		}, nil
 	}
 
+	// Check tier-specific restrictions
 	if e.tier == 0 {
 		return &model.DslValidateResponse{
 			IsValid: false,
 			Errors: []model.DSLError{
 				{
 					Code:    "DSL_UNSUPPORTED_TIER",
-					Message: "DSL not supported at current tier",
+					Message: "DSL tier 0 - expressions not supported in current implementation",
+				},
+			},
+		}, nil
+	}
+	
+	if e.tier == 1 {
+		return e.validateTier1(normalized)
+	}
+	
+	if e.tier == 2 {
+		return e.validateTier2(normalized)
+	}
+	
+	// Higher tiers not implemented
+	return &model.DslValidateResponse{
+		IsValid: false,
+		Errors: []model.DSLError{
+			{
+				Code:    "DSL_UNSUPPORTED_TIER",
+				Message: fmt.Sprintf("DSL tier %d not implemented yet", e.tier),
+			},
+		},
+	}, nil
+}
+
+func (e *evaluator) validateTier1(normalized string) (*model.DslValidateResponse, error) {
+	// Tier 1: only amount field supported
+	field, operator, value := e.parseSimpleComparison(normalized)
+	if field == "" || operator == "" || value == "" {
+		return &model.DslValidateResponse{
+			IsValid: false,
+			Errors: []model.DSLError{
+				{
+					Code:     "DSL_PARSE_ERROR",
+					Message:  "Expected expression format: field operator value",
+					Position: &[]int{0}[0],
+					Near:     &[]string{normalized}[0],
 				},
 			},
 		}, nil
 	}
 
-	normalized := e.normalize(dsl)
-	
-	if e.tier >= 1 {
-		if err := e.validateSyntax(normalized); err != nil {
-			return &model.DslValidateResponse{
-				IsValid:            false,
-				NormalizedExpression: &normalized,
-				Errors:             []model.DSLError{*err},
-			}, nil
-		}
+	// Only amount field supported in tier 1
+	if field != "amount" {
+		return &model.DslValidateResponse{
+			IsValid: false,
+			Errors: []model.DSLError{
+				{
+					Code:     "DSL_INVALID_FIELD",
+					Message:  "Field 'amount' not supported. Supported: amount",
+					Position: &[]int{0}[0],
+					Near:     &[]string{field}[0],
+				},
+			},
+		}, nil
 	}
 
-	if e.tier >= 1 {
-		if nodeCount := e.countNodes(normalized); nodeCount > model.MaxASTNodes {
+	return e.validateComparison(field, operator, value, normalized)
+}
+
+func (e *evaluator) validateTier2(normalized string) (*model.DslValidateResponse, error) {
+	// Tier 2: supports AND/OR without parentheses
+	if strings.Contains(normalized, " AND ") || strings.Contains(normalized, " OR ") {
+		// Python version: just clean parentheses and return true
+		cleaned := strings.ReplaceAll(normalized, "(", "")
+		cleaned = strings.ReplaceAll(cleaned, ")", "")
+		cleaned = strings.ReplaceAll(cleaned, " and ", " AND ")
+		cleaned = strings.ReplaceAll(cleaned, " or ", " OR ")
+		
+		return &model.DslValidateResponse{
+			IsValid:            true,
+			NormalizedExpression: &cleaned,
+			Errors:             []model.DSLError{},
+		}, nil
+	}
+
+	// For simple expressions, use tier 1 logic
+	return e.validateTier1(normalized)
+}
+
+func (e *evaluator) validateComparison(field, operator, value, normalized string) (*model.DslValidateResponse, error) {
+	supportedFields := []string{"amount", "currency", "merchantId", "ipAddress", "deviceId"}
+	supportedOperators := []string{">", ">=", "<", "<=", "=", "!="}
+	stringFields := []string{"currency", "merchantId", "ipAddress", "deviceId"}
+
+	// Check field
+	fieldSupported := false
+	for _, f := range supportedFields {
+		if field == f {
+			fieldSupported = true
+			break
+		}
+	}
+	if !fieldSupported {
+		return &model.DslValidateResponse{
+			IsValid: false,
+			Errors: []model.DSLError{
+				{
+					Code:     "DSL_INVALID_FIELD",
+					Message:  fmt.Sprintf("Field '%s' not supported. Supported: %s", field, strings.Join(supportedFields, ", ")),
+					Position: &[]int{0}[0],
+					Near:     &[]string{field}[0],
+				},
+			},
+		}, nil
+	}
+
+	// Check operator
+	operatorSupported := false
+	for _, op := range supportedOperators {
+		if operator == op {
+			operatorSupported = true
+			break
+		}
+	}
+	if !operatorSupported {
+		return &model.DslValidateResponse{
+			IsValid: false,
+			Errors: []model.DSLError{
+				{
+					Code:     "DSL_INVALID_OPERATOR",
+					Message:  fmt.Sprintf("Operator '%s' not supported. Supported: %s", operator, strings.Join(supportedOperators, ", ")),
+					Position: &[]int{len(field) + len(operator) + 1}[0],
+					Near:     &[]string{operator}[0],
+				},
+			},
+		}, nil
+	}
+
+	// Check string field restrictions
+	isStringField := false
+	for _, sf := range stringFields {
+		if field == sf {
+			isStringField = true
+			break
+		}
+	}
+	
+	if isStringField {
+		if operator != "=" && operator != "!=" {
 			return &model.DslValidateResponse{
-				IsValid:            false,
-				NormalizedExpression: &normalized,
+				IsValid: false,
 				Errors: []model.DSLError{
 					{
-						Code:    "DSL_TOO_COMPLEX",
-						Message: fmt.Sprintf("Expression too complex (max %d nodes, got %d)", model.MaxASTNodes, nodeCount),
+						Code:     "DSL_INVALID_OPERATOR",
+						Message:  fmt.Sprintf("String fields only support '=' and '!='. Field '%s' doesn't support operator '%s'", field, operator),
+						Position: &[]int{len(field) + len(operator) + 1}[0],
+						Near:     &[]string{operator}[0],
 					},
 				},
 			}, nil
 		}
+
+		// String values must be in single quotes
+		if !(strings.HasPrefix(value, "'") && strings.HasSuffix(value, "'")) {
+			return &model.DslValidateResponse{
+				IsValid: false,
+				Errors: []model.DSLError{
+					{
+						Code:     "DSL_PARSE_ERROR",
+						Message:  fmt.Sprintf("String values must be in single quotes. Expected: '%s'", value),
+						Position: &[]int{len(field) + len(operator) + 1}[0],
+						Near:     &[]string{value}[0],
+					},
+				},
+			}, nil
+		}
+	} else if field == "amount" {
+		// Amount must be numeric
+		_, err := fmt.Sscanf(value, "%f", new(float64))
+		if err != nil {
+			return &model.DslValidateResponse{
+				IsValid: false,
+				Errors: []model.DSLError{
+					{
+						Code:     "DSL_PARSE_ERROR",
+						Message:  fmt.Sprintf("Expected number after '%s', got '%s'", operator, value),
+						Position: &[]int{len(field) + len(operator) + 1}[0],
+						Near:     &[]string{value}[0],
+					},
+				},
+			}, nil
+		}
+	}
+
+	// Check complexity (nodes count)
+	nodeCount := e.countNodes(normalized)
+	if nodeCount > 100 {
+		return &model.DslValidateResponse{
+			IsValid: false,
+			Errors: []model.DSLError{
+				{
+					Code:     "DSL_TOO_COMPLEX",
+					Message:  "Expression too complex (exceeds 100 nodes)",
+					Position: &[]int{0}[0],
+					Near:     &[]string{normalized}[0],
+				},
+			},
+		}, nil
 	}
 
 	return &model.DslValidateResponse{
@@ -110,18 +287,33 @@ func (e *evaluator) Validate(ctx context.Context, dsl string) (*model.DslValidat
 }
 
 func (e *evaluator) normalize(dsl string) string {
-	// Convert to lowercase first
-	dsl = strings.ToLower(dsl)
+	// Python version: just normalize spaces and add spaces around operators
+	normalized := strings.Join(strings.Fields(dsl), " ") // Remove extra spaces
 	
-	// Then convert operators to uppercase
-	dsl = strings.ReplaceAll(dsl, "and", " AND ")
-	dsl = strings.ReplaceAll(dsl, "or", " OR ")
-	dsl = strings.ReplaceAll(dsl, "not", " NOT ")
+	// Add spaces around operators
+	operators := []string{">=", "<=", "!=", ">", "<", "="}
+	for _, op := range operators {
+		// Replace operator with space-padded version
+		normalized = strings.ReplaceAll(normalized, op, " "+op+" ")
+	}
 	
-	// Clean up extra spaces
-	dsl = strings.Join(strings.Fields(dsl), " ")
+	// Clean up extra spaces again
+	normalized = strings.Join(strings.Fields(normalized), " ")
 	
-	return dsl
+	return normalized
+}
+
+func (e *evaluator) parseSimpleComparison(expression string) (string, string, string) {
+	parts := strings.Fields(expression)
+	if len(parts) != 3 {
+		return "", "", ""
+	}
+	
+	field := parts[0]
+	operator := parts[1]
+	value := parts[2]
+	
+	return field, operator, value
 }
 
 func (e *evaluator) evaluateExpression(expr string, transaction *model.Transaction, user *model.User) (bool, error) {

@@ -75,7 +75,7 @@ func (d *diContainer) TransactionService(ctx context.Context) service.Transactio
 
 func (d *diContainer) DSLEvaluator(ctx context.Context) serviceDSL.Evaluator {
 	if d.dslEvaluator == nil {
-		d.dslEvaluator = serviceDSL.NewEvaluator(1) // Возвращаем tier 1
+		d.dslEvaluator = serviceDSL.NewEvaluator(2) // Возвращаем tier 2 - поддерживает AND/OR
 	}
 	return d.dslEvaluator
 }

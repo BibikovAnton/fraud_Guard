@@ -19,8 +19,8 @@ func NewStatsHandlerAdapter(statsService stats.Service) *statsHandlerAdapter {
 }
 
 func (h *statsHandlerAdapter) APIV1StatsOverviewGet(ctx context.Context, params antifraud_v1.APIV1StatsOverviewGetParams) (antifraud_v1.APIV1StatsOverviewGetRes, error) {
-	// Parse query parameters
-	from := time.Now().AddDate(0, -1, 0) // Default: 1 month ago
+	
+	from := time.Now().AddDate(0, -1, 0) 
 	to := time.Now()
 	
 	if params.From.Set {
@@ -43,7 +43,7 @@ func (h *statsHandlerAdapter) APIV1StatsOverviewGet(ctx context.Context, params 
 			MerchantId:           merchant.MerchantID,
 			MerchantCategoryCode: antifraud_v1.OptMccCode{Value: antifraud_v1.MccCode(merchant.MerchantCategoryCode), Set: true},
 			TxCount:              int(merchant.TxCount),
-			Gmv:                  antifraud_v1.OptFloat64{Value: merchant.GMV, Set: true},
+			Gmv:                  merchant.GMV,
 			DeclineRate:          merchant.DeclineRate,
 		}
 	}
@@ -156,7 +156,7 @@ func (h *statsHandlerAdapter) APIV1StatsMerchantsRiskGet(ctx context.Context, pa
 			MerchantId:           item.MerchantID,
 			MerchantCategoryCode: antifraud_v1.OptMccCode{Value: antifraud_v1.MccCode(item.MerchantCategoryCode), Set: true},
 			TxCount:              int(item.TxCount),
-			Gmv:                  antifraud_v1.OptFloat64{Value: item.GMV, Set: true},
+			Gmv:                  item.GMV,
 			DeclineRate:          item.DeclineRate,
 		}
 	}

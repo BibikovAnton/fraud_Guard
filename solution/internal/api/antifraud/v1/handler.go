@@ -197,9 +197,8 @@ func (h *handlerAdapter) APIV1TransactionsBatchPost(ctx context.Context, req *an
 					RuleId:      ruleUUID,
 					RuleName:    rule.RuleName,
 					Priority:    rule.Priority,
-					Enabled:     rule.Enabled,
 					Matched:     rule.Matched,
-					Description: antifraud_v1.OptString{Value: rule.Description, Set: rule.Description != ""},
+					Description: rule.Description,
 				}
 			}
 
@@ -327,9 +326,8 @@ func (h *handlerAdapter) APIV1TransactionsIDGet(ctx context.Context, params anti
 			RuleId:      ruleUUID,
 			RuleName:    rule.RuleName,
 			Priority:    rule.Priority,
-			Enabled:     rule.Enabled,
 			Matched:     rule.Matched,
-			Description: antifraud_v1.OptString{Value: rule.Description, Set: rule.Description != ""},
+			Description: rule.Description,
 		}
 	}
 
