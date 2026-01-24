@@ -48,7 +48,8 @@ func (d *diContainer) V1API(ctx context.Context) antifraud_v1.Handler {
 
 func (d *diContainer) UserService(ctx context.Context) service.UserService {
 	if d.userService == nil {
-		d.userService = serviceUser.NewUserService(d.UserRepository(ctx), config.AppConfig().RandomSecret.RANDOM_SECRET())
+		logger := zap.L()
+		d.userService = serviceUser.NewUserService(d.UserRepository(ctx), logger)
 	}
 	return d.userService
 }

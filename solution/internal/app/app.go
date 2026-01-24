@@ -2,28 +2,25 @@ package app
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-faster/errors"
-	"github.com/ogen-go/ogen/ogenerrors"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 
 	v1 "solution/internal/api/antifraud/v1"
-	transactionMiddleware "solution/internal/api/middleware"
 	"solution/internal/config"
 	"solution/internal/migrator"
 	antifraud_v1 "solution/pkg/openapi/antifraud/v1"
 	"solution/platform/pkg/closer"
 	"solution/platform/pkg/logger"
+	"strings"
 )
 
 type App struct {
@@ -119,63 +116,12 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(10 * time.Second))
-	
-	// Custom middleware to convert 400 validation errors to 422
-	r.Use(func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// Custom response writer to intercept status codes
-			wrapper := &responseWriterWrapper{
-				ResponseWriter: w,
-				statusCode:     200,
-			}
-			
-			next.ServeHTTP(wrapper, r)
-			
-			// Convert 400 to 422 for validation errors
-			if wrapper.statusCode == 400 {
-				w.Header().Set("Content-Type", "application/json; charset=utf-8")
-				w.WriteHeader(http.StatusUnprocessableEntity)
-				
-				errorResp := map[string]interface{}{
-					"code":    "VALIDATION_ERROR", 
-					"message": "Validation failed",
-					"traceId": "00000000-0000-0000-0000-000000000000",
-				}
-				
-				json.NewEncoder(w).Encode(errorResp)
-				return
-			}
-		})
-	})
 
 	handlerAdapter := v1.NewHandlerAdapter(a.diContainer.UserService(ctx), a.diContainer.FraudRuleService(ctx), a.diContainer.TransactionService(ctx), a.diContainer.StatsService(ctx))
 	secHandlerAdapter := v1.NewSecurityHandlerAdapter()
 
-	// Создаем middleware для перехвата transactions
-	txMiddleware := transactionMiddleware.NewTransactionMiddleware(a.diContainer.TransactionService(ctx))
+	transactionHandler := v1.NewTransactionHandler(a.diContainer.UserService(ctx), a.diContainer.TransactionService(ctx))
 
-	// Custom error handler to convert 400 validation errors to 422
-	customErrorHandler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, err error) {
-		
-		if strings.Contains(err.Error(), "400") || strings.Contains(err.Error(), "validation") {
-			w.Header().Set("Content-Type", "application/json; charset=utf-8")
-			w.WriteHeader(http.StatusUnprocessableEntity)
-			
-			errorResp := map[string]interface{}{
-				"code":    "VALIDATION_ERROR", 
-				"message": "Validation failed",
-				"traceId": "00000000-0000-0000-0000-000000000000",
-			}
-			
-			json.NewEncoder(w).Encode(errorResp)
-			return
-		}
-		
-		// Use default error handler for other errors
-		ogenerrors.DefaultErrorHandler(ctx, w, r, err)
-	}
-
-	// Add logging middleware to log ALL requests
 	loggingMiddleware := func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(os.Stderr, "=== HTTP REQUEST ===\n")
@@ -189,21 +135,25 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 		})
 	}
 
-	antifraudServer, err := antifraud_v1.NewServer(handlerAdapter, secHandlerAdapter, antifraud_v1.WithErrorHandler(customErrorHandler))
+	antifraudServer, err := antifraud_v1.NewServer(handlerAdapter, secHandlerAdapter)
 	if err != nil {
 		logger.Error(ctx, "Error creating OpenAPI antifraudServer", zap.Error(err))
 		return err
 	}
 
-	logger.Info(ctx, "OpenAPI server created successfully", zap.Any("server", antifraudServer != nil))
+	logger.Info(ctx, "Creating custom HTTP handlers without OpenAPI validation")
+	
+	r.Route("/api/v1", func(r chi.Router) {
+		r.Use(loggingMiddleware)
+		
+		r.Post("/transactions", transactionHandler.CreateTransaction)
+		r.Post("/transactions/batch", transactionHandler.CreateBatchTransactions)
+		r.Get("/transactions/{id}", transactionHandler.GetTransaction)
+		r.Get("/transactions", transactionHandler.GetTransactions)
+		
+		r.Mount("/", antifraudServer)
+	})
 
-	if antifraudServer != nil {
-		logger.Info(ctx, "Mounting OpenAPI server with transaction middleware on /api/v1")
-		// Оборачиваем OpenAPI сервер в наш middleware
-		r.Mount("/api/v1", loggingMiddleware(txMiddleware.Wrap(antifraudServer)))
-	}
-
-	// Wrap the entire router with logging
 	finalHandler := loggingMiddleware(r)
 
 	a.httpServer = &http.Server{

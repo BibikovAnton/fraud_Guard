@@ -19,6 +19,8 @@ type UserService interface {
 	UpdateByAdmin(ctx context.Context, userID string, req model.UserUpdateRequest) (*model.User, error)
 	SoftDelete(ctx context.Context, userID string) error
 	GetAll(ctx context.Context, page, size int) ([]*model.User, int, error)
+	ValidateTokenAndGetUserID(token string) (string, error)
+	ValidateTokenAndGetUserRole(token string) (string, error)
 }
 
 type FraudRuleService interface {
