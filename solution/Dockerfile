@@ -6,15 +6,15 @@ RUN apk add --no-cache ca-certificates git gcc g++ libc-dev binutils
 WORKDIR /opt
 
 # Download dependencies.
-COPY go.mod go.sum ./
+COPY solution/go.mod solution/go.sum ./
 RUN go mod download && go mod verify
 
 # Copy application source.
-COPY cmd ./cmd/
-COPY internal ./internal/
-COPY pkg ./pkg/
-COPY platform ./platform/
-COPY migrations ./migrations/
+COPY solution/cmd ./cmd/
+COPY solution/internal ./internal/
+COPY solution/pkg ./pkg/
+COPY solution/platform ./platform/
+COPY solution/migrations ./migrations/
 
 # Debug: Check if directories exist
 RUN ls -la ./cmd && ls -la ./migrations
