@@ -47,12 +47,18 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 
 	transactionReq, err := h.validateAndConvertTransaction(rawRequest, userID, userRole)
 	if err != nil {
-		if strings.Contains(err.Error(), "failed to get user by ID") {
-			writeErrorResponse(w, http.StatusNotFound, "NOT_FOUND", "User not found")
-		} else if strings.Contains(err.Error(), "user is deactivated") {
-			writeErrorResponse(w, http.StatusForbidden, "FORBIDDEN", "User is deactivated")
+		// Check if it's a validation error that should return 422 with fieldErrors
+		fieldErrors := h.extractFieldErrors(err.Error(), rawRequest)
+		if len(fieldErrors) > 0 {
+			writeValidationErrorResponse(w, "/api/v1/transactions", fieldErrors)
 		} else {
-			writeErrorResponse(w, http.StatusUnprocessableEntity, "VALIDATION_FAILED", err.Error())
+			if strings.Contains(err.Error(), "failed to get user by ID") {
+				writeErrorResponse(w, http.StatusNotFound, "NOT_FOUND", "User not found")
+			} else if strings.Contains(err.Error(), "user is deactivated") {
+				writeErrorResponse(w, http.StatusForbidden, "FORBIDDEN", "User is deactivated")
+			} else {
+				writeErrorResponse(w, http.StatusUnprocessableEntity, "VALIDATION_FAILED", err.Error())
+			}
 		}
 		return
 	}
@@ -467,6 +473,56 @@ func writeErrorResponseWithPath(w http.ResponseWriter, statusCode int, code, mes
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 	json.NewEncoder(w).Encode(response)
+}
+
+func (h *TransactionHandler) extractFieldErrors(errMsg string, rawRequest map[string]interface{}) []map[string]interface{} {
+	var fieldErrors []map[string]interface{}
+	
+	if strings.Contains(errMsg, "must be greater > 0") {
+		if val, ok := rawRequest["amount"]; ok {
+			fieldErrors = append(fieldErrors, map[string]interface{}{
+				"field":        "amount",
+				"issue":        "must be greater > 0",
+				"rejectedValue": val,
+			})
+		}
+	}
+	
+	if strings.Contains(errMsg, "must be less than or equal to") {
+		if val, ok := rawRequest["amount"]; ok {
+			fieldErrors = append(fieldErrors, map[string]interface{}{
+				"field":        "amount", 
+				"issue":        errMsg,
+				"rejectedValue": val,
+			})
+		}
+	}
+	
+	if strings.Contains(errMsg, "currency is required") {
+		fieldErrors = append(fieldErrors, map[string]interface{}{
+			"field":        "currency",
+			"issue":        "currency is required",
+			"rejectedValue": rawRequest["currency"],
+		})
+	}
+	
+	if strings.Contains(errMsg, "timestamp is required") {
+		fieldErrors = append(fieldErrors, map[string]interface{}{
+			"field":        "timestamp",
+			"issue":        "timestamp is required", 
+			"rejectedValue": rawRequest["timestamp"],
+		})
+	}
+	
+	if strings.Contains(errMsg, "userId is required for admin") {
+		fieldErrors = append(fieldErrors, map[string]interface{}{
+			"field":        "userId",
+			"issue":        "userId is required for admin",
+			"rejectedValue": rawRequest["userId"],
+		})
+	}
+	
+	return fieldErrors
 }
 
 func writeValidationErrorResponse(w http.ResponseWriter, path string, fieldErrors []map[string]interface{}) {

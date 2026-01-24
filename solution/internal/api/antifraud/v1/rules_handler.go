@@ -479,10 +479,17 @@ func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *a
 			Code:     err.Code,
 			Message:  err.Message,
 			Position: antifraud_v1.OptNilInt{Set: false},
+			Near:     antifraud_v1.OptNilString{Set: false},
 		}
 		if err.Position != nil {
 			errors[i].Position = antifraud_v1.OptNilInt{
 				Value: *err.Position,
+				Set:   true,
+			}
+		}
+		if err.Near != nil {
+			errors[i].Near = antifraud_v1.OptNilString{
+				Value: *err.Near,
 				Set:   true,
 			}
 		}
