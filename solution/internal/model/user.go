@@ -13,6 +13,7 @@ type User struct {
 	FullName      string         `json:"fullName"`
 	Age           *int           `json:"age,omitempty"`
 	Region        *string        `json:"region,omitempty"`
+	Score         *float64       `json:"score,omitempty"`
 	Gender        *Gender        `json:"gender,omitempty"`
 	MaritalStatus *MaritalStatus `json:"maritalStatus,omitempty"`
 	Role          UserRole       `json:"role"`
@@ -92,7 +93,7 @@ type UserUpdateRequest struct {
 	IsActive      *bool          `json:"isActive,omitempty"`
 }
 
-func NewUser(email, passwordHash, fullName string, role UserRole, age *int, region *string, gender *Gender, maritalStatus *MaritalStatus) User {
+func NewUser(email, passwordHash, fullName string, role UserRole, age *int, region *string, score *float64, gender *Gender, maritalStatus *MaritalStatus) User {
 	now := time.Now().UTC() // всегда храним время в UTC для консистентности
 	return User{
 		ID:            uuid.New().String(),
@@ -101,6 +102,7 @@ func NewUser(email, passwordHash, fullName string, role UserRole, age *int, regi
 		FullName:      fullName,
 		Age:           age,
 		Region:        region,
+		Score:         score,
 		Gender:        gender,
 		MaritalStatus: maritalStatus,
 		Role:          role,

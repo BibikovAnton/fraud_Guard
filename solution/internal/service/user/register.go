@@ -22,7 +22,7 @@ func (s *userService) Register(ctx context.Context, req model.RegisterRequest) (
 		return nil, fmt.Errorf("password hashing failed: %w", hashErr)
 	}
 
-	newUser := model.NewUser(req.Email, string(hashedPassword), req.FullName, model.UserRoleConst, req.Age, req.Region, req.Gender, req.MaritalStatus)
+	newUser := model.NewUser(req.Email, string(hashedPassword), req.FullName, model.UserRoleConst, req.Age, req.Region, nil, req.Gender, req.MaritalStatus)
 
 	if err := s.userRepo.Create(ctx, newUser); err != nil {
 		return nil, fmt.Errorf("user creation failed: %w", err)

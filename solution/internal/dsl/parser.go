@@ -77,9 +77,23 @@ func (e *DSLEvaluator) EvaluateRule(rule *model.FraudRule, transaction *model.Tr
 		}
 		
 	case "user.score":
-		// user.score is not implemented in current model, return not matched
-		result.Matched = false
-		result.Description = "User score not implemented"
+		var threshold float64
+		if _, err := fmt.Sscanf(value, "%f", &threshold); err == nil {
+			if user != nil && user.Score != nil {
+				score := float64(*user.Score)
+				matched := e.compareFloats(score, operator, threshold)
+				result.Matched = matched
+				if matched {
+					result.Description = fmt.Sprintf("User score %.2f %s %.2f", *user.Score, operator, threshold)
+				} else {
+					result.Description = fmt.Sprintf("User score %.2f not %s %.2f", *user.Score, operator, threshold)
+				}
+			} else {
+				result.Description = "User score not available"
+			}
+		} else {
+			result.Description = "Invalid score value"
+		}
 		
 	default:
 		result.Description = "Unsupported field"
@@ -234,18 +248,17 @@ func (e *DSLEvaluator) compareFloats(a float64, operator string, b float64) bool
 }
 
 func (e *DSLEvaluator) normalizeExpression(expression string) string {
-	normalized := strings.ToUpper(expression)
-	normalized = strings.ReplaceAll(normalized, "AND", " AND ")
-	normalized = strings.ReplaceAll(normalized, "OR", " OR ")
-	normalized = strings.ReplaceAll(normalized, "NOT", " NOT ")
+	// Remove extra whitespace and trim
+	normalized := strings.Join(strings.Fields(expression), " ")
 	
-	normalized = strings.Join(strings.Fields(normalized), " ")
-	
+	// Add spaces around operators
 	for _, op := range []string{">=", "<=", "!=", ">", "<", "="} {
 		normalized = strings.ReplaceAll(normalized, op, " "+op+" ")
 	}
 	
+	// Clean up multiple spaces again
 	normalized = strings.Join(strings.Fields(normalized), " ")
+	
 	return strings.TrimSpace(normalized)
 }
 
