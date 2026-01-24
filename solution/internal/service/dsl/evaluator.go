@@ -110,11 +110,15 @@ func (e *evaluator) Validate(ctx context.Context, dsl string) (*model.DslValidat
 }
 
 func (e *evaluator) normalize(dsl string) string {
-	dsl = strings.ToUpper(dsl)
-	dsl = strings.ReplaceAll(dsl, "AND", " AND ")
-	dsl = strings.ReplaceAll(dsl, "OR", " OR ")
-	dsl = strings.ReplaceAll(dsl, "NOT", " NOT ")
+	// Convert to lowercase first
+	dsl = strings.ToLower(dsl)
 	
+	// Then convert operators to uppercase
+	dsl = strings.ReplaceAll(dsl, "and", " AND ")
+	dsl = strings.ReplaceAll(dsl, "or", " OR ")
+	dsl = strings.ReplaceAll(dsl, "not", " NOT ")
+	
+	// Clean up extra spaces
 	dsl = strings.Join(strings.Fields(dsl), " ")
 	
 	return dsl
