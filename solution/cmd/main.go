@@ -31,7 +31,7 @@ func main() {
 
 	err = a.Run(appCtx)
 	if err != nil {
-		logger.Error(appCtx, "Application error", zap.Error(err))
+		logger.Error(appCtx, "Application Error", zap.Error(err))
 		return
 	}
 }
