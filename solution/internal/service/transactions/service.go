@@ -252,7 +252,7 @@ func (s *Service) applyFraudRules(ctx context.Context, transaction *model.Transa
 	fmt.Printf("DEBUG: Processing %d rules for transaction %s\n", len(sortedRules), transaction.ID.String())
 	for i, rule := range sortedRules {
 		fmt.Printf("DEBUG: Rule[%d]: ID=%s, Name=%s, DSL=%s, Priority=%d, Active=%v\n", 
-			i, rule.ID.String(), rule.Name, rule.DslExpression, rule.Priority, rule.IsActive)
+			i, rule.ID, rule.Name, rule.DslExpression, rule.Priority, rule.Enabled)
 	}
 
 	for _, rule := range sortedRules {
@@ -269,7 +269,7 @@ func (s *Service) applyFraudRules(ctx context.Context, transaction *model.Transa
 			RuleID:      rule.ID,
 			RuleName:    rule.Name,
 			Priority:    rule.Priority,
-			Enabled:     rule.IsActive,
+			Enabled:     rule.Enabled,
 			Matched:     matched,
 			Description: description,
 		}
