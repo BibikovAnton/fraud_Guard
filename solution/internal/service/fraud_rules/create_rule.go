@@ -45,7 +45,7 @@ func (s *service) Create(ctx context.Context, req model.FraudRuleCreateRequest) 
 		UpdatedAt:     now,
 	}
 
-	if err := s.fraudRuleRepo.Create(ctx, rule); err != nil {
+	if err = s.fraudRuleRepo.Create(ctx, rule); err != nil {
 		return nil, fmt.Errorf("failed to create fraud rule: %w", err)
 	}
 
