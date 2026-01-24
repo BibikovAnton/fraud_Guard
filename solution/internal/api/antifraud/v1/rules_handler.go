@@ -3,13 +3,13 @@ package v1
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"solution/internal/api/antifraud/v1/convertor"
 	"solution/internal/model"
 	antifraud_v1 "solution/pkg/openapi/antifraud/v1"
 	"strings"
-	"time"
 )
 
 func (h *handlerAdapter) APIV1FraudRulesGet(ctx context.Context) (antifraud_v1.APIV1FraudRulesGetRes, error) {
@@ -444,6 +444,29 @@ func (h *handlerAdapter) APIV1FraudRulesPost(ctx context.Context, req *antifraud
 }
 
 func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *antifraud_v1.DslValidateRequest) (antifraud_v1.APIV1FraudRulesValidatePostRes, error) {
+	if ctx == nil {
+		return &antifraud_v1.APIV1FraudRulesValidatePostUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Context is required",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/fraud-rules/validate",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	userRole, ok := ctx.Value(ContextRoleKey).(string)
+	if !ok || userRole != "ADMIN" {
+		return &antifraud_v1.APIV1FraudRulesValidatePostForbidden{
+			Code:      antifraud_v1.ErrorCodeFORBIDDEN,
+			Message:   "Access denied: only ADMIN can validate DSL",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/fraud-rules/validate",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
 	validateReq := model.DslValidateRequest{
 		DslExpression: req.DslExpression,
 	}

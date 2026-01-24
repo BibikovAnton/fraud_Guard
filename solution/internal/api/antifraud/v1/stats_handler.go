@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/google/uuid"
 	antifraud_v1 "solution/pkg/openapi/antifraud/v1"
 	"solution/internal/service/stats"
 )
@@ -19,6 +20,28 @@ func NewStatsHandlerAdapter(statsService stats.Service) *statsHandlerAdapter {
 }
 
 func (h *statsHandlerAdapter) APIV1StatsOverviewGet(ctx context.Context, params antifraud_v1.APIV1StatsOverviewGetParams) (antifraud_v1.APIV1StatsOverviewGetRes, error) {
+	if ctx == nil {
+		return &antifraud_v1.APIV1StatsOverviewGetUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Context is required",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/stats/overview",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	userRole, ok := ctx.Value(ContextRoleKey).(string)
+	if !ok || userRole != "ADMIN" {
+		return &antifraud_v1.APIV1StatsOverviewGetForbidden{
+			Code:      antifraud_v1.ErrorCodeFORBIDDEN,
+			Message:   "Access denied: only ADMIN can view statistics",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/stats/overview",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
 	
 	from := time.Now().AddDate(0, -1, 0) 
 	to := time.Now()
