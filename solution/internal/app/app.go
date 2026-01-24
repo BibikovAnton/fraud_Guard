@@ -151,6 +151,9 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 		r.Get("/transactions/{id}", transactionHandler.GetTransaction)
 		r.Get("/transactions", transactionHandler.GetTransactions)
 		
+		// Add custom route for DSL validation that bypasses OpenAPI middleware
+		r.Post("/fraud-rules/validate", transactionHandler.ValidateDSL)
+		
 		r.Mount("/", antifraudServer)
 	})
 

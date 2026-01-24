@@ -598,6 +598,56 @@ func (h *TransactionHandler) extractFieldErrors(errMsg string, rawRequest map[st
 	return fieldErrors
 }
 
+func (h *TransactionHandler) ValidateDSL(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	
+	var req struct {
+		DslExpression string `json:"dslExpression"`
+	}
+	
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"code":      "VALIDATION_ERROR",
+			"message":   "Invalid JSON",
+			"traceId":   uuid.New().String(),
+			"timestamp": time.Now().UTC().Format(time.RFC3339),
+			"path":      "/api/v1/fraud-rules/validate",
+		})
+		return
+	}
+	
+	validateReq := model.DslValidateRequest{
+		DslExpression: req.DslExpression,
+	}
+	
+	result := h.fraudRuleService.ValidateDSL(r.Context(), validateReq)
+	
+	errors := make([]map[string]interface{}, len(result.Errors))
+	for i, err := range result.Errors {
+		errorObj := map[string]interface{}{
+			"code":    err.Code,
+			"message": err.Message,
+		}
+		if err.Position != nil && *err.Position > 0 {
+			errorObj["position"] = *err.Position
+		}
+		if err.Near != nil && *err.Near != "" {
+			errorObj["near"] = *err.Near
+		}
+		errors[i] = errorObj
+	}
+	
+	response := map[string]interface{}{
+		"isValid":              result.IsValid,
+		"normalizedExpression": result.NormalizedExpression,
+		"errors":               errors,
+	}
+	
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+}
+
 func writeValidationErrorResponse(w http.ResponseWriter, path string, fieldErrors []map[string]interface{}) {
 	response := map[string]interface{}{
 		"code":       "VALIDATION_FAILED",
