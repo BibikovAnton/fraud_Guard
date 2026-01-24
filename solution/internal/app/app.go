@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-faster/errors"
+	"github.com/ogen-go/ogen/ogenerrors"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 
@@ -148,7 +149,28 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 	handlerAdapter := v1.NewHandlerAdapter(a.diContainer.UserService(ctx), a.diContainer.FraudRuleService(ctx), a.diContainer.TransactionService(ctx))
 	secHandlerAdapter := v1.NewSecurityHandlerAdapter()
 
-	antifraudServer, err := antifraud_v1.NewServer(handlerAdapter, secHandlerAdapter)
+	// Custom error handler to convert 400 validation errors to 422
+	customErrorHandler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, err error) {
+		// Check if it's a validation error (status 400)
+		if strings.Contains(err.Error(), "400") || strings.Contains(err.Error(), "validation") {
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			w.WriteHeader(http.StatusUnprocessableEntity)
+			
+			errorResp := map[string]interface{}{
+				"code":    "VALIDATION_ERROR", 
+				"message": "Validation failed",
+				"traceId": "00000000-0000-0000-0000-000000000000",
+			}
+			
+			json.NewEncoder(w).Encode(errorResp)
+			return
+		}
+		
+		// Use default error handler for other errors
+		ogenerrors.DefaultErrorHandler(ctx, w, r, err)
+	}
+
+	antifraudServer, err := antifraud_v1.NewServer(handlerAdapter, secHandlerAdapter, antifraud_v1.WithErrorHandler(customErrorHandler))
 	if err != nil {
 		logger.Error(ctx, "Error creating OpenAPI antifraudServer", zap.Error(err))
 		return err
