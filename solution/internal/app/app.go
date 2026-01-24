@@ -18,6 +18,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	v1 "solution/internal/api/antifraud/v1"
+	transactionMiddleware "solution/internal/api/middleware"
 	"solution/internal/config"
 	"solution/internal/migrator"
 	antifraud_v1 "solution/pkg/openapi/antifraud/v1"
@@ -150,6 +151,9 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 	handlerAdapter := v1.NewHandlerAdapter(a.diContainer.UserService(ctx), a.diContainer.FraudRuleService(ctx), a.diContainer.TransactionService(ctx), a.diContainer.StatsService(ctx))
 	secHandlerAdapter := v1.NewSecurityHandlerAdapter()
 
+	// Создаем middleware для перехвата transactions
+	txMiddleware := transactionMiddleware.NewTransactionMiddleware(a.diContainer.TransactionService(ctx))
+
 	// Custom error handler to convert 400 validation errors to 422
 	customErrorHandler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, err error) {
 		
@@ -194,8 +198,9 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 	logger.Info(ctx, "OpenAPI server created successfully", zap.Any("server", antifraudServer != nil))
 
 	if antifraudServer != nil {
-		logger.Info(ctx, "Mounting OpenAPI server on /api/v1")
-		r.Mount("/api/v1", loggingMiddleware(antifraudServer))
+		logger.Info(ctx, "Mounting OpenAPI server with transaction middleware on /api/v1")
+		// Оборачиваем OpenAPI сервер в наш middleware
+		r.Mount("/api/v1", loggingMiddleware(txMiddleware.Wrap(antifraudServer)))
 	}
 
 	// Wrap the entire router with logging
