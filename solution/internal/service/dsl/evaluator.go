@@ -3,7 +3,6 @@ package dsl
 import (
 	"context"
 	"fmt"
-	"os"
 	"solution/internal/model"
 	"strings"
 )
