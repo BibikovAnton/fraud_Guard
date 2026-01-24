@@ -22,13 +22,15 @@ type handlerAdapter struct {
 	userService       service.UserService
 	fraudRuleService  service.FraudRuleService
 	transactionService service.TransactionService
+	statsHandler      *statsHandlerAdapter
 }
 
-func NewHandlerAdapter(userService service.UserService, fraudRuleService service.FraudRuleService, transactionService service.TransactionService) antifraud_v1.Handler {
+func NewHandlerAdapter(userService service.UserService, fraudRuleService service.FraudRuleService, transactionService service.TransactionService, statsService stats.Service) antifraud_v1.Handler {
 	return &handlerAdapter{
 		userService:       userService,
 		fraudRuleService:  fraudRuleService,
 		transactionService: transactionService,
+		statsHandler:      NewStatsHandlerAdapter(statsService),
 	}
 }
 
@@ -39,6 +41,27 @@ func (h *handlerAdapter) APIV1PingGet(ctx context.Context) (*antifraud_v1.APIV1P
 	return &antifraud_v1.APIV1PingGetOK{
 		Status: opt,
 	}, nil
+}
+
+// Stats methods - delegate to statsHandler
+func (h *handlerAdapter) APIV1StatsOverviewGet(ctx context.Context, params antifraud_v1.APIV1StatsOverviewGetParams) (antifraud_v1.APIV1StatsOverviewGetRes, error) {
+	return h.statsHandler.APIV1StatsOverviewGet(ctx, params)
+}
+
+func (h *handlerAdapter) APIV1StatsTransactionsTimeseriesGet(ctx context.Context, params antifraud_v1.APIV1StatsTransactionsTimeseriesGetParams) (antifraud_v1.APIV1StatsTransactionsTimeseriesGetRes, error) {
+	return h.statsHandler.APIV1StatsTransactionsTimeseriesGet(ctx, params)
+}
+
+func (h *handlerAdapter) APIV1StatsRulesMatchesGet(ctx context.Context, params antifraud_v1.APIV1StatsRulesMatchesGetParams) (antifraud_v1.APIV1StatsRulesMatchesGetRes, error) {
+	return h.statsHandler.APIV1StatsRulesMatchesGet(ctx, params)
+}
+
+func (h *handlerAdapter) APIV1StatsMerchantsRiskGet(ctx context.Context, params antifraud_v1.APIV1StatsMerchantsRiskGetParams) (antifraud_v1.APIV1StatsMerchantsRiskGetRes, error) {
+	return h.statsHandler.APIV1StatsMerchantsRiskGet(ctx, params)
+}
+
+func (h *handlerAdapter) APIV1StatsUsersIDRiskProfileGet(ctx context.Context, params antifraud_v1.APIV1StatsUsersIDRiskProfileGetParams) (antifraud_v1.APIV1StatsUsersIDRiskProfileGetRes, error) {
+	return h.statsHandler.APIV1StatsUsersIDRiskProfileGet(ctx, params)
 }
 
 func (h *handlerAdapter) APIV1TransactionsPost(ctx context.Context, req *antifraud_v1.TransactionCreateRequest) (antifraud_v1.APIV1TransactionsPostRes, error) {

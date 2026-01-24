@@ -9,11 +9,13 @@ import (
 	"solution/internal/config"
 	"solution/internal/repository"
 	repositoryFraudRules "solution/internal/repository/fraud_rules"
+	repositoryStats "solution/internal/repository/stats"
 	repositoryTransactions "solution/internal/repository/transactions"
 	repositoryUser "solution/internal/repository/user"
 	"solution/internal/service"
 	serviceDSL "solution/internal/service/dsl"
 	serviceFraudRules "solution/internal/service/fraud_rules"
+	serviceStats "solution/internal/service/stats"
 	serviceTransactions "solution/internal/service/transactions"
 	serviceUser "solution/internal/service/user"
 	"solution/platform/pkg/closer"
@@ -25,10 +27,12 @@ type diContainer struct {
 	userService       service.UserService
 	fraudRuleService  service.FraudRuleService
 	transactionService service.TransactionService
+	statsService       serviceStats.Service
 	dslEvaluator      serviceDSL.Evaluator
 
 	userRepository        repository.UserRepository
 	fraudRuleRepository   repositoryFraudRules.Repository
+	statsRepository       repositoryStats.Repository
 	transactionRepository repositoryTransactions.Repository
 
 	postgresConn     *pgx.Conn
@@ -40,7 +44,7 @@ func NewDIContainer() *diContainer {
 }
 
 func (d *diContainer) V1API(ctx context.Context) antifraud_v1.Handler {
-	return v1.NewHandlerAdapter(d.UserService(ctx), d.FraudRuleService(ctx), d.TransactionService(ctx))
+	return v1.NewHandlerAdapter(d.UserService(ctx), d.FraudRuleService(ctx), d.TransactionService(ctx), d.StatsService(ctx))
 }
 
 func (d *diContainer) UserService(ctx context.Context) service.UserService {
@@ -95,6 +99,20 @@ func (d *diContainer) TransactionRepository(ctx context.Context) repositoryTrans
 		d.transactionRepository = repositoryTransactions.NewRepository(d.PostgresDBClient(ctx))
 	}
 	return d.transactionRepository
+}
+
+func (d *diContainer) StatsRepository(ctx context.Context) repositoryStats.Repository {
+	if d.statsRepository == nil {
+		d.statsRepository = repositoryStats.NewRepository(d.PostgresDBClient(ctx))
+	}
+	return d.statsRepository
+}
+
+func (d *diContainer) StatsService(ctx context.Context) serviceStats.Service {
+	if d.statsService == nil {
+		d.statsService = serviceStats.NewService(d.StatsRepository(ctx))
+	}
+	return d.statsService
 }
 
 func (d *diContainer) PostgresDBClient(ctx context.Context) *pgx.Conn {
