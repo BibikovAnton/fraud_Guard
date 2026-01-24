@@ -445,12 +445,16 @@ func (h *TransactionHandler) extractUserRoleFromToken(r *http.Request) (string, 
 }
 
 func writeErrorResponse(w http.ResponseWriter, statusCode int, code, message string) {
+	writeErrorResponseWithPath(w, statusCode, code, message, "/api/v1/transactions")
+}
+
+func writeErrorResponseWithPath(w http.ResponseWriter, statusCode int, code, message, path string) {
 	response := map[string]interface{}{
 		"code":      code,
 		"message":   message,
 		"traceId":   uuid.New().String(),
 		"timestamp": time.Now().UTC().Format(time.RFC3339),
-		"path":      "/api/v1/transactions",
+		"path":      path,
 	}
 	
 	// Add details for specific error codes
@@ -462,5 +466,20 @@ func writeErrorResponse(w http.ResponseWriter, statusCode int, code, message str
 	
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
+	json.NewEncoder(w).Encode(response)
+}
+
+func writeValidationErrorResponse(w http.ResponseWriter, path string, fieldErrors []map[string]interface{}) {
+	response := map[string]interface{}{
+		"code":       "VALIDATION_FAILED",
+		"message":    "Some fields did not pass validation",
+		"traceId":    uuid.New().String(),
+		"timestamp":  time.Now().UTC().Format(time.RFC3339),
+		"path":       path,
+		"fieldErrors": fieldErrors,
+	}
+	
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusUnprocessableEntity)
 	json.NewEncoder(w).Encode(response)
 }

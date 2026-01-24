@@ -2,10 +2,10 @@ package dsl
 
 import (
 	"fmt"
-	"go.uber.org/zap"
 	"solution/internal/model"
 	"strconv"
 	"strings"
+	"go.uber.org/zap"
 )
 
 type DSLEvaluator struct {
@@ -117,44 +117,28 @@ func (e *DSLEvaluator) ValidateDSL(expression string) model.DslValidateResponse 
 		return response
 	}
 	
-	normalized := e.normalizeExpression(expression)
-	
-	if normalized == "" {
-		response.Errors = append(response.Errors, model.DSLError{
-			Code:    "DSL_PARSE_ERROR", 
-			Message: "Empty expression",
-		})
+	normalized, parseErr := e.parseAndNormalize(expression)
+	if parseErr != nil {
+		response.Errors = append(response.Errors, *parseErr)
 		return response
 	}
 	
-	if strings.Contains(normalized, " AND ") || strings.Contains(normalized, " OR ") {
-		response.Errors = append(response.Errors, model.DSLError{
-			Code:    "DSL_UNSUPPORTED_TIER",
-			Message: "AND/OR not implemented yet (requires Tier 3)",
-		})
-		return response
-	}
-	
-	if strings.Contains(normalized, " NOT ") || strings.Contains(normalized, "(") || strings.Contains(normalized, ")") {
-		response.Errors = append(response.Errors, model.DSLError{
-			Code:    "DSL_UNSUPPORTED_TIER", 
-			Message: "NOT and parentheses not implemented yet (requires Tier 4)",
-		})
-		return response
-	}
-	
+	// Validate field and operator
 	field, operator, value := e.parseSimpleComparison(normalized)
 	if field == "" || operator == "" || value == "" {
+		pos := findErrorPosition(expression, "operator")
+		near := extractNearText(expression, pos)
 		response.Errors = append(response.Errors, model.DSLError{
-			Code:    "DSL_PARSE_ERROR",
-			Message: "Expected expression format: field operator value",
+			Code:     "DSL_PARSE_ERROR",
+			Message:  "Expected expression format: field operator value",
+			Position: &pos,
+			Near:     &near,
 		})
 		return response
 	}
 	
 	supportedFields := []string{"amount", "user.age", "user.score"}
 	supportedOperators := []string{">", ">=", "<", "<=", "=", "!="}
-	stringFields := []string{}
 	
 	fieldSupported := false
 	for _, f := range supportedFields {
@@ -186,46 +170,85 @@ func (e *DSLEvaluator) ValidateDSL(expression string) model.DslValidateResponse 
 		return response
 	}
 	
-	isStringField := false
-	for _, sf := range stringFields {
-		if field == sf {
-			isStringField = true
-			break
-		}
-	}
-	
-	if isStringField {
-		if operator != "=" && operator != "!=" {
+	// Validate value based on field type
+	if field == "amount" || field == "user.age" || field == "user.score" {
+		if _, err := strconv.ParseFloat(value, 64); err != nil {
+			pos := findErrorPosition(expression, value)
+			near := extractNearText(expression, pos)
 			response.Errors = append(response.Errors, model.DSLError{
-				Code:    "DSL_INVALID_OPERATOR",
-				Message: fmt.Sprintf("String fields only support '=' and '!='. Field '%s' doesn't support operator '%s'", field, operator),
+				Code:     "DSL_PARSE_ERROR",
+				Message:  "Expected number value",
+				Position: &pos,
+				Near:     &near,
 			})
 			return response
-		}
-		
-		if !strings.HasPrefix(value, "'") || !strings.HasSuffix(value, "'") {
-			response.Errors = append(response.Errors, model.DSLError{
-				Code:    "DSL_PARSE_ERROR",
-				Message: fmt.Sprintf("String values must be in single quotes. Expected: '%s'", value),
-			})
-			return response
-		}
-	} else {
-		// Validate numeric fields
-		if field == "amount" || field == "user.age" || field == "user.score" {
-			if _, err := strconv.ParseFloat(value, 64); err != nil {
-				response.Errors = append(response.Errors, model.DSLError{
-					Code:    "DSL_PARSE_ERROR",
-					Message: fmt.Sprintf("Expected number after '%s', got '%s'", operator, value),
-				})
-				return response
-			}
 		}
 	}
 	
 	response.IsValid = true
 	response.NormalizedExpression = &normalized
 	return response
+}
+
+func (e *DSLEvaluator) parseAndNormalize(expression string) (string, *model.DSLError) {
+	// Trim whitespace
+	normalized := strings.TrimSpace(expression)
+	if normalized == "" {
+		return "", &model.DSLError{
+			Code:    "DSL_PARSE_ERROR",
+			Message: "Empty expression",
+		}
+	}
+	
+	// Convert to lowercase for case-insensitive operators
+	normalized = strings.ToLower(normalized)
+	
+	// Normalize operators spacing
+	normalized = strings.ReplaceAll(normalized, ">", " > ")
+	normalized = strings.ReplaceAll(normalized, "<", " < ")
+	normalized = strings.ReplaceAll(normalized, "=", " = ")
+	normalized = strings.ReplaceAll(normalized, "!", " ! ")
+	
+	// Clean up multiple spaces
+	words := strings.Fields(normalized)
+	normalized = strings.Join(words, " ")
+	
+	// Check for unsupported features
+	if strings.Contains(normalized, "and") || strings.Contains(normalized, "or") {
+		return "", &model.DSLError{
+			Code:    "DSL_UNSUPPORTED_TIER",
+			Message: "AND/OR not implemented yet (requires Tier 3)",
+		}
+	}
+	
+	if strings.Contains(normalized, "not") || strings.Contains(normalized, "(") || strings.Contains(normalized, ")") {
+		return "", &model.DSLError{
+			Code:    "DSL_UNSUPPORTED_TIER",
+			Message: "NOT and parentheses not implemented yet (requires Tier 4)",
+		}
+	}
+	
+	return normalized, nil
+}
+
+func findErrorPosition(expression, searchText string) int {
+	idx := strings.Index(strings.ToLower(expression), strings.ToLower(searchText))
+	if idx == -1 {
+		return 0
+	}
+	return idx
+}
+
+func extractNearText(expression string, pos int) string {
+	start := pos - 5
+	if start < 0 {
+		start = 0
+	}
+	end := pos + 5
+	if end > len(expression) {
+		end = len(expression)
+	}
+	return expression[start:end]
 }
 
 func (e *DSLEvaluator) compareFloats(a float64, operator string, b float64) bool {
