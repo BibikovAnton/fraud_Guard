@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -170,6 +171,20 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 		ogenerrors.DefaultErrorHandler(ctx, w, r, err)
 	}
 
+	// Add logging middleware to log ALL requests
+	loggingMiddleware := func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprintf(os.Stderr, "=== HTTP REQUEST ===\n")
+			fmt.Fprintf(os.Stderr, "METHOD: %s\n", r.Method)
+			fmt.Fprintf(os.Stderr, "PATH: %s\n", r.URL.Path)
+			fmt.Fprintf(os.Stderr, "QUERY: %s\n", r.URL.RawQuery)
+			fmt.Fprintf(os.Stderr, "HEADERS: %+v\n", r.Header)
+			fmt.Fprintf(os.Stderr, "=== END REQUEST ===\n")
+			
+			next.ServeHTTP(w, r)
+		})
+	}
+
 	antifraudServer, err := antifraud_v1.NewServer(handlerAdapter, secHandlerAdapter, antifraud_v1.WithErrorHandler(customErrorHandler))
 	if err != nil {
 		logger.Error(ctx, "Error creating OpenAPI antifraudServer", zap.Error(err))
@@ -180,7 +195,7 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 
 	if antifraudServer != nil {
 		logger.Info(ctx, "Mounting OpenAPI server on /api/v1")
-		r.Mount("/api/v1", antifraudServer)
+		r.Mount("/api/v1", loggingMiddleware(antifraudServer))
 	}
 
 	a.httpServer = &http.Server{
