@@ -10,6 +10,7 @@ import (
 	"solution/internal/service"
 	"solution/internal/service/stats"
 	antifraud_v1 "solution/pkg/openapi/antifraud/v1"
+	"strings"
 	"time"
 )
 
@@ -113,6 +114,27 @@ func (h *handlerAdapter) APIV1TransactionsPost(ctx context.Context, req *antifra
 	createReq := convertTransactionCreateRequest(req, userID)
 	decision, err := h.transactionService.Create(ctx, createReq)
 	if err != nil {
+		// Check for specific error types
+		if strings.Contains(err.Error(), "failed to get user by ID") {
+			return &antifraud_v1.APIV1TransactionsPostNotFound{
+				Code:      antifraud_v1.ErrorCodeNOTFOUND,
+				Message:   "User not found",
+				TraceId:   uuid.New(),
+				Timestamp: time.Now().UTC(),
+				Path:      "/api/v1/transactions",
+				Details:   antifraud_v1.OptApiErrorDetails{},
+			}, nil
+		}
+		if strings.Contains(err.Error(), "user is deactivated") {
+			return &antifraud_v1.APIV1TransactionsPostForbidden{
+				Code:      antifraud_v1.ErrorCodeFORBIDDEN,
+				Message:   "User is deactivated",
+				TraceId:   uuid.New(),
+				Timestamp: time.Now().UTC(),
+				Path:      "/api/v1/transactions",
+				Details:   antifraud_v1.OptApiErrorDetails{},
+			}, nil
+		}
 		return &antifraud_v1.APIV1TransactionsPostBadRequest{
 			Code:      antifraud_v1.ErrorCodeVALIDATIONFAILED,
 			Message:   err.Error(),
@@ -158,30 +180,60 @@ func (h *handlerAdapter) APIV1TransactionsBatchPost(ctx context.Context, req *an
 		return nil, fmt.Errorf("batch request cannot be empty")
 	}
 
-	// Convert API request to service format
-	serviceRequests := make([]model.TransactionCreateRequest, len(req.Items))
-	for i, item := range req.Items {
-		serviceRequests[i] = convertTransactionCreateRequest(&item, userID)
-	}
-
-	batchRequest := model.TransactionBatchCreateRequest{
-		Items: serviceRequests,
-	}
-
-	results, err := h.transactionService.CreateBatch(ctx, batchRequest)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create batch transactions: %w", err)
-	}
-
-	apiItems := make([]antifraud_v1.TransactionBatchResultItem, len(results.Items))
+	// Process each item individually like Python
+	results := make([]antifraud_v1.TransactionBatchResultItem, len(req.Items))
 	hasErrors := false
 
-	for i, item := range results.Items {
-		if item.Decision != nil {
-			apiTransaction := convertTransactionToAPI(item.Decision.Transaction)
-
-			ruleResults := make([]antifraud_v1.FraudRuleEvaluationResult, len(item.Decision.RuleResults))
-			for j, rule := range item.Decision.RuleResults {
+	for i, item := range req.Items {
+		// Convert to service request
+		serviceReq := convertTransactionCreateRequest(&item, userID)
+		
+		// Validate and create transaction
+		decision, err := h.transactionService.Create(ctx, serviceReq)
+		if err != nil {
+			hasErrors = true
+			
+			// Check for specific errors
+			if strings.Contains(err.Error(), "failed to get user by ID") {
+				results[i] = antifraud_v1.TransactionBatchResultItem{
+					Index: i,
+					Error: antifraud_v1.OptApiError{
+						Value: antifraud_v1.ApiError{
+							Code:    antifraud_v1.ErrorCodeNOTFOUND,
+							Message: "User not found",
+						},
+						Set: true,
+					},
+				}
+				continue
+			} else if strings.Contains(err.Error(), "user is deactivated") {
+				results[i] = antifraud_v1.TransactionBatchResultItem{
+					Index: i,
+					Error: antifraud_v1.OptApiError{
+						Value: antifraud_v1.ApiError{
+							Code:    antifraud_v1.ErrorCodeFORBIDDEN,
+							Message: "User is deactivated",
+						},
+						Set: true,
+					},
+				}
+				continue
+			}
+			
+			results[i] = antifraud_v1.TransactionBatchResultItem{
+				Index: i,
+				Error: antifraud_v1.OptApiError{
+					Value: antifraud_v1.ApiError{
+						Code:    antifraud_v1.ErrorCodeVALIDATIONFAILED,
+						Message: err.Error(),
+					},
+					Set: true,
+				},
+			}
+		} else {
+			// Convert rule results
+			ruleResults := make([]antifraud_v1.FraudRuleEvaluationResult, len(decision.RuleResults))
+			for j, rule := range decision.RuleResults {
 				ruleUUID, _ := uuid.Parse(rule.RuleID)
 				ruleResults[j] = antifraud_v1.FraudRuleEvaluationResult{
 					RuleId:      ruleUUID,
@@ -191,25 +243,13 @@ func (h *handlerAdapter) APIV1TransactionsBatchPost(ctx context.Context, req *an
 					Description: rule.Description,
 				}
 			}
-
-			apiItems[i] = antifraud_v1.TransactionBatchResultItem{
-				Index: item.Index,
+			
+			results[i] = antifraud_v1.TransactionBatchResultItem{
+				Index: i,
 				Decision: antifraud_v1.OptTransactionDecision{
 					Value: antifraud_v1.TransactionDecision{
-						Transaction: apiTransaction,
+						Transaction: convertTransactionToAPI(decision.Transaction),
 						RuleResults: ruleResults,
-					},
-					Set: true,
-				},
-			}
-		} else if item.Error != nil {
-			hasErrors = true
-			apiItems[i] = antifraud_v1.TransactionBatchResultItem{
-				Index: item.Index,
-				Error: antifraud_v1.OptApiError{
-					Value: antifraud_v1.ApiError{
-						Code:    antifraud_v1.ErrorCode(item.Error.Code),
-						Message: item.Error.Message,
 					},
 					Set: true,
 				},
@@ -217,19 +257,15 @@ func (h *handlerAdapter) APIV1TransactionsBatchPost(ctx context.Context, req *an
 		}
 	}
 
-	batchResult := antifraud_v1.TransactionBatchResult{
-		Items: apiItems,
-	}
-
 	// Return 207 for partial success, 201 for complete success
 	if hasErrors {
 		return &antifraud_v1.APIV1TransactionsBatchPostMultiStatus{
-			Items: batchResult.Items,
+			Items: results,
 		}, nil
 	}
 
 	return &antifraud_v1.APIV1TransactionsBatchPostCreated{
-		Items: batchResult.Items,
+		Items: results,
 	}, nil
 }
 

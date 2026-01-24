@@ -60,11 +60,9 @@ func (s *Service) Create(ctx context.Context, req model.TransactionCreateRequest
 
 	user, err := s.userRepo.GetByID(ctx, req.UserID.String())
 	if err != nil {
-		fmt.Printf("DEBUG: Failed to get user: %v\n", err)
-		return nil, fmt.Errorf("failed to get user: %w", err)
+		return nil, fmt.Errorf("failed to get user by ID: %w", err)
 	}
 	if !user.IsActive {
-		fmt.Printf("DEBUG: User is deactivated\n")
 		return nil, fmt.Errorf("user is deactivated")
 	}
 

@@ -35,39 +35,56 @@ func (e *DSLEvaluator) EvaluateRule(rule *model.FraudRule, transaction *model.Tr
 
 	dsl := strings.ToLower(strings.TrimSpace(rule.DslExpression))
 	
-	if strings.Contains(dsl, "amount >") {
-		parts := strings.Fields(dsl)
-		if len(parts) >= 3 && parts[0] == "amount" && parts[1] == ">" {
-			var threshold float64
-			if _, err := fmt.Sscanf(parts[2], "%f", &threshold); err == nil {
-				if transaction.Amount > threshold {
-					result.Matched = true
-					result.Description = fmt.Sprintf("Amount %.2f > %.2f", transaction.Amount, threshold)
-				} else {
-					result.Description = fmt.Sprintf("Amount %.2f <= %.2f", transaction.Amount, threshold)
-				}
-				return result
-			}
-		}
+	// Parse simple comparison: field operator value
+	field, operator, value := e.parseSimpleComparison(dsl)
+	if field == "" || operator == "" || value == "" {
+		result.Description = "Invalid DSL expression"
+		return result
 	}
 	
-	if strings.Contains(dsl, "user.age >") {
-		parts := strings.Fields(dsl)
-		if len(parts) >= 3 && parts[0] == "user.age" && parts[1] == ">" {
-			var threshold float64
-			if _, err := fmt.Sscanf(parts[2], "%f", &threshold); err == nil {
-				if user != nil && user.Age != nil && float64(*user.Age) > threshold {
-					result.Matched = true
-					result.Description = fmt.Sprintf("User age %d > %.0f", *user.Age, threshold)
-				} else {
-					result.Description = "User age condition not met"
-				}
-				return result
+	switch field {
+	case "amount":
+		var threshold float64
+		if _, err := fmt.Sscanf(value, "%f", &threshold); err == nil {
+			matched := e.compareFloats(transaction.Amount, operator, threshold)
+			result.Matched = matched
+			if matched {
+				result.Description = fmt.Sprintf("Amount %.2f %s %.2f", transaction.Amount, operator, threshold)
+			} else {
+				result.Description = fmt.Sprintf("Amount %.2f not %s %.2f", transaction.Amount, operator, threshold)
 			}
+		} else {
+			result.Description = "Invalid amount value"
 		}
+		
+	case "user.age":
+		var threshold float64
+		if _, err := fmt.Sscanf(value, "%f", &threshold); err == nil {
+			if user != nil && user.Age != nil {
+				age := float64(*user.Age)
+				matched := e.compareFloats(age, operator, threshold)
+				result.Matched = matched
+				if matched {
+					result.Description = fmt.Sprintf("User age %d %s %.0f", *user.Age, operator, threshold)
+				} else {
+					result.Description = fmt.Sprintf("User age %d not %s %.0f", *user.Age, operator, threshold)
+				}
+			} else {
+				result.Description = "User age not available"
+			}
+		} else {
+			result.Description = "Invalid age value"
+		}
+		
+	case "user.score":
+		// user.score is not implemented in current model, return not matched
+		result.Matched = false
+		result.Description = "User score not implemented"
+		
+	default:
+		result.Description = "Unsupported field"
 	}
 
-	result.Description = "Rule evaluation not implemented yet"
 	return result
 }
 
@@ -121,9 +138,9 @@ func (e *DSLEvaluator) ValidateDSL(expression string) model.DslValidateResponse 
 		return response
 	}
 	
-	supportedFields := []string{"amount", "currency", "merchantId", "ipAddress", "deviceId"}
+	supportedFields := []string{"amount", "user.age", "user.score"}
 	supportedOperators := []string{">", ">=", "<", "<=", "=", "!="}
-	stringFields := []string{"currency", "merchantId", "ipAddress", "deviceId"}
+	stringFields := []string{}
 	
 	fieldSupported := false
 	for _, f := range supportedFields {
@@ -179,19 +196,41 @@ func (e *DSLEvaluator) ValidateDSL(expression string) model.DslValidateResponse 
 			})
 			return response
 		}
-	} else if field == "amount" {
-		if _, err := strconv.ParseFloat(value, 64); err != nil {
-			response.Errors = append(response.Errors, model.DSLError{
-				Code:    "DSL_PARSE_ERROR",
-				Message: fmt.Sprintf("Expected number after '%s', got '%s'", operator, value),
-			})
-			return response
+	} else {
+		// Validate numeric fields
+		if field == "amount" || field == "user.age" || field == "user.score" {
+			if _, err := strconv.ParseFloat(value, 64); err != nil {
+				response.Errors = append(response.Errors, model.DSLError{
+					Code:    "DSL_PARSE_ERROR",
+					Message: fmt.Sprintf("Expected number after '%s', got '%s'", operator, value),
+				})
+				return response
+			}
 		}
 	}
 	
 	response.IsValid = true
 	response.NormalizedExpression = &normalized
 	return response
+}
+
+func (e *DSLEvaluator) compareFloats(a float64, operator string, b float64) bool {
+	switch operator {
+	case ">":
+		return a > b
+	case ">=":
+		return a >= b
+	case "<":
+		return a < b
+	case "<=":
+		return a <= b
+	case "=":
+		return a == b
+	case "!=":
+		return a != b
+	default:
+		return false
+	}
 }
 
 func (e *DSLEvaluator) normalizeExpression(expression string) string {
@@ -358,25 +397,6 @@ func (e *DSLEvaluator) evaluateUserRegion(operator string, value interface{}, us
 	}
 
 	return e.compareStrings(*user.Region, operator, compareValue), nil
-}
-
-func (e *DSLEvaluator) compareFloats(a float64, operator string, b float64) bool {
-	switch operator {
-	case ">":
-		return a > b
-	case ">=":
-		return a >= b
-	case "<":
-		return a < b
-	case "<=":
-		return a <= b
-	case "=":
-		return a == b
-	case "!=":
-		return a != b
-	default:
-		return false
-	}
 }
 
 func (e *DSLEvaluator) compareStrings(a, operator, b string) bool {
