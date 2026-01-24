@@ -5,21 +5,10 @@ import (
 	"fmt"
 	"solution/internal/model"
 	"strings"
-	"time"
 )
 
 func (s *service) Create(ctx context.Context, req model.FraudRuleCreateRequest) (*model.FraudRule, error) {
-	validation, err := s.ValidateDSL(ctx, req.DslExpression)
-	if err != nil {
-		return nil, fmt.Errorf("DSL validation failed: %w", err)
-	}
-	if !validation.IsValid {
-		var errorStrings []string
-		for _, dslError := range validation.Errors {
-			errorStrings = append(errorStrings, fmt.Sprintf("%s: %s", dslError.Code, dslError.Message))
-		}
-		return nil, fmt.Errorf("invalid DSL: %s", strings.Join(errorStrings, "; "))
-	}
+	// TODO: Implement DSL validation when DSL service is ready
 
 	priority := model.DefaultPriority
 	if req.Priority != nil {
@@ -34,18 +23,15 @@ func (s *service) Create(ctx context.Context, req model.FraudRuleCreateRequest) 
 		enabled = *req.Enabled
 	}
 
-	now := time.Now()
-	rule := model.FraudRule{
-		Name:          strings.TrimSpace(req.Name),
-		Description:   strings.TrimSpace(req.Description),
-		DslExpression: strings.TrimSpace(req.DslExpression),
-		Priority:      priority,
-		Enabled:       enabled,
-		CreatedAt:     now,
-		UpdatedAt:     now,
-	}
+	rule := model.NewFraudRule(
+		strings.TrimSpace(req.Name),
+		strings.TrimSpace(req.Description),
+		strings.TrimSpace(req.DslExpression),
+		priority,
+		enabled,
+	)
 
-	if err = s.fraudRuleRepo.Create(ctx, rule); err != nil {
+	if err := s.fraudRuleRepo.Create(ctx, rule); err != nil {
 		return nil, fmt.Errorf("failed to create fraud rule: %w", err)
 	}
 

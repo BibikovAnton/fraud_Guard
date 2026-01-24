@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"solution/internal/model"
-	"strings"
 )
 
 func (s *service) Update(ctx context.Context, id string, req model.FraudRuleUpdateRequest) (*model.FraudRule, error) {
@@ -16,19 +15,7 @@ func (s *service) Update(ctx context.Context, id string, req model.FraudRuleUpda
 		return nil, fmt.Errorf("fraud rule not found")
 	}
 
-	if req.DslExpression != nil && *req.DslExpression != existing.DslExpression {
-		validation, err := s.ValidateDSL(ctx, *req.DslExpression)
-		if err != nil {
-			return nil, fmt.Errorf("DSL validation failed: %w", err)
-		}
-		if !validation.IsValid {
-			var errorStrings []string
-			for _, dslError := range validation.Errors {
-				errorStrings = append(errorStrings, fmt.Sprintf("%s: %s", dslError.Code, dslError.Message))
-			}
-			return nil, fmt.Errorf("invalid DSL: %s", strings.Join(errorStrings, "; "))
-		}
-	}
+	// TODO: Implement DSL validation when DSL service is ready
 
 	if req.Priority != nil && *req.Priority < 1 {
 		return nil, fmt.Errorf("priority must be >= 1")

@@ -2,6 +2,7 @@ package model
 
 import (
 	"time"
+	"github.com/google/uuid"
 )
 
 type FraudRule struct {
@@ -58,5 +59,19 @@ const (
 	DefaultPriority = 100
 	MaxDSLSize       = 2000
 	MaxRulesCount    = 1000
-	MaxASTNodes      = 100 // лимит сложности DSL
+	MaxASTNodes      = 100 
 )
+
+func NewFraudRule(name, description, dslExpression string, priority int, enabled bool) FraudRule {
+	now := time.Now().UTC()
+	return FraudRule{
+		ID:           uuid.New().String(),
+		Name:         name,
+		Description:  description,
+		DslExpression: dslExpression,
+		Priority:     priority,
+		Enabled:      enabled,
+		CreatedAt:    now,
+		UpdatedAt:    now,
+	}
+}

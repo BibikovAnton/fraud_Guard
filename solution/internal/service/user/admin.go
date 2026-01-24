@@ -33,12 +33,7 @@ func (s *userService) CreateByAdmin(ctx context.Context, req model.UserCreateReq
 		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
 
-	user := model.NewUser(req.Email, string(hashedPassword), req.FullName, req.Role)
-
-	user.Age = req.Age
-	user.Region = req.Region
-	user.Gender = req.Gender
-	user.MaritalStatus = req.MaritalStatus
+	user := model.NewUser(req.Email, string(hashedPassword), req.FullName, req.Role, req.Age, req.Region, req.Gender, req.MaritalStatus)
 
 	if err := s.userRepo.Create(ctx, user); err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)

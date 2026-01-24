@@ -27,7 +27,7 @@ type FraudRuleService interface {
 	GetAll(ctx context.Context, activeOnly bool) ([]*model.FraudRule, error)
 	Update(ctx context.Context, id string, req model.FraudRuleUpdateRequest) (*model.FraudRule, error)
 	Delete(ctx context.Context, id string) error
-	ValidateDSL(ctx context.Context, dsl string) (*model.DslValidateResponse, error)
+	ValidateDSL(ctx context.Context, req model.DslValidateRequest) model.DslValidateResponse
 }
 
 type StatsService interface {

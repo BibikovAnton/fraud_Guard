@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/stdlib"
+	"go.uber.org/zap"
 	"solution/internal/config"
 	"solution/internal/repository"
 	repositoryFraudRules "solution/internal/repository/fraud_rules"
@@ -13,7 +14,6 @@ import (
 	repositoryTransactions "solution/internal/repository/transactions"
 	repositoryUser "solution/internal/repository/user"
 	"solution/internal/service"
-	serviceDSL "solution/internal/service/dsl"
 	serviceFraudRules "solution/internal/service/fraud_rules"
 	serviceStats "solution/internal/service/stats"
 	serviceTransactions "solution/internal/service/transactions"
@@ -28,7 +28,6 @@ type diContainer struct {
 	fraudRuleService  service.FraudRuleService
 	transactionService service.TransactionService
 	statsService       serviceStats.Service
-	dslEvaluator      serviceDSL.Evaluator
 
 	userRepository        repository.UserRepository
 	fraudRuleRepository   repositoryFraudRules.Repository
@@ -56,28 +55,23 @@ func (d *diContainer) UserService(ctx context.Context) service.UserService {
 
 func (d *diContainer) FraudRuleService(ctx context.Context) service.FraudRuleService {
 	if d.fraudRuleService == nil {
-		d.fraudRuleService = serviceFraudRules.NewService(d.FraudRuleRepository(ctx))
+		logger := zap.L()
+		d.fraudRuleService = serviceFraudRules.NewService(d.FraudRuleRepository(ctx), logger)
 	}
 	return d.fraudRuleService
 }
 
 func (d *diContainer) TransactionService(ctx context.Context) service.TransactionService {
 	if d.transactionService == nil {
+		logger := zap.L()
 		d.transactionService = serviceTransactions.NewService(
 			d.TransactionRepository(ctx),
 			d.UserRepository(ctx),
 			d.FraudRuleRepository(ctx),
-			d.DSLEvaluator(ctx),
+			logger,
 		)
 	}
 	return d.transactionService
-}
-
-func (d *diContainer) DSLEvaluator(ctx context.Context) serviceDSL.Evaluator {
-	if d.dslEvaluator == nil {
-		d.dslEvaluator = serviceDSL.NewEvaluator(2) // Возвращаем tier 2 - поддерживает AND/OR
-	}
-	return d.dslEvaluator
 }
 
 func (d *diContainer) UserRepository(ctx context.Context) repository.UserRepository {

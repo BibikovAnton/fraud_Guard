@@ -4,20 +4,22 @@ import (
 	"context"
 	"fmt"
 	"time"
+	"solution/internal/dsl"
 	"solution/internal/model"
 	"solution/internal/service"
 	"solution/internal/repository"
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 	transactionsRepo "solution/internal/repository/transactions"
 	fraudRulesRepo "solution/internal/repository/fraud_rules"
-	dslService "solution/internal/service/dsl"
 )
 
 type Service struct {
 	txRepo       transactionsRepo.Repository
 	userRepo     repository.UserRepository
 	fraudRuleRepo fraudRulesRepo.Repository
-	dslEvaluator dslService.Evaluator
+	dslEvaluator *dsl.DSLEvaluator
+	logger        *zap.Logger
 }
 
 type UserRepository interface {
@@ -26,10 +28,6 @@ type UserRepository interface {
 
 type FraudRuleRepository interface {
 	GetActiveRules(ctx context.Context) ([]*model.FraudRule, error)
-}
-
-type DSLEvaluator interface {
-	Evaluate(ctx context.Context, dsl string, transaction *model.Transaction, user *model.User) (bool, string, error)
 }
 
 type ListParams struct {
@@ -42,12 +40,13 @@ type ListParams struct {
 	Size    int
 }
 
-func NewService(txRepo transactionsRepo.Repository, userRepo repository.UserRepository, fraudRuleRepo fraudRulesRepo.Repository, dslEvaluator dslService.Evaluator) *Service {
+func NewService(txRepo transactionsRepo.Repository, userRepo repository.UserRepository, fraudRuleRepo fraudRulesRepo.Repository, logger *zap.Logger) *Service {
 	return &Service{
 		txRepo:       txRepo,
 		userRepo:     userRepo,
 		fraudRuleRepo: fraudRuleRepo,
-		dslEvaluator: dslEvaluator,
+		dslEvaluator: dsl.NewDSLEvaluator(logger),
+		logger:        logger,
 	}
 }
 
@@ -261,25 +260,13 @@ func (s *Service) applyFraudRules(ctx context.Context, transaction *model.Transa
 	}
 
 	for _, rule := range sortedRules {
-		matched, description, err := s.dslEvaluator.Evaluate(ctx, rule.DslExpression, transaction, user)
-		if err != nil {
-			matched = false
-			description = fmt.Sprintf("Error evaluating rule: %s", err.Error())
-		}
-
+		// Use DSL evaluator to evaluate the rule
+		ruleResult := s.dslEvaluator.EvaluateRule(rule, transaction, user)
+		
 		// Debug: log rule evaluation
-		fmt.Printf("DEBUG: Rule %s: matched=%v, description=%s\n", rule.Name, matched, description)
+		fmt.Printf("DEBUG: Rule %s: matched=%v, description=%s\n", rule.Name, ruleResult.Matched, ruleResult.Description)
 
-		result := model.RuleResult{
-			RuleID:      rule.ID,
-			RuleName:    rule.Name,
-			Priority:    rule.Priority,
-			Enabled:     rule.Enabled,
-			Matched:     matched,
-			Description: description,
-		}
-
-		results = append(results, result)
+		results = append(results, ruleResult)
 	}
 
 	return results

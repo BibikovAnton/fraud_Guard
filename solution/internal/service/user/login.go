@@ -31,7 +31,8 @@ func (s *userService) Login(ctx context.Context, req model.LoginRequest) (*model
 	}
 
 	return &model.LoginResponse{
-		User:  *user,
-		Token: token,
+		User:        *user,
+		AccessToken: token,
+		ExpiresIn:   3600,
 	}, nil
 }

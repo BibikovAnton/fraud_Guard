@@ -74,8 +74,8 @@ func (h *handlerAdapter) APIV1AuthLoginPost(ctx context.Context, req *antifraud_
 	}
 
 	apiResponse := antifraud_v1.AuthResponse{
-		AccessToken: userData.Token,
-		ExpiresIn:   3600,
+		AccessToken: userData.AccessToken,
+		ExpiresIn:   userData.ExpiresIn,
 		User:        convertor.ConvertUserToAPI(&userData.User),
 	}
 

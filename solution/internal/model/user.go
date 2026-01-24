@@ -45,24 +45,30 @@ const (
 )
 
 type RegisterRequest struct {
-	Email    string `json:"email" validate:"required,email,max=254"`
-	Password string `json:"password" validate:"required,min=8,max=72,containsany=0123456789,containsany=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"`
-	FullName string `json:"fullName" validate:"required,min=2,max=200"`
+	Email         string         `json:"email" validate:"required,email,max=254"`
+	Password      string         `json:"password" validate:"required,min=8,max=72"`
+	FullName      string         `json:"fullName" validate:"required,min=2,max=200"`
+	Age           *int           `json:"age,omitempty" validate:"omitempty,ge=18,le=120"`
+	Region        *string        `json:"region,omitempty" validate:"omitempty,max=32"`
+	Gender        *Gender        `json:"gender,omitempty"`
+	MaritalStatus *MaritalStatus `json:"maritalStatus,omitempty"`
 }
 
 type RegisterResponse struct {
-	User  User   `json:"user"`
-	Token string `json:"token"`
+	AccessToken string `json:"accessToken"`
+	ExpiresIn   int    `json:"expiresIn"`
+	User        User   `json:"user"`
 }
 
 type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email    string `json:"email" validate:"required,email,max=254"`
+	Password string `json:"password" validate:"required,min=8,max=72"`
 }
 
 type LoginResponse struct {
-	User  User   `json:"user"`
-	Token string `json:"token"`
+	AccessToken string `json:"accessToken"`
+	ExpiresIn   int    `json:"expiresIn"`
+	User        User   `json:"user"`
 }
 
 type UserCreateRequest struct {
@@ -86,16 +92,20 @@ type UserUpdateRequest struct {
 	IsActive      *bool          `json:"isActive,omitempty"`
 }
 
-func NewUser(email, passwordHash, fullName string, role UserRole) User {
+func NewUser(email, passwordHash, fullName string, role UserRole, age *int, region *string, gender *Gender, maritalStatus *MaritalStatus) User {
 	now := time.Now().UTC() // всегда храним время в UTC для консистентности
 	return User{
-		ID:           uuid.New().String(),
-		Email:        email,
-		PasswordHash: passwordHash,
-		FullName:     fullName,
-		Role:         role,
-		IsActive:     true,
-		CreatedAt:    now,
-		UpdatedAt:    now,
+		ID:            uuid.New().String(),
+		Email:         email,
+		PasswordHash:  passwordHash,
+		FullName:      fullName,
+		Age:           age,
+		Region:        region,
+		Gender:        gender,
+		MaritalStatus: maritalStatus,
+		Role:          role,
+		IsActive:      true,
+		CreatedAt:     now,
+		UpdatedAt:     now,
 	}
 }

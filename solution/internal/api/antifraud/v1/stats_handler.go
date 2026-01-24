@@ -61,9 +61,9 @@ func (h *statsHandlerAdapter) APIV1StatsOverviewGet(ctx context.Context, params 
 
 func (h *statsHandlerAdapter) APIV1StatsTransactionsTimeseriesGet(ctx context.Context, params antifraud_v1.APIV1StatsTransactionsTimeseriesGetParams) (antifraud_v1.APIV1StatsTransactionsTimeseriesGetRes, error) {
 	// Parse query parameters
-	from := time.Now().AddDate(0, -1, 0) // Default: 1 month ago
+	from := time.Now().AddDate(0, -1, 0) 
 	to := time.Now()
-	interval := "day" // Default interval
+	interval := "day" 
 	
 	if params.From.Set {
 		from = params.From.Value
@@ -72,7 +72,7 @@ func (h *statsHandlerAdapter) APIV1StatsTransactionsTimeseriesGet(ctx context.Co
 		to = params.To.Value
 	}
 
-	// Get time series from service
+	
 	result, err := h.statsService.GetTransactionsTimeSeries(ctx, from, to, interval)
 	if err != nil {
 		return nil, err

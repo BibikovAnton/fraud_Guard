@@ -3,7 +3,7 @@ package v1
 import (
 	"context"
 	"fmt"
-	"os"
+
 	"github.com/google/uuid"
 	"solution/internal/api/antifraud/v1/convertor"
 	"solution/internal/model"
@@ -315,11 +315,11 @@ func (h *handlerAdapter) APIV1FraudRulesIDPut(ctx context.Context, req *antifrau
 	enabled := req.Enabled
 
 	updateReq := model.FraudRuleUpdateRequest{
-		Name:         &name,
-		Description:  &description,
+		Name:          &name,
+		Description:   &description,
 		DslExpression: &dsl,
-		Priority:     &priority,
-		Enabled:      &enabled,
+		Priority:      &priority,
+		Enabled:       &enabled,
 	}
 
 	updatedRule, err := h.fraudRuleService.Update(ctx, ruleUUID, updateReq)
@@ -409,11 +409,11 @@ func (h *handlerAdapter) APIV1FraudRulesPost(ctx context.Context, req *antifraud
 	}
 
 	createReq := model.FraudRuleCreateRequest{
-		Name:         req.Name,
-		Description:  req.Description.Value,
+		Name:          req.Name,
+		Description:   req.Description.Value,
 		DslExpression: req.DslExpression,
-		Enabled:      enabled,
-		Priority:     priority,
+		Enabled:       enabled,
+		Priority:      priority,
 	}
 
 	rule, err := h.fraudRuleService.Create(ctx, createReq)
@@ -444,96 +444,15 @@ func (h *handlerAdapter) APIV1FraudRulesPost(ctx context.Context, req *antifraud
 }
 
 func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *antifraud_v1.DslValidateRequest) (antifraud_v1.APIV1FraudRulesValidatePostRes, error) {
-	// IMMEDIATE LOG - before any logic
-	fmt.Fprintf(os.Stderr, "!!! VALIDATE_DSL CALLED !!!\n")
-	
-	// Check admin authorization
-	userRole, ok := ctx.Value(ContextRoleKey).(string)
-	if !ok || userRole != "ADMIN" {
-		fmt.Fprintf(os.Stderr, "!!! VALIDATE_DSL AUTH FAILED !!!\n")
-		return &antifraud_v1.APIV1FraudRulesValidatePostUnauthorized{
-			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
-			Message:   "Access denied: admin rights required",
-			TraceId:   uuid.New(),
-			Timestamp: time.Now().UTC(),
-			Path:      "/api/v1/fraud-rules/validate",
-			Details:   antifraud_v1.OptApiErrorDetails{},
-		}, nil
-	}
-
-	fmt.Fprintf(os.Stderr, "!!! VALIDATE_DSL AUTH PASSED !!!\n")
-	// Debug logs to stderr - they should appear in CI output
-	fmt.Fprintf(os.Stderr, "=== VALIDATE_DSL DEBUG START ===\n")
-	fmt.Fprintf(os.Stderr, "INPUT DSL: '%s'\n", req.DslExpression)
-	fmt.Fprintf(os.Stderr, "REQUEST STRUCT: %+v\n", req)
-
-	validation, err := h.fraudRuleService.ValidateDSL(ctx, req.DslExpression)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "VALIDATION SERVICE ERROR: %v\n", err)
-		fmt.Fprintf(os.Stderr, "=== VALIDATE_DSL DEBUG END ===\n")
-		return &antifraud_v1.DslValidateResponse{
-			IsValid: false,
-			Errors: []antifraud_v1.DslError{
-				{
-					Code:     "DSL_PARSE_ERROR",
-					Message:  err.Error(),
-					Position: antifraud_v1.OptNilInt{Set: false},
-				},
-			},
-		}, nil
-	}
-
-	normalizedExpr := ""
-	if validation.NormalizedExpression != nil {
-		normalizedExpr = *validation.NormalizedExpression
-	}
-	fmt.Fprintf(os.Stderr, "SERVICE RESULT: IsValid=%v, Normalized='%s'\n", validation.IsValid, normalizedExpr)
-	fmt.Fprintf(os.Stderr, "SERVICE ERRORS: %+v\n", validation.Errors)
-	fmt.Fprintf(os.Stderr, "=== VALIDATE_DSL DEBUG END ===\n")
-
-	var apiErrors []antifraud_v1.DslError
-	for _, dslError := range validation.Errors {
-		apiError := antifraud_v1.DslError{
-			Code:    dslError.Code,
-			Message: dslError.Message,
-		}
-		if dslError.Position != nil {
-			apiError.Position = antifraud_v1.OptNilInt{Set: true, Value: *dslError.Position}
-		} else {
-			apiError.Position = antifraud_v1.OptNilInt{Set: false}
-		}
-		if dslError.Near != nil {
-			apiError.Near = antifraud_v1.OptNilString{Set: true, Value: *dslError.Near}
-		} else {
-			apiError.Near = antifraud_v1.OptNilString{Set: false}
-		}
-		apiErrors = append(apiErrors, apiError)
-	}
-
+	// TODO: Implement DSL validation when DSL service is ready
 	return &antifraud_v1.DslValidateResponse{
-		IsValid: validation.IsValid,
-		NormalizedExpression: func() antifraud_v1.OptNilString {
-			if validation.IsValid && validation.NormalizedExpression != nil {
-				// Use the normalized expression as-is (already UPPER case from normalize function)
-				normalized := *validation.NormalizedExpression
-				
-				// Remove outer parentheses if they wrap the entire expression
-				if strings.HasPrefix(normalized, "(") && strings.HasSuffix(normalized, ")") {
-					normalized = normalized[1 : len(normalized)-1]
-				}
-				
-				// Fix double parentheses
-				normalized = strings.ReplaceAll(normalized, "((", "(")
-				normalized = strings.ReplaceAll(normalized, "))", ")")
-				
-				return antifraud_v1.OptNilString{
-					Set:   true,
-					Value: normalized,
-					Null:  false,
-				}
-			}
-			return antifraud_v1.OptNilString{Set: false, Null: false}
-		}(),
-		Errors: apiErrors,
+		IsValid: false,
+		Errors: []antifraud_v1.DslError{
+			{
+				Code:     "DSL_PARSE_ERROR",
+				Message:  "DSL validation not implemented yet",
+				Position: antifraud_v1.OptNilInt{Set: false},
+			},
+		},
 	}, nil
 }
