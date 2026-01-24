@@ -248,7 +248,6 @@ func (s *Service) validateCreateRequest(ctx context.Context, req model.Transacti
 			}
 		}
 	}
-
 	return nil
 }
 

@@ -83,6 +83,29 @@ func (h *statsHandlerAdapter) APIV1StatsOverviewGet(ctx context.Context, params 
 }
 
 func (h *statsHandlerAdapter) APIV1StatsTransactionsTimeseriesGet(ctx context.Context, params antifraud_v1.APIV1StatsTransactionsTimeseriesGetParams) (antifraud_v1.APIV1StatsTransactionsTimeseriesGetRes, error) {
+	if ctx == nil {
+		return &antifraud_v1.APIV1StatsTransactionsTimeseriesGetUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Context is required",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/stats/transactions/timeseries",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	userRole, ok := ctx.Value(ContextRoleKey).(string)
+	if !ok || userRole != "ADMIN" {
+		return &antifraud_v1.APIV1StatsTransactionsTimeseriesGetForbidden{
+			Code:      antifraud_v1.ErrorCodeFORBIDDEN,
+			Message:   "Access denied: only ADMIN can view statistics",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/stats/transactions/timeseries",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
 	// Parse query parameters
 	from := time.Now().AddDate(0, -1, 0) 
 	to := time.Now()
@@ -119,6 +142,29 @@ func (h *statsHandlerAdapter) APIV1StatsTransactionsTimeseriesGet(ctx context.Co
 }
 
 func (h *statsHandlerAdapter) APIV1StatsRulesMatchesGet(ctx context.Context, params antifraud_v1.APIV1StatsRulesMatchesGetParams) (antifraud_v1.APIV1StatsRulesMatchesGetRes, error) {
+	if ctx == nil {
+		return &antifraud_v1.APIV1StatsRulesMatchesGetUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Context is required",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/stats/rules/matches",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	userRole, ok := ctx.Value(ContextRoleKey).(string)
+	if !ok || userRole != "ADMIN" {
+		return &antifraud_v1.APIV1StatsRulesMatchesGetForbidden{
+			Code:      antifraud_v1.ErrorCodeFORBIDDEN,
+			Message:   "Access denied: only ADMIN can view statistics",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/stats/rules/matches",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
 	// Parse query parameters
 	from := time.Now().AddDate(0, -1, 0) // Default: 1 month ago
 	to := time.Now()
@@ -154,6 +200,29 @@ func (h *statsHandlerAdapter) APIV1StatsRulesMatchesGet(ctx context.Context, par
 }
 
 func (h *statsHandlerAdapter) APIV1StatsMerchantsRiskGet(ctx context.Context, params antifraud_v1.APIV1StatsMerchantsRiskGetParams) (antifraud_v1.APIV1StatsMerchantsRiskGetRes, error) {
+	if ctx == nil {
+		return &antifraud_v1.APIV1StatsMerchantsRiskGetUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Context is required",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/stats/merchants/risk",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	userRole, ok := ctx.Value(ContextRoleKey).(string)
+	if !ok || userRole != "ADMIN" {
+		return &antifraud_v1.APIV1StatsMerchantsRiskGetForbidden{
+			Code:      antifraud_v1.ErrorCodeFORBIDDEN,
+			Message:   "Access denied: only ADMIN can view statistics",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/stats/merchants/risk",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
 	// Parse query parameters
 	from := time.Now().AddDate(0, -1, 0) // Default: 1 month ago
 	to := time.Now()
@@ -190,6 +259,29 @@ func (h *statsHandlerAdapter) APIV1StatsMerchantsRiskGet(ctx context.Context, pa
 }
 
 func (h *statsHandlerAdapter) APIV1StatsUsersIDRiskProfileGet(ctx context.Context, params antifraud_v1.APIV1StatsUsersIDRiskProfileGetParams) (antifraud_v1.APIV1StatsUsersIDRiskProfileGetRes, error) {
+	if ctx == nil {
+		return &antifraud_v1.APIV1StatsUsersIDRiskProfileGetUnauthorized{
+			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
+			Message:   "Context is required",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/stats/users/{id}/risk-profile",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
+	userRole, ok := ctx.Value(ContextRoleKey).(string)
+	if !ok || userRole != "ADMIN" {
+		return &antifraud_v1.APIV1StatsUsersIDRiskProfileGetForbidden{
+			Code:      antifraud_v1.ErrorCodeFORBIDDEN,
+			Message:   "Access denied: only ADMIN can view statistics",
+			TraceId:   uuid.New(),
+			Timestamp: time.Now().UTC(),
+			Path:      "/api/v1/stats/users/{id}/risk-profile",
+			Details:   antifraud_v1.OptApiErrorDetails{},
+		}, nil
+	}
+
 	userID := params.ID
 
 	// Get user risk profile from service
