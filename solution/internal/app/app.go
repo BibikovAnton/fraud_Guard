@@ -198,9 +198,12 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 		r.Mount("/api/v1", loggingMiddleware(antifraudServer))
 	}
 
+	// Wrap the entire router with logging
+	finalHandler := loggingMiddleware(r)
+
 	a.httpServer = &http.Server{
 		Addr:              ":" + config.AppConfig().Http.Address(),
-		Handler:           r,
+		Handler:           finalHandler,
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 
