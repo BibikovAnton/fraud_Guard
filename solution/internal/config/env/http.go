@@ -6,7 +6,7 @@ import (
 )
 
 type HTTPEnvConfig struct {
-	Port string `env:"SERVER_PORT,required"`
+	Port string `env:"SERVER_PORT"`
 }
 
 type httpConfig struct {
@@ -23,6 +23,8 @@ func NewHTTPConfig() (*httpConfig, error) {
 }
 
 func (cfg *httpConfig) Address() string {
-	cfg.raw.Port = os.Getenv("SERVER_PORT")
+	if cfg.raw.Port == "" {
+		cfg.raw.Port = "8080"
+	}
 	return cfg.raw.Port
 }
