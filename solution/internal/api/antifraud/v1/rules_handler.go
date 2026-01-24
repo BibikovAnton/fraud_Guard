@@ -466,8 +466,11 @@ func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *a
 		}, nil
 	}
 
+	fmt.Printf("DEBUG: ValidateDsl input: '%s'\n", req.DslExpression)
+
 	validation, err := h.fraudRuleService.ValidateDSL(ctx, req.DslExpression)
 	if err != nil {
+		fmt.Printf("DEBUG: ValidateDsl error: %v\n", err)
 		return &antifraud_v1.DslValidateResponse{
 			IsValid: false,
 			Errors: []antifraud_v1.DslError{
@@ -480,7 +483,6 @@ func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *a
 		}, nil
 	}
 
-	
 	var apiErrors []antifraud_v1.DslError
 	for _, dslError := range validation.Errors {
 		apiError := antifraud_v1.DslError{
@@ -499,6 +501,12 @@ func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *a
 		}
 		apiErrors = append(apiErrors, apiError)
 	}
+
+	normalizedExpr := ""
+	if validation.NormalizedExpression != nil {
+		normalizedExpr = *validation.NormalizedExpression
+	}
+	fmt.Printf("DEBUG: ValidateDsl result: IsValid=%v, Normalized='%s'\n", validation.IsValid, normalizedExpr)
 
 	return &antifraud_v1.DslValidateResponse{
 		IsValid: validation.IsValid,
