@@ -468,12 +468,14 @@ func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *a
 	}
 
 	// Debug logs to stderr - they should appear in CI output
-	fmt.Fprintf(os.Stderr, "=== VALIDATE_DSL DEBUG ===\n")
+	fmt.Fprintf(os.Stderr, "=== VALIDATE_DSL DEBUG START ===\n")
 	fmt.Fprintf(os.Stderr, "INPUT DSL: '%s'\n", req.DslExpression)
+	fmt.Fprintf(os.Stderr, "REQUEST STRUCT: %+v\n", req)
 
 	validation, err := h.fraudRuleService.ValidateDSL(ctx, req.DslExpression)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "VALIDATION ERROR: %v\n", err)
+		fmt.Fprintf(os.Stderr, "VALIDATION SERVICE ERROR: %v\n", err)
+		fmt.Fprintf(os.Stderr, "=== VALIDATE_DSL DEBUG END ===\n")
 		return &antifraud_v1.DslValidateResponse{
 			IsValid: false,
 			Errors: []antifraud_v1.DslError{
@@ -490,8 +492,9 @@ func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *a
 	if validation.NormalizedExpression != nil {
 		normalizedExpr = *validation.NormalizedExpression
 	}
-	fmt.Fprintf(os.Stderr, "RESULT: IsValid=%v, Normalized='%s'\n", validation.IsValid, normalizedExpr)
-	fmt.Fprintf(os.Stderr, "=== END VALIDATE_DSL DEBUG ===\n")
+	fmt.Fprintf(os.Stderr, "SERVICE RESULT: IsValid=%v, Normalized='%s'\n", validation.IsValid, normalizedExpr)
+	fmt.Fprintf(os.Stderr, "SERVICE ERRORS: %+v\n", validation.Errors)
+	fmt.Fprintf(os.Stderr, "=== VALIDATE_DSL DEBUG END ===\n")
 
 	var apiErrors []antifraud_v1.DslError
 	for _, dslError := range validation.Errors {
