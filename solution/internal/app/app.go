@@ -146,12 +146,12 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 		})
 	})
 
-	handlerAdapter := v1.NewHandlerAdapter(a.diContainer.UserService(ctx), a.diContainer.FraudRuleService(ctx), a.diContainer.TransactionService(ctx))
+	handlerAdapter := v1.NewHandlerAdapter(a.diContainer.UserService(ctx), a.diContainer.FraudRuleService(ctx), a.diContainer.TransactionService(ctx), a.diContainer.StatsService(ctx))
 	secHandlerAdapter := v1.NewSecurityHandlerAdapter()
 
 	// Custom error handler to convert 400 validation errors to 422
 	customErrorHandler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, err error) {
-		// Check if it's a validation error (status 400)
+		
 		if strings.Contains(err.Error(), "400") || strings.Contains(err.Error(), "validation") {
 			w.Header().Set("Content-Type", "application/json; charset=utf-8")
 			w.WriteHeader(http.StatusUnprocessableEntity)

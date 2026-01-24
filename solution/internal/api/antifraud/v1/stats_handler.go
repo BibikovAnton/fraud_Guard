@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/google/uuid"
 	antifraud_v1 "solution/pkg/openapi/antifraud/v1"
 	"solution/internal/service/stats"
 )
@@ -162,7 +161,7 @@ func (h *statsHandlerAdapter) APIV1StatsMerchantsRiskGet(ctx context.Context, pa
 		}
 	}
 
-	return &antifraud_v1.StatsMerchantRisk{
+	return &antifraud_v1.MerchantRiskStats{
 		Items: items,
 	}, nil
 }
@@ -178,12 +177,12 @@ func (h *statsHandlerAdapter) APIV1StatsUsersIDRiskProfileGet(ctx context.Contex
 
 	return &antifraud_v1.UserRiskProfile{
 		UserId:              result.UserID,
-		TxCount24h:          result.TxCount24h,
+		TxCount24h:          int(result.TxCount24h),
 		Gmv24h:              result.GMV24h,
-		DistinctDevices24h:  result.DistinctDevices24h,
-		DistinctIps24h:      result.DistinctIPs24h,
-		DistinctCities24h:    result.DistinctCities24h,
+		DistinctDevices24h:  int(result.DistinctDevices24h),
+		DistinctIps24h:      int(result.DistinctIPs24h),
+		DistinctCities24h:    int(result.DistinctCities24h),
 		DeclineRate30d:      result.DeclineRate30d,
-		LastSeenAt:          result.LastSeenAt,
+		LastSeenAt:          antifraud_v1.OptNilDateTime{Value: result.LastSeenAt, Set: true, Null: false},
 	}, nil
 }
