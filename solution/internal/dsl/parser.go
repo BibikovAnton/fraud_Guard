@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go.uber.org/zap"
 	"solution/internal/model"
+	"strconv"
 	"strings"
 )
 
@@ -72,15 +73,128 @@ func (e *DSLEvaluator) EvaluateRule(rule *model.FraudRule, transaction *model.Tr
 
 func (e *DSLEvaluator) ValidateDSL(expression string) model.DslValidateResponse {
 	response := model.DslValidateResponse{
-		IsValid:              true,
-		NormalizedExpression: &expression,
+		IsValid:              false,
+		NormalizedExpression: nil,
 		Errors:               []model.DSLError{},
 	}
 	
+	if len(expression) < 3 || len(expression) > 2000 {
+		response.Errors = append(response.Errors, model.DSLError{
+			Code:    "DSL_PARSE_ERROR",
+			Message: "Expression length must be between 3 and 2000 characters",
+		})
+		return response
+	}
+	
+	normalized := e.normalizeExpression(expression)
+	
+	if normalized == "" {
+		response.Errors = append(response.Errors, model.DSLError{
+			Code:    "DSL_PARSE_ERROR", 
+			Message: "Empty expression",
+		})
+		return response
+	}
+	
+	if strings.Contains(normalized, " AND ") || strings.Contains(normalized, " OR ") {
+		response.Errors = append(response.Errors, model.DSLError{
+			Code:    "DSL_UNSUPPORTED_TIER",
+			Message: "AND/OR not implemented yet (requires Tier 3)",
+		})
+		return response
+	}
+	
+	if strings.Contains(normalized, " NOT ") || strings.Contains(normalized, "(") || strings.Contains(normalized, ")") {
+		response.Errors = append(response.Errors, model.DSLError{
+			Code:    "DSL_UNSUPPORTED_TIER", 
+			Message: "NOT and parentheses not implemented yet (requires Tier 4)",
+		})
+		return response
+	}
+	
+	field, operator, value := e.parseSimpleComparison(normalized)
+	if field == "" || operator == "" || value == "" {
+		response.Errors = append(response.Errors, model.DSLError{
+			Code:    "DSL_PARSE_ERROR",
+			Message: "Expected expression format: field operator value",
+		})
+		return response
+	}
+	
+	supportedFields := []string{"amount", "currency", "merchantId", "ipAddress", "deviceId"}
+	supportedOperators := []string{">", ">=", "<", "<=", "=", "!="}
+	stringFields := []string{"currency", "merchantId", "ipAddress", "deviceId"}
+	
+	fieldSupported := false
+	for _, f := range supportedFields {
+		if field == f {
+			fieldSupported = true
+			break
+		}
+	}
+	if !fieldSupported {
+		response.Errors = append(response.Errors, model.DSLError{
+			Code:    "DSL_INVALID_FIELD",
+			Message: fmt.Sprintf("Field '%s' not supported. Supported: %s", field, strings.Join(supportedFields, ", ")),
+		})
+		return response
+	}
+	
+	operatorSupported := false
+	for _, op := range supportedOperators {
+		if operator == op {
+			operatorSupported = true
+			break
+		}
+	}
+	if !operatorSupported {
+		response.Errors = append(response.Errors, model.DSLError{
+			Code:    "DSL_INVALID_OPERATOR",
+			Message: fmt.Sprintf("Operator '%s' not supported. Supported: %s", operator, strings.Join(supportedOperators, ", ")),
+		})
+		return response
+	}
+	
+	isStringField := false
+	for _, sf := range stringFields {
+		if field == sf {
+			isStringField = true
+			break
+		}
+	}
+	
+	if isStringField {
+		if operator != "=" && operator != "!=" {
+			response.Errors = append(response.Errors, model.DSLError{
+				Code:    "DSL_INVALID_OPERATOR",
+				Message: fmt.Sprintf("String fields only support '=' and '!='. Field '%s' doesn't support operator '%s'", field, operator),
+			})
+			return response
+		}
+		
+		if !strings.HasPrefix(value, "'") || !strings.HasSuffix(value, "'") {
+			response.Errors = append(response.Errors, model.DSLError{
+				Code:    "DSL_PARSE_ERROR",
+				Message: fmt.Sprintf("String values must be in single quotes. Expected: '%s'", value),
+			})
+			return response
+		}
+	} else if field == "amount" {
+		if _, err := strconv.ParseFloat(value, 64); err != nil {
+			response.Errors = append(response.Errors, model.DSLError{
+				Code:    "DSL_PARSE_ERROR",
+				Message: fmt.Sprintf("Expected number after '%s', got '%s'", operator, value),
+			})
+			return response
+		}
+	}
+	
+	response.IsValid = true
+	response.NormalizedExpression = &normalized
 	return response
 }
 
-func (e *DSLEvaluator) NormalizeExpression(expression string) string {
+func (e *DSLEvaluator) normalizeExpression(expression string) string {
 	normalized := strings.ToUpper(expression)
 	normalized = strings.ReplaceAll(normalized, "AND", " AND ")
 	normalized = strings.ReplaceAll(normalized, "OR", " OR ")
@@ -88,7 +202,21 @@ func (e *DSLEvaluator) NormalizeExpression(expression string) string {
 	
 	normalized = strings.Join(strings.Fields(normalized), " ")
 	
-	return normalized
+	for _, op := range []string{">=", "<=", "!=", ">", "<", "="} {
+		normalized = strings.ReplaceAll(normalized, op, " "+op+" ")
+	}
+	
+	normalized = strings.Join(strings.Fields(normalized), " ")
+	return strings.TrimSpace(normalized)
+}
+
+func (e *DSLEvaluator) parseSimpleComparison(expression string) (string, string, string) {
+	parts := strings.Fields(expression)
+	if len(parts) != 3 {
+		return "", "", ""
+	}
+	
+	return parts[0], parts[1], parts[2]
 }
 
 func (e *DSLEvaluator) EvaluateComparison(field, operator string, value interface{}, transaction *model.Transaction, user *model.User) (bool, error) {

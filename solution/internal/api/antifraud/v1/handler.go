@@ -10,7 +10,6 @@ import (
 	"solution/internal/service"
 	"solution/internal/service/stats"
 	antifraud_v1 "solution/pkg/openapi/antifraud/v1"
-	"strings"
 	"time"
 )
 
@@ -111,34 +110,12 @@ func (h *handlerAdapter) APIV1TransactionsPost(ctx context.Context, req *antifra
 		}, nil
 	}
 
-	if req.Amount <= 0 {
-		return &antifraud_v1.APIV1TransactionsPostBadRequest{
-			Code:      antifraud_v1.ErrorCodeVALIDATIONFAILED,
-			Message:   "Amount must be positive",
-			TraceId:   uuid.New(),
-			Timestamp: time.Now().UTC(),
-			Path:      "/api/v1/transactions",
-			Details:   antifraud_v1.OptApiErrorDetails{},
-		}, nil
-	}
-
-	if strings.TrimSpace(string(req.Currency)) == "" {
-		return &antifraud_v1.APIV1TransactionsPostBadRequest{
-			Code:      antifraud_v1.ErrorCodeVALIDATIONFAILED,
-			Message:   "Currency is required",
-			TraceId:   uuid.New(),
-			Timestamp: time.Now().UTC(),
-			Path:      "/api/v1/transactions",
-			Details:   antifraud_v1.OptApiErrorDetails{},
-		}, nil
-	}
-
 	createReq := convertTransactionCreateRequest(req, userID)
 	decision, err := h.transactionService.Create(ctx, createReq)
 	if err != nil {
 		return &antifraud_v1.APIV1TransactionsPostBadRequest{
-			Code:      antifraud_v1.ErrorCodeINTERNALSERVERERROR,
-			Message:   "Failed to create transaction",
+			Code:      antifraud_v1.ErrorCodeVALIDATIONFAILED,
+			Message:   err.Error(),
 			TraceId:   uuid.New(),
 			Timestamp: time.Now().UTC(),
 			Path:      "/api/v1/transactions",
