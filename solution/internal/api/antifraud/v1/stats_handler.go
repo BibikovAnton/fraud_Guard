@@ -42,9 +42,9 @@ func (h *statsHandlerAdapter) APIV1StatsOverviewGet(ctx context.Context, params 
 	for i, merchant := range result.TopRiskMerchants {
 		topRiskMerchants[i] = antifraud_v1.MerchantRiskRow{
 			MerchantId:           merchant.MerchantID,
-			MerchantCategoryCode: antifraud_v1.OptMccCode{Value: merchant.MerchantCategoryCode, Set: true},
+			MerchantCategoryCode: antifraud_v1.OptMccCode{Value: antifraud_v1.MccCode(merchant.MerchantCategoryCode), Set: true},
 			TxCount:              int(merchant.TxCount),
-			Gmv:                  merchant.GMV,
+			Gmv:                  antifraud_v1.OptFloat64{Value: merchant.GMV, Set: true},
 			DeclineRate:          merchant.DeclineRate,
 		}
 	}
@@ -84,7 +84,7 @@ func (h *statsHandlerAdapter) APIV1StatsTransactionsTimeseriesGet(ctx context.Co
 	for i, point := range result.Points {
 		points[i] = antifraud_v1.TransactionsTimePoint{
 			BucketStart:  point.BucketStart,
-			TxCount:      point.TxCount,
+			TxCount:      int(point.TxCount),
 			Gmv:          point.GMV,
 			ApprovalRate: point.ApprovalRate,
 			DeclineRate:  point.DeclineRate,
@@ -120,13 +120,13 @@ func (h *statsHandlerAdapter) APIV1StatsRulesMatchesGet(ctx context.Context, par
 		items[i] = antifraud_v1.RuleMatchRow{
 			RuleId:          item.RuleID,
 			RuleName:        item.RuleName,
-			Matches:         item.Matches,
+			Matches:         int(item.Matches),
 			ShareOfDeclines: item.ShareOfDeclines,
-			UniqueUsers:     item.UniqueUsers,
+			UniqueUsers:     int(item.UniqueUsers),
 		}
 	}
 
-	return &antifraud_v1.StatsRuleMatches{
+	return &antifraud_v1.RuleMatchStats{
 		Items: items,
 	}, nil
 }
@@ -143,9 +143,6 @@ func (h *statsHandlerAdapter) APIV1StatsMerchantsRiskGet(ctx context.Context, pa
 	if params.To.Set {
 		to = params.To.Value
 	}
-	if params.Limit.Set {
-		limit = params.Limit.Value
-	}
 
 	// Get merchant risk from service
 	result, err := h.statsService.GetMerchantRisk(ctx, from, to, limit)
@@ -158,9 +155,9 @@ func (h *statsHandlerAdapter) APIV1StatsMerchantsRiskGet(ctx context.Context, pa
 	for i, item := range result.Items {
 		items[i] = antifraud_v1.MerchantRiskRow{
 			MerchantId:           item.MerchantID,
-			MerchantCategoryCode: antifraud_v1.OptMccCode{Value: item.MerchantCategoryCode, Set: true},
+			MerchantCategoryCode: antifraud_v1.OptMccCode{Value: antifraud_v1.MccCode(item.MerchantCategoryCode), Set: true},
 			TxCount:              int(item.TxCount),
-			Gmv:                  item.GMV,
+			Gmv:                  antifraud_v1.OptFloat64{Value: item.GMV, Set: true},
 			DeclineRate:          item.DeclineRate,
 		}
 	}
