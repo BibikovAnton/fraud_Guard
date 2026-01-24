@@ -444,19 +444,13 @@ func (h *handlerAdapter) APIV1FraudRulesPost(ctx context.Context, req *antifraud
 }
 
 func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *antifraud_v1.DslValidateRequest) (antifraud_v1.APIV1FraudRulesValidatePostRes, error) {
-	if ctx == nil {
-		return &antifraud_v1.APIV1FraudRulesValidatePostUnauthorized{
-			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
-			Message:   "Context is nil",
-			TraceId:   uuid.New(),
-			Timestamp: time.Now().UTC(),
-			Path:      "/api/v1/fraud-rules/validate",
-			Details:   antifraud_v1.OptApiErrorDetails{},
-		}, nil
-	}
-
+	// IMMEDIATE LOG - before any logic
+	fmt.Fprintf(os.Stderr, "!!! VALIDATE_DSL CALLED !!!\n")
+	
+	// Check admin authorization
 	userRole, ok := ctx.Value(ContextRoleKey).(string)
 	if !ok || userRole != "ADMIN" {
+		fmt.Fprintf(os.Stderr, "!!! VALIDATE_DSL AUTH FAILED !!!\n")
 		return &antifraud_v1.APIV1FraudRulesValidatePostUnauthorized{
 			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
 			Message:   "Access denied: admin rights required",
@@ -467,6 +461,7 @@ func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *a
 		}, nil
 	}
 
+	fmt.Fprintf(os.Stderr, "!!! VALIDATE_DSL AUTH PASSED !!!\n")
 	// Debug logs to stderr - they should appear in CI output
 	fmt.Fprintf(os.Stderr, "=== VALIDATE_DSL DEBUG START ===\n")
 	fmt.Fprintf(os.Stderr, "INPUT DSL: '%s'\n", req.DslExpression)
