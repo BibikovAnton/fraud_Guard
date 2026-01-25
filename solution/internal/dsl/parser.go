@@ -66,6 +66,39 @@ func (e *DSLEvaluator) EvaluateRule(rule *model.FraudRule, transaction *model.Tr
 			result.Description = "Invalid amount value"
 		}
 		
+	case "user.age":
+		var threshold float64
+		if _, err := fmt.Sscanf(value, "%f", &threshold); err == nil {
+			if user != nil && user.Age != nil {
+				matched := e.compareFloats(float64(*user.Age), operator, threshold)
+				result.Matched = matched
+				if matched {
+					result.Description = fmt.Sprintf("User age %d %s %.2f", *user.Age, operator, threshold)
+				} else {
+					result.Description = fmt.Sprintf("User age %d not %s %.2f", *user.Age, operator, threshold)
+				}
+			} else {
+				result.Description = "User age not available"
+			}
+		} else {
+			result.Description = "Invalid user.age value"
+		}
+		
+	case "user.region":
+		var userRegion string
+		if user != nil && user.Region != nil {
+			userRegion = *user.Region
+		}
+		// Remove quotes from value
+		cleanValue := strings.Trim(value, "'")
+		matched := e.compareStrings(userRegion, operator, cleanValue)
+		result.Matched = matched
+		if matched {
+			result.Description = fmt.Sprintf("User region '%s' %s '%s'", userRegion, operator, cleanValue)
+		} else {
+			result.Description = fmt.Sprintf("User region '%s' not %s '%s'", userRegion, operator, cleanValue)
+		}
+		
 	case "currency":
 		// Remove quotes from value
 		cleanValue := strings.Trim(value, "'")
@@ -176,7 +209,7 @@ func (e *DSLEvaluator) ValidateDSL(expression string) model.DslValidateResponse 
 		return response
 	}
 	
-	supportedFields := []string{"amount", "currency", "merchantId", "ipAddress", "deviceId"}
+	supportedFields := []string{"amount", "currency", "merchantId", "ipAddress", "deviceId", "user.age", "user.region"}
 	supportedOperators := []string{">", ">=", "<", "<=", "=", "!="}
 	
 	fieldSupported := false
@@ -209,8 +242,9 @@ func (e *DSLEvaluator) ValidateDSL(expression string) model.DslValidateResponse 
 		return response
 	}
 	
-	// String fields only support = and != operators
-	stringFields := []string{"currency", "merchantId", "ipAddress", "deviceId"}
+	// String fields only support = and != operators  
+	stringFields := []string{"currency", "merchantId", "ipAddress", "deviceId", "user.region"}
+	// user.age is numeric field
 	if contains(stringFields, field) && operator != "=" && operator != "!=" {
 		response.Errors = append(response.Errors, model.DSLError{
 			Code:    "DSL_INVALID_OPERATOR", 
@@ -229,7 +263,7 @@ func (e *DSLEvaluator) ValidateDSL(expression string) model.DslValidateResponse 
 			})
 			return response
 		}
-	} else if field == "amount" {
+	} else if field == "amount" || field == "user.age" {
 		if _, err := strconv.ParseFloat(value, 64); err != nil {
 			response.Errors = append(response.Errors, model.DSLError{
 				Code:    "DSL_PARSE_ERROR",
