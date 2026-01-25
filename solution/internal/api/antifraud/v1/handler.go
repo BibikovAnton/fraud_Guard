@@ -114,7 +114,7 @@ func (h *handlerAdapter) APIV1TransactionsPost(ctx context.Context, req *antifra
 	createReq := convertTransactionCreateRequest(req, userID)
 	decision, err := h.transactionService.Create(ctx, createReq)
 	if err != nil {
-		// Check for specific error types
+
 		if strings.Contains(err.Error(), "failed to get user by ID") {
 			return &antifraud_v1.APIV1TransactionsPostNotFound{
 				Code:      antifraud_v1.ErrorCodeNOTFOUND,
@@ -146,7 +146,7 @@ func (h *handlerAdapter) APIV1TransactionsPost(ctx context.Context, req *antifra
 	}
 
 	apiTransaction := convertTransactionToAPI(decision.Transaction)
-	
+
 	ruleResults := make([]antifraud_v1.FraudRuleEvaluationResult, len(decision.RuleResults))
 	for i, rule := range decision.RuleResults {
 		ruleUUID, _ := uuid.Parse(rule.RuleID)
@@ -158,7 +158,7 @@ func (h *handlerAdapter) APIV1TransactionsPost(ctx context.Context, req *antifra
 			Description: rule.Description,
 		}
 	}
-	
+
 	transactionDecision := antifraud_v1.TransactionDecision{
 		Transaction: apiTransaction,
 		RuleResults: ruleResults,
@@ -180,20 +180,17 @@ func (h *handlerAdapter) APIV1TransactionsBatchPost(ctx context.Context, req *an
 		return nil, fmt.Errorf("batch request cannot be empty")
 	}
 
-	// Process each item individually like Python
 	results := make([]antifraud_v1.TransactionBatchResultItem, len(req.Items))
 	hasErrors := false
 
 	for i, item := range req.Items {
-		// Convert to service request
+
 		serviceReq := convertTransactionCreateRequest(&item, userID)
-		
-		// Validate and create transaction
+
 		decision, err := h.transactionService.Create(ctx, serviceReq)
 		if err != nil {
 			hasErrors = true
-			
-			// Check for specific errors
+
 			if strings.Contains(err.Error(), "failed to get user by ID") {
 				results[i] = antifraud_v1.TransactionBatchResultItem{
 					Index: i,
@@ -219,7 +216,7 @@ func (h *handlerAdapter) APIV1TransactionsBatchPost(ctx context.Context, req *an
 				}
 				continue
 			}
-			
+
 			results[i] = antifraud_v1.TransactionBatchResultItem{
 				Index: i,
 				Error: antifraud_v1.OptApiError{
@@ -231,7 +228,7 @@ func (h *handlerAdapter) APIV1TransactionsBatchPost(ctx context.Context, req *an
 				},
 			}
 		} else {
-			// Convert rule results
+
 			ruleResults := make([]antifraud_v1.FraudRuleEvaluationResult, len(decision.RuleResults))
 			for j, rule := range decision.RuleResults {
 				ruleUUID, _ := uuid.Parse(rule.RuleID)
@@ -243,7 +240,7 @@ func (h *handlerAdapter) APIV1TransactionsBatchPost(ctx context.Context, req *an
 					Description: rule.Description,
 				}
 			}
-			
+
 			results[i] = antifraud_v1.TransactionBatchResultItem{
 				Index: i,
 				Decision: antifraud_v1.OptTransactionDecision{
@@ -257,7 +254,6 @@ func (h *handlerAdapter) APIV1TransactionsBatchPost(ctx context.Context, req *an
 		}
 	}
 
-	// Return 207 for partial success, 201 for complete success
 	if hasErrors {
 		return &antifraud_v1.APIV1TransactionsBatchPostMultiStatus{
 			Items: results,
@@ -275,7 +271,6 @@ func (h *handlerAdapter) APIV1TransactionsGet(ctx context.Context, params antifr
 		return nil, fmt.Errorf("access denied: only ADMIN can view all transactions")
 	}
 
-	// Convert params to service format
 	var filterUserID *string
 	if params.UserId.Set {
 		userIDStr := params.UserId.Value.String()
@@ -306,7 +301,6 @@ func (h *handlerAdapter) APIV1TransactionsGet(ctx context.Context, params antifr
 		return nil, fmt.Errorf("failed to get transactions: %w", err)
 	}
 
-	// Convert to API format
 	apiTransactions := make([]antifraud_v1.Transaction, len(pagedTransactions.Items))
 	for i, txDecision := range pagedTransactions.Items {
 		apiTransactions[i] = convertTransactionToAPI(txDecision.Transaction)

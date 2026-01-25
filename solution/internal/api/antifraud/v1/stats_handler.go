@@ -160,8 +160,7 @@ func (h *statsHandlerAdapter) APIV1StatsRulesMatchesGet(ctx context.Context, par
 		}, nil
 	}
 
-	// Parse query parameters
-	from := time.Now().AddDate(0, -1, 0) // Default: 1 month ago
+	from := time.Now().AddDate(0, -1, 0)
 	to := time.Now()
 
 	if params.From.Set {
@@ -171,13 +170,11 @@ func (h *statsHandlerAdapter) APIV1StatsRulesMatchesGet(ctx context.Context, par
 		to = params.To.Value
 	}
 
-	// Get rule matches from service
 	result, err := h.statsService.GetRuleMatches(ctx, from, to)
 	if err != nil {
 		return nil, err
 	}
 
-	// Convert items
 	items := make([]antifraud_v1.RuleMatchRow, len(result.Items))
 	for i, item := range result.Items {
 		items[i] = antifraud_v1.RuleMatchRow{
@@ -218,10 +215,9 @@ func (h *statsHandlerAdapter) APIV1StatsMerchantsRiskGet(ctx context.Context, pa
 		}, nil
 	}
 
-	// Parse query parameters
 	from := time.Now().AddDate(0, -1, 0) // Default: 1 month ago
 	to := time.Now()
-	limit := 100 // Default limit
+	limit := 100
 
 	if params.From.Set {
 		from = params.From.Value
@@ -230,13 +226,11 @@ func (h *statsHandlerAdapter) APIV1StatsMerchantsRiskGet(ctx context.Context, pa
 		to = params.To.Value
 	}
 
-	// Get merchant risk from service
 	result, err := h.statsService.GetMerchantRisk(ctx, from, to, limit)
 	if err != nil {
 		return nil, err
 	}
 
-	// Convert items
 	items := make([]antifraud_v1.MerchantRiskRow, len(result.Items))
 	for i, item := range result.Items {
 		items[i] = antifraud_v1.MerchantRiskRow{
@@ -279,7 +273,6 @@ func (h *statsHandlerAdapter) APIV1StatsUsersIDRiskProfileGet(ctx context.Contex
 
 	userID := params.ID
 
-	// Get user risk profile from service
 	result, err := h.statsService.GetUserRiskProfile(ctx, userID)
 	if err != nil {
 		return nil, err
