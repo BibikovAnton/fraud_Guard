@@ -54,7 +54,7 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 		if len(fieldErrors) > 0 {
 			writeValidationErrorResponse(w, "/api/v1/transactions", fieldErrors)
 		} else {
-			if strings.Contains(err.Error(), "failed to get user by ID") {
+			if strings.Contains(err.Error(), "failed to get user by ID") || strings.Contains(err.Error(), "no rows in result set") {
 				writeErrorResponse(w, http.StatusNotFound, "USER_NOT_FOUND", "User not found")
 			} else if strings.Contains(err.Error(), "user is deactivated") {
 				writeErrorResponse(w, http.StatusForbidden, "USER_INACTIVE", "User is deactivated")
