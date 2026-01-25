@@ -416,7 +416,7 @@ func convertTransactionCreateRequest(req *antifraud_v1.TransactionCreateRequest,
 func convertTransactionToAPI(t *model.Transaction) antifraud_v1.Transaction {
 	transaction := antifraud_v1.Transaction{
 		ID:        t.ID,
-		UserId:    t.UserID,
+		UserId:    *t.UserID,
 		Amount:    t.Amount,
 		Currency:  antifraud_v1.CurrencyCode(t.Currency),
 		Status:    antifraud_v1.TransactionStatus(t.Status),

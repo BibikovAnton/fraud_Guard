@@ -360,8 +360,6 @@ func (h *TransactionHandler) validateAndConvertTransaction(raw map[string]interf
 				return nil, fmt.Errorf("location.country must be at most 2 characters")
 			}
 			location.Country = country
-		} else {
-			return nil, fmt.Errorf("location.country is required")
 		}
 
 		if lat, ok := locationRaw["latitude"].(float64); ok {
@@ -579,7 +577,7 @@ func (h *TransactionHandler) extractFieldErrors(errMsg string, rawRequest map[st
 		}
 		fieldErrors = append(fieldErrors, map[string]interface{}{
 			"field":        "location.latitude",
-			"issue":        "must be between -90 and 90",
+			"issue":        "location.latitude must be between -90 and 90",
 			"rejectedValue": rejectedValue,
 		})
 	}
@@ -593,7 +591,7 @@ func (h *TransactionHandler) extractFieldErrors(errMsg string, rawRequest map[st
 		}
 		fieldErrors = append(fieldErrors, map[string]interface{}{
 			"field":        "location.longitude",
-			"issue":        "must be between -180 and 180",
+			"issue":        "location.longitude must be between -180 and 180",
 			"rejectedValue": rejectedValue,
 		})
 	}

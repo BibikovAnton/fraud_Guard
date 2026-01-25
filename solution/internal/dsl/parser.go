@@ -44,7 +44,7 @@ func (e *DSLEvaluator) EvaluateRule(rule *model.FraudRule, transaction *model.Tr
 
 	dsl := strings.ToLower(strings.TrimSpace(rule.DslExpression))
 	
-	// Parse simple comparison: field operator value
+	
 	field, operator, value := e.parseSimpleComparison(dsl)
 	if field == "" || operator == "" || value == "" {
 		result.Description = "Invalid DSL expression"
@@ -69,7 +69,7 @@ func (e *DSLEvaluator) EvaluateRule(rule *model.FraudRule, transaction *model.Tr
 	case "currency":
 		// Remove quotes from value
 		cleanValue := strings.Trim(value, "'")
-		matched := e.compareStrings(transaction.Currency, operator, cleanValue)
+		matched := e.compareStrings(string(transaction.Currency), operator, cleanValue)
 		result.Matched = matched
 		if matched {
 			result.Description = fmt.Sprintf("Currency %s %s '%s'", transaction.Currency, operator, cleanValue)
@@ -131,42 +131,47 @@ func (e *DSLEvaluator) EvaluateRule(rule *model.FraudRule, transaction *model.Tr
 
 func (e *DSLEvaluator) ValidateDSL(expression string) model.DslValidateResponse {
 	response := model.DslValidateResponse{
-		IsValid:              false,
-		NormalizedExpression: nil,
-		Errors:               []model.DSLError{},
+		IsValid: false,
+		Errors:  []model.DSLError{},
 	}
 	
-	if len(expression) < 3 || len(expression) > 2000 {
+	if expression == "" {
 		response.Errors = append(response.Errors, model.DSLError{
 			Code:    "DSL_PARSE_ERROR",
-			Message: "Expression length must be between 3 and 2000 characters",
+			Message: "Empty expression",
 		})
 		return response
 	}
 	
-	normalized, parseErr := e.parseAndNormalize(expression)
-	if parseErr != nil {
-		response.Errors = append(response.Errors, *parseErr)
+	normalized := e.normalizeExpression(expression)
+	
+	// Check for AND/OR operations - allow them for Tier 2 compatibility
+	if strings.Contains(normalized, " AND ") || strings.Contains(normalized, " OR ") ||
+	   strings.Contains(normalized, " and ") || strings.Contains(normalized, " or ") {
+		// Clean up the expression and return as valid
+		cleaned := strings.ReplaceAll(normalized, "(", "")
+		cleaned = strings.ReplaceAll(cleaned, ")", "")
+		cleaned = strings.ReplaceAll(cleaned, " and ", " AND ")
+		cleaned = strings.ReplaceAll(cleaned, " or ", " OR ")
+		response.IsValid = true
+		response.NormalizedExpression = &cleaned
 		return response
 	}
 	
-	// Validate field and operator - support simple AND/OR expressions
-	if strings.Contains(normalized, " and ") || strings.Contains(normalized, " or ") {
-		// For now, just validate that it contains AND/OR - basic implementation
-		response.IsValid = true
-		response.NormalizedExpression = &normalized
+	// Check for NOT and parentheses - not supported
+	if strings.Contains(normalized, " NOT ") || strings.Contains(normalized, "(") || strings.Contains(normalized, ")") {
+		response.Errors = append(response.Errors, model.DSLError{
+			Code:    "DSL_UNSUPPORTED_TIER",
+			Message: "NOT and parentheses not implemented yet (requires Tier 4)",
+		})
 		return response
 	}
 	
 	field, operator, value := e.parseSimpleComparison(normalized)
 	if field == "" || operator == "" || value == "" {
-		pos := findErrorPosition(expression, "operator")
-		near := extractNearText(expression, pos)
 		response.Errors = append(response.Errors, model.DSLError{
-			Code:     "DSL_PARSE_ERROR",
-			Message:  "Expected expression format: field operator value",
-			Position: &pos,
-			Near:     &near,
+			Code:    "DSL_PARSE_ERROR",
+			Message: "Expected expression format: field operator value",
 		})
 		return response
 	}
@@ -226,13 +231,9 @@ func (e *DSLEvaluator) ValidateDSL(expression string) model.DslValidateResponse 
 		}
 	} else if field == "amount" {
 		if _, err := strconv.ParseFloat(value, 64); err != nil {
-			pos := findErrorPosition(expression, value)
-			near := extractNearText(expression, pos)
 			response.Errors = append(response.Errors, model.DSLError{
-				Code:     "DSL_PARSE_ERROR",
-				Message:  "Expected number value",
-				Position: &pos,
-				Near:     &near,
+				Code:    "DSL_PARSE_ERROR",
+				Message: "Expected number value",
 			})
 			return response
 		}
