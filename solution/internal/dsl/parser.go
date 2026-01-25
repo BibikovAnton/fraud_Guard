@@ -486,9 +486,9 @@ func (e *DSLEvaluator) evaluateDeviceId(operator string, value interface{}, tran
 func (e *DSLEvaluator) compareStrings(a, operator, b string) bool {
 	switch operator {
 	case "=":
-		return a == b
+		return strings.ToLower(a) == strings.ToLower(b)
 	case "!=":
-		return a != b
+		return strings.ToLower(a) != strings.ToLower(b)
 	default:
 		return false
 	}

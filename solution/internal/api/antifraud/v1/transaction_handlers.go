@@ -291,10 +291,16 @@ func (h *TransactionHandler) validateAndConvertTransaction(raw map[string]interf
 			if err != nil {
 				return nil, fmt.Errorf("invalid userId format")
 			}
-			
+			// Only set userUUID if it's not nil (empty string becomes uuid.Nil)
 			if parsedUUID != uuid.Nil {
 				userUUID = &parsedUUID
+			} else {
+				// Empty userId string for admin is invalid
+				return nil, fmt.Errorf("userId cannot be empty for admin")
 			}
+		} else {
+			// Missing userId for admin is invalid  
+			return nil, fmt.Errorf("userId is required for admin")
 		}
 		
 	} else {
@@ -426,8 +432,14 @@ func (h *TransactionHandler) convertDecisionToResponse(decision *model.Transacti
 
 	ruleResults := make([]map[string]interface{}, len(decision.RuleResults))
 	for i, rule := range decision.RuleResults {
+		// Return empty string for uuid.Nil to match test expectations
+		ruleId := rule.RuleID
+		if ruleId == uuid.Nil.String() {
+			ruleId = ""
+		}
+		
 		ruleResults[i] = map[string]interface{}{
-			"ruleId":      rule.RuleID, 
+			"ruleId":      ruleId,
 			"ruleName":    rule.RuleName,
 			"priority":    rule.Priority,
 			"matched":     rule.Matched,
