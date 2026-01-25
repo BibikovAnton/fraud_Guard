@@ -244,7 +244,7 @@ func (r *repository) GetList(ctx context.Context, params ListParams) ([]*model.T
 
 	selectQuery += " ORDER BY timestamp DESC"
 	selectQuery += fmt.Sprintf(" LIMIT $%d OFFSET $%d", argIndex, argIndex+1)
-	args = append(args, params.Size, params.Page*params.Size)
+	args = append(args, params.Size, (params.Page-1)*params.Size)
 
 	rows, err := r.db.Query(ctx, selectQuery, args...)
 	if err != nil {

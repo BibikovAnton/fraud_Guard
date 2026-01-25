@@ -58,6 +58,8 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 				writeErrorResponse(w, http.StatusNotFound, "USER_NOT_FOUND", "User not found")
 			} else if strings.Contains(err.Error(), "user is deactivated") {
 				writeErrorResponse(w, http.StatusForbidden, "USER_INACTIVE", "User is deactivated")
+			} else if strings.Contains(err.Error(), "invalid userId format") {
+				writeErrorResponse(w, http.StatusUnprocessableEntity, "VALIDATION_FAILED", err.Error())
 			} else {
 				writeErrorResponse(w, http.StatusUnprocessableEntity, "VALIDATION_FAILED", err.Error())
 			}

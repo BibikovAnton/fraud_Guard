@@ -24,6 +24,7 @@ type Service struct {
 
 type UserRepository interface {
 	GetByID(ctx context.Context, id string) (*model.User, error)
+	GetByIDIncludingInactive(ctx context.Context, id string) (*model.User, error)
 }
 
 type FraudRuleRepository interface {
@@ -58,10 +59,15 @@ func (s *Service) Create(ctx context.Context, req model.TransactionCreateRequest
 		return nil, err
 	}
 
-	user, err := s.userRepo.GetByID(ctx, req.UserID.String())
+	user, err := s.userRepo.GetByIDIncludingInactive(ctx, req.UserID.String())
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user by ID: %w", err)
 	}
+	
+	if user == nil {
+		return nil, fmt.Errorf("failed to get user by ID: no rows in result set")
+	}
+	
 	if !user.IsActive {
 		return nil, fmt.Errorf("user is deactivated")
 	}
