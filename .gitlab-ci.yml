@@ -44,6 +44,7 @@ test:
     DOCKER_HOST: "tcp://docker:2376"
     DOCKER_TLS_VERIFY: "1"
     DOCKER_CERT_PATH: "/certs/client"
+    COMPOSE_PROJECT_NAME: "test"
   script:
     - for try in {1..10}; do sleep 1; test -f /certs/client/ca.pem && break ; done
     - for try in {1..10}; do sleep 1; docker info && break ; done
@@ -51,19 +52,22 @@ test:
     - docker compose version
     - docker pull registry.prodcontest.com:443/2026-test-repos/backend/checker:$BACKEND_CHECKER_TAG
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
-    - export COMPOSE_PROJECT_NAME=test
     - docker compose up -d --wait
     - CHECKER_ID=$(docker compose ps -q antifraud-checker)
+    - echo "$CHECKER_ID" > .checker_id
     - docker wait "$CHECKER_ID"
-    - docker logs "$CHECKER_ID"
     - EXIT_CODE=$(docker inspect "$CHECKER_ID" --format='{{.State.ExitCode}}')
     - exit "$EXIT_CODE"
   after_script:
-    - docker compose down -v
+    - export CHECKER_ID="$(cat .checker_id 2>/dev/null || true)"
+    - docker compose logs antifraud-service || true
+    - docker logs "$CHECKER_ID" || true
+    - docker compose down -v || true
   artifacts:
     when: always
     paths:
       - reports/*
+      - application.log
     reports:
       junit: reports/junit.xml
     expire_in: 1 week
