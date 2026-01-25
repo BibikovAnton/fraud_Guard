@@ -100,7 +100,7 @@ func (r *repository) GetRuleMatchesStats(ctx context.Context, from, to time.Time
 		FROM transaction_rule_results trr
 		JOIN transactions t ON trr.transaction_id = t.id
 		JOIN fraud_rules fr ON trr.rule_id = fr.id
-		WHERE t.created_at BETWEEN $1 AND $2
+		WHERE t.timestamp BETWEEN $1 AND $2
 		GROUP BY trr.rule_id, fr.name
 		ORDER BY matches DESC
 	`
@@ -133,8 +133,8 @@ func (r *repository) GetRuleMatchesStats(ctx context.Context, from, to time.Time
 func (r *repository) GetMerchantRiskStats(ctx context.Context, from, to time.Time, limit int) ([]MerchantRiskStat, error) {
 	query := `
 		SELECT 
-			merchant_id,
-			merchant_category_code,
+			COALESCE(merchant_id, 'unknown') as merchant_id,
+			COALESCE(merchant_category_code, '') as merchant_category_code,
 			COUNT(*) as tx_count,
 			COALESCE(SUM(amount), 0) as gmv,
 			COUNT(*) FILTER (WHERE status = 'DECLINED')::float / COUNT(*) as decline_rate
@@ -181,14 +181,17 @@ func (r *repository) GetUserRiskProfile(ctx context.Context, userID uuid.UUID) (
 				COUNT(DISTINCT location->>'city') as distinct_cities_24h
 			FROM transactions 
 			WHERE user_id = $1 
-			AND created_at >= NOW() - INTERVAL '24 hours'
+			AND timestamp >= NOW() - INTERVAL '24 hours'
 		),
 		user_stats_30d AS (
 			SELECT 
-				COUNT(*) FILTER (WHERE status = 'DECLINED')::float / COUNT(*) as decline_rate_30d
+				CASE 
+					WHEN COUNT(*) > 0 THEN COUNT(*) FILTER (WHERE status = 'DECLINED')::float / COUNT(*)
+					ELSE 0 
+				END as decline_rate_30d
 			FROM transactions 
 			WHERE user_id = $1 
-			AND created_at >= NOW() - INTERVAL '30 days'
+			AND timestamp >= NOW() - INTERVAL '30 days'
 		)
 		SELECT 
 			$1::uuid as user_id,
@@ -198,7 +201,7 @@ func (r *repository) GetUserRiskProfile(ctx context.Context, userID uuid.UUID) (
 			COALESCE(s24.distinct_ips_24h, 0) as distinct_ips_24h,
 			COALESCE(s24.distinct_cities_24h, 0) as distinct_cities_24h,
 			COALESCE(s30.decline_rate_30d, 0) as decline_rate_30d,
-			COALESCE(MAX(created_at), NOW() - INTERVAL '1 day') as last_seen_at
+			COALESCE((SELECT MAX(timestamp) FROM transactions WHERE user_id = $1), NOW() - INTERVAL '1 day') as last_seen_at
 		FROM user_stats_24h s24
 		CROSS JOIN user_stats_30d s30
 	`
