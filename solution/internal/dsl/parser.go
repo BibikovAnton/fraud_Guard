@@ -39,6 +39,7 @@ func (e *DSLEvaluator) EvaluateRule(rule *model.FraudRule, transaction *model.Tr
 
 	if !rule.Enabled {
 		result.Description = "Rule is disabled"
+		result.RuleID = ""
 		return result
 	}
 
@@ -48,6 +49,7 @@ func (e *DSLEvaluator) EvaluateRule(rule *model.FraudRule, transaction *model.Tr
 	field, operator, value := e.parseSimpleComparison(dsl)
 	if field == "" || operator == "" || value == "" {
 		result.Description = "Invalid DSL expression"
+		result.RuleID = ""
 		return result
 	}
 	

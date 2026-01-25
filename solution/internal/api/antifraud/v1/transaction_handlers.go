@@ -54,7 +54,10 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 		if len(fieldErrors) > 0 {
 			writeValidationErrorResponse(w, "/api/v1/transactions", fieldErrors)
 		} else {
-			if strings.Contains(err.Error(), "failed to get user by ID") || strings.Contains(err.Error(), "no rows in result set") {
+			errMsgLower := strings.ToLower(err.Error())
+			if strings.Contains(errMsgLower, "failed to get user by id") || 
+			   strings.Contains(errMsgLower, "no rows in result set") ||
+			   strings.Contains(errMsgLower, "user not found") {
 				
 				var userId string
 				if id, ok := rawRequest["userId"].(string); ok {
@@ -511,9 +514,11 @@ func writeErrorResponseWithPath(w http.ResponseWriter, statusCode int, code, mes
 
 func (h *TransactionHandler) extractFieldErrors(errMsg string, rawRequest map[string]interface{}) []map[string]interface{} {
 	
-	if strings.Contains(errMsg, "failed to get user by ID") || 
-	   strings.Contains(errMsg, "no rows in result set") ||
-	   strings.Contains(errMsg, "user not found") {
+	errMsgLower := strings.ToLower(errMsg)
+	
+	if strings.Contains(errMsgLower, "failed to get user by id") || 
+	   strings.Contains(errMsgLower, "no rows in result set") ||
+	   strings.Contains(errMsgLower, "user not found") {
 		return []map[string]interface{}{}
 	}
 	
