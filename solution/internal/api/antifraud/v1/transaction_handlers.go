@@ -81,6 +81,7 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 
 	decision, err := h.transactionService.Create(ctx, *transactionReq)
 	if err != nil {
+		fmt.Printf("DEBUG: Transaction creation failed: %v\n", err)
 		writeErrorResponse(w, http.StatusBadRequest, "VALIDATION_FAILED", err.Error())
 		return
 	}
@@ -426,7 +427,7 @@ func (h *TransactionHandler) convertDecisionToResponse(decision *model.Transacti
 	ruleResults := make([]map[string]interface{}, len(decision.RuleResults))
 	for i, rule := range decision.RuleResults {
 		ruleResults[i] = map[string]interface{}{
-			"ruleId":      rule.RuleID, // Use original string directly
+			"ruleId":      rule.RuleID, 
 			"ruleName":    rule.RuleName,
 			"priority":    rule.Priority,
 			"matched":     rule.Matched,

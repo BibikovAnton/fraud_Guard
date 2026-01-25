@@ -105,8 +105,14 @@ func (r *repository) createRuleResult(ctx context.Context, txPg pgx.Tx, txID uui
 		) VALUES ($1, $2, $3, $4, $5, $6, $7)
 	`
 	
+	// Use uuid.Nil for empty RuleID to satisfy database constraint
+	ruleID := result.RuleID
+	if ruleID == "" {
+		ruleID = uuid.Nil.String()
+	}
+	
 	_, err := txPg.Exec(ctx, query,
-		txID, result.RuleID, result.RuleName, result.Priority,
+		txID, ruleID, result.RuleName, result.Priority,
 		result.Enabled, result.Matched, result.Description,
 	)
 	return err
