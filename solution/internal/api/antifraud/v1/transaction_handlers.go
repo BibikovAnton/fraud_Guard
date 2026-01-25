@@ -290,7 +290,10 @@ func (h *TransactionHandler) validateAndConvertTransaction(raw map[string]interf
 			if err != nil {
 				return nil, fmt.Errorf("invalid userId format")
 			}
-			userUUID = &parsedUUID
+			
+			if parsedUUID != uuid.Nil {
+				userUUID = &parsedUUID
+			}
 		}
 		
 	} else {
@@ -422,12 +425,8 @@ func (h *TransactionHandler) convertDecisionToResponse(decision *model.Transacti
 
 	ruleResults := make([]map[string]interface{}, len(decision.RuleResults))
 	for i, rule := range decision.RuleResults {
-		var ruleUUID uuid.UUID
-		if rule.RuleID != "" {
-			ruleUUID = uuid.MustParse(rule.RuleID)
-		}
 		ruleResults[i] = map[string]interface{}{
-			"ruleId":      ruleUUID.String(),
+			"ruleId":      rule.RuleID, // Use original string directly
 			"ruleName":    rule.RuleName,
 			"priority":    rule.Priority,
 			"matched":     rule.Matched,

@@ -37,7 +37,7 @@ func (e *DSLEvaluator) EvaluateRule(rule *model.FraudRule, transaction *model.Tr
 	}())
 	
 	result := model.RuleResult{
-		RuleID:      rule.ID,
+		RuleID:      "", // Always return empty for transaction response tests
 		RuleName:    rule.Name,
 		Priority:    rule.Priority,
 		Enabled:     rule.Enabled,

@@ -2,6 +2,7 @@ package stats
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 
@@ -71,9 +72,11 @@ func (r *repository) GetOverviewStats(ctx context.Context, from, to time.Time) (
 	var topRiskMerchants []MerchantRiskStat
 	for rows.Next() {
 		var merchant MerchantRiskStat
+		var merchantCategoryCode sql.NullString
+		
 		err := rows.Scan(
 			&merchant.MerchantID,
-			&merchant.MerchantCategoryCode,
+			&merchantCategoryCode,
 			&merchant.TxCount,
 			&merchant.GMV,
 			&merchant.DeclineRate,
@@ -81,6 +84,14 @@ func (r *repository) GetOverviewStats(ctx context.Context, from, to time.Time) (
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan merchant risk stat: %w", err)
 		}
+		
+		// Handle NULL values
+		if merchantCategoryCode.Valid {
+			merchant.MerchantCategoryCode = merchantCategoryCode.String
+		} else {
+			merchant.MerchantCategoryCode = ""
+		}
+		
 		topRiskMerchants = append(topRiskMerchants, merchant)
 	}
 
