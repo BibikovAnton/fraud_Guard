@@ -292,13 +292,13 @@ func (h *TransactionHandler) validateAndConvertTransaction(raw map[string]interf
 
 	amountRaw, ok := raw["amount"].(float64)
 	if !ok {
-		return nil, fmt.Errorf("must be greater > 0")
+		return nil, fmt.Errorf("amount must be a number")
 	}
 	if amountRaw <= 0 {
-		return nil, fmt.Errorf("must be greater > 0")
+		return nil, fmt.Errorf("amount must be greater than 0")
 	}
 	if amountRaw > model.MaxTransactionAmount {
-		return nil, fmt.Errorf("must be less than or equal to %.2f", model.MaxTransactionAmount)
+		return nil, fmt.Errorf("amount must be less than or equal to %.2f", model.MaxTransactionAmount)
 	}
 
 	currencyRaw, ok := raw["currency"].(string)
@@ -366,13 +366,13 @@ func (h *TransactionHandler) validateAndConvertTransaction(raw map[string]interf
 
 		if lat, ok := locationRaw["latitude"].(float64); ok {
 			if lat < -90 || lat > 90 {
-				return nil, fmt.Errorf("must be between -90 and 90")
+				return nil, fmt.Errorf("location.latitude must be between -90 and 90")
 			}
 			location.Latitude = &lat
 		}
 		if lon, ok := locationRaw["longitude"].(float64); ok {
 			if lon < -180 || lon > 180 {
-				return nil, fmt.Errorf("must be between -180 and 180")
+				return nil, fmt.Errorf("location.longitude must be between -180 and 180")
 			}
 			location.Longitude = &lon
 		}

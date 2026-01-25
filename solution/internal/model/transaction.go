@@ -45,7 +45,7 @@ type TransactionMetadata map[string]interface{}
 
 type Transaction struct {
 	ID                   uuid.UUID            `json:"id" db:"id"`
-	UserID               uuid.UUID            `json:"userId" db:"user_id"`
+	UserID               *uuid.UUID           `json:"userId" db:"user_id"`
 	Amount               float64              `json:"amount" db:"amount"`
 	Currency             CurrencyCode         `json:"currency" db:"currency"`
 	Status               TransactionStatus    `json:"status" db:"status"`

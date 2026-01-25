@@ -80,7 +80,7 @@ func (s *Service) Create(ctx context.Context, req model.TransactionCreateRequest
 
 	transaction := &model.Transaction{
 		ID:                   uuid.New(),
-		UserID:               uuid.Nil, // Default to nil UUID for admin transactions without user
+		UserID:               req.UserID, // Use the pointer directly - can be nil for admin transactions
 		Amount:               req.Amount,
 		Currency:             req.Currency,
 		Status:               model.TransactionStatusPending,
@@ -95,11 +95,6 @@ func (s *Service) Create(ctx context.Context, req model.TransactionCreateRequest
 		Metadata:             req.Metadata,
 		CreatedAt:            time.Now().UTC(),
 		UpdatedAt:            time.Now().UTC(),
-	}
-
-	// If UserID is provided, set it
-	if req.UserID != nil {
-		transaction.UserID = *req.UserID
 	}
 
 	rules, err := s.fraudRuleRepo.GetActiveRules(ctx)

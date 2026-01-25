@@ -8,6 +8,15 @@ import (
 	"go.uber.org/zap"
 )
 
+func contains(slice []string, item string) bool {
+	for _, s := range slice {
+		if s == item {
+			return true
+		}
+	}
+	return false
+}
+
 type DSLEvaluator struct {
 	logger *zap.Logger
 }
@@ -57,42 +66,60 @@ func (e *DSLEvaluator) EvaluateRule(rule *model.FraudRule, transaction *model.Tr
 			result.Description = "Invalid amount value"
 		}
 		
-	case "user.age":
-		var threshold float64
-		if _, err := fmt.Sscanf(value, "%f", &threshold); err == nil {
-			if user != nil && user.Age != nil {
-				age := float64(*user.Age)
-				matched := e.compareFloats(age, operator, threshold)
-				result.Matched = matched
-				if matched {
-					result.Description = fmt.Sprintf("User age %d %s %.0f", *user.Age, operator, threshold)
-				} else {
-					result.Description = fmt.Sprintf("User age %d not %s %.0f", *user.Age, operator, threshold)
-				}
-			} else {
-				result.Description = "User age not available"
-			}
+	case "currency":
+		// Remove quotes from value
+		cleanValue := strings.Trim(value, "'")
+		matched := e.compareStrings(transaction.Currency, operator, cleanValue)
+		result.Matched = matched
+		if matched {
+			result.Description = fmt.Sprintf("Currency %s %s '%s'", transaction.Currency, operator, cleanValue)
 		} else {
-			result.Description = "Invalid age value"
+			result.Description = fmt.Sprintf("Currency %s not %s '%s'", transaction.Currency, operator, cleanValue)
 		}
 		
-	case "user.score":
-		var threshold float64
-		if _, err := fmt.Sscanf(value, "%f", &threshold); err == nil {
-			if user != nil && user.Score != nil {
-				score := float64(*user.Score)
-				matched := e.compareFloats(score, operator, threshold)
-				result.Matched = matched
-				if matched {
-					result.Description = fmt.Sprintf("User score %.2f %s %.2f", *user.Score, operator, threshold)
-				} else {
-					result.Description = fmt.Sprintf("User score %.2f not %s %.2f", *user.Score, operator, threshold)
-				}
-			} else {
-				result.Description = "User score not available"
-			}
+	case "merchantId":
+		var merchantId string
+		if transaction.MerchantID != nil {
+			merchantId = *transaction.MerchantID
+		}
+		// Remove quotes from value
+		cleanValue := strings.Trim(value, "'")
+		matched := e.compareStrings(merchantId, operator, cleanValue)
+		result.Matched = matched
+		if matched {
+			result.Description = fmt.Sprintf("Merchant ID %s %s '%s'", merchantId, operator, cleanValue)
 		} else {
-			result.Description = "Invalid score value"
+			result.Description = fmt.Sprintf("Merchant ID %s not %s '%s'", merchantId, operator, cleanValue)
+		}
+		
+	case "ipAddress":
+		var ipAddress string
+		if transaction.IPAddress != nil {
+			ipAddress = transaction.IPAddress.String()
+		}
+		// Remove quotes from value
+		cleanValue := strings.Trim(value, "'")
+		matched := e.compareStrings(ipAddress, operator, cleanValue)
+		result.Matched = matched
+		if matched {
+			result.Description = fmt.Sprintf("IP Address %s %s '%s'", ipAddress, operator, cleanValue)
+		} else {
+			result.Description = fmt.Sprintf("IP Address %s not %s '%s'", ipAddress, operator, cleanValue)
+		}
+		
+	case "deviceId":
+		var deviceId string
+		if transaction.DeviceID != nil {
+			deviceId = *transaction.DeviceID
+		}
+		// Remove quotes from value
+		cleanValue := strings.Trim(value, "'")
+		matched := e.compareStrings(deviceId, operator, cleanValue)
+		result.Matched = matched
+		if matched {
+			result.Description = fmt.Sprintf("Device ID %s %s '%s'", deviceId, operator, cleanValue)
+		} else {
+			result.Description = fmt.Sprintf("Device ID %s not %s '%s'", deviceId, operator, cleanValue)
 		}
 		
 	default:
@@ -144,7 +171,7 @@ func (e *DSLEvaluator) ValidateDSL(expression string) model.DslValidateResponse 
 		return response
 	}
 	
-	supportedFields := []string{"amount", "user.age", "user.score"}
+	supportedFields := []string{"amount", "currency", "merchantId", "ipAddress", "deviceId"}
 	supportedOperators := []string{">", ">=", "<", "<=", "=", "!="}
 	
 	fieldSupported := false
@@ -177,8 +204,27 @@ func (e *DSLEvaluator) ValidateDSL(expression string) model.DslValidateResponse 
 		return response
 	}
 	
+	// String fields only support = and != operators
+	stringFields := []string{"currency", "merchantId", "ipAddress", "deviceId"}
+	if contains(stringFields, field) && operator != "=" && operator != "!=" {
+		response.Errors = append(response.Errors, model.DSLError{
+			Code:    "DSL_INVALID_OPERATOR", 
+			Message: fmt.Sprintf("String field '%s' only supports '=' and '!=' operators", field),
+		})
+		return response
+	}
+	
 	// Validate value based on field type
-	if field == "amount" || field == "user.age" || field == "user.score" {
+	if contains(stringFields, field) {
+		// String values must be in single quotes
+		if !(strings.HasPrefix(value, "'") && strings.HasSuffix(value, "'")) {
+			response.Errors = append(response.Errors, model.DSLError{
+				Code:    "DSL_PARSE_ERROR",
+				Message: fmt.Sprintf("String value for field '%s' must be in single quotes", field),
+			})
+			return response
+		}
+	} else if field == "amount" {
 		if _, err := strconv.ParseFloat(value, 64); err != nil {
 			pos := findErrorPosition(expression, value)
 			near := extractNearText(expression, pos)
@@ -306,10 +352,6 @@ func (e *DSLEvaluator) EvaluateComparison(field, operator string, value interfac
 		return e.evaluateIPAddress(operator, value, transaction)
 	case "deviceId":
 		return e.evaluateDeviceId(operator, value, transaction)
-	case "user.age":
-		return e.evaluateUserAge(operator, value, user)
-	case "user.region":
-		return e.evaluateUserRegion(operator, value, user)
 	default:
 		return false, fmt.Errorf("unsupported field: %s", field)
 	}
@@ -394,45 +436,6 @@ func (e *DSLEvaluator) evaluateDeviceId(operator string, value interface{}, tran
 	}
 
 	return e.compareStrings(*transaction.DeviceID, operator, compareValue), nil
-}
-
-func (e *DSLEvaluator) evaluateUserAge(operator string, value interface{}, user *model.User) (bool, error) {
-	if user == nil || user.Age == nil {
-		return false, nil
-	}
-
-	compareValue, ok := value.(float64)
-	if !ok {
-		return false, fmt.Errorf("user.age comparison requires numeric value")
-	}
-
-	userAge := float64(*user.Age)
-
-	switch operator {
-	case ">", ">=", "<", "<=":
-		return e.compareFloats(userAge, operator, compareValue), nil
-	case "=", "!=":
-		return e.compareFloats(userAge, operator, compareValue), nil
-	default:
-		return false, fmt.Errorf("unsupported operator for user.age: %s", operator)
-	}
-}
-
-func (e *DSLEvaluator) evaluateUserRegion(operator string, value interface{}, user *model.User) (bool, error) {
-	if user == nil || user.Region == nil {
-		return false, nil
-	}
-
-	compareValue, ok := value.(string)
-	if !ok {
-		return false, fmt.Errorf("user.region comparison requires string value")
-	}
-
-	if operator != "=" && operator != "!=" {
-		return false, fmt.Errorf("user.region only supports = and != operators")
-	}
-
-	return e.compareStrings(*user.Region, operator, compareValue), nil
 }
 
 func (e *DSLEvaluator) compareStrings(a, operator, b string) bool {
