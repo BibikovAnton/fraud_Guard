@@ -51,8 +51,8 @@ func (h *handlerAdapter) APIV1StatsTransactionsTimeseriesGet(ctx context.Context
 	return h.statsHandler.APIV1StatsTransactionsTimeseriesGet(ctx, params)
 }
 
-func (h *handlerAdapter) APIV1StatsRulesMatchesGet(ctx context.Context, params antifraud_v1.APIV1StatsRulesMatchesGetParams) (antifraud_v1.APIV1StatsRulesMatchesGetRes, error) {
-	return h.statsHandler.APIV1StatsRulesMatchesGet(ctx, params)
+func (h *handlerAdapter) APIV1StatsRuleMatchesGet(ctx context.Context, params antifraud_v1.APIV1StatsRuleMatchesGetParams) (antifraud_v1.APIV1StatsRuleMatchesGetRes, error) {
+	return h.statsHandler.APIV1StatsRuleMatchesGet(ctx, params)
 }
 
 func (h *handlerAdapter) APIV1StatsMerchantsRiskGet(ctx context.Context, params antifraud_v1.APIV1StatsMerchantsRiskGetParams) (antifraud_v1.APIV1StatsMerchantsRiskGetRes, error) {

@@ -621,7 +621,7 @@ func encodeAPIV1StatsOverviewGetResponse(response APIV1StatsOverviewGetRes, w ht
 	}
 }
 
-func encodeAPIV1StatsRulesMatchesGetResponse(response APIV1StatsRulesMatchesGetRes, w http.ResponseWriter, span trace.Span) error {
+func encodeAPIV1StatsRuleMatchesGetResponse(response APIV1StatsRuleMatchesGetRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
 	case *RuleMatchStats:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -636,7 +636,7 @@ func encodeAPIV1StatsRulesMatchesGetResponse(response APIV1StatsRulesMatchesGetR
 
 		return nil
 
-	case *APIV1StatsRulesMatchesGetUnauthorized:
+	case *APIV1StatsRuleMatchesGetUnauthorized:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(401)
 		span.SetStatus(codes.Error, http.StatusText(401))
@@ -649,7 +649,7 @@ func encodeAPIV1StatsRulesMatchesGetResponse(response APIV1StatsRulesMatchesGetR
 
 		return nil
 
-	case *APIV1StatsRulesMatchesGetForbidden:
+	case *APIV1StatsRuleMatchesGetForbidden:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(403)
 		span.SetStatus(codes.Error, http.StatusText(403))

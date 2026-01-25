@@ -163,7 +163,7 @@ type Invoker interface {
 	//
 	// GET /api/v1/stats/overview
 	APIV1StatsOverviewGet(ctx context.Context, params APIV1StatsOverviewGetParams) (APIV1StatsOverviewGetRes, error)
-	// APIV1StatsRulesMatchesGet invokes GET /api/v1/stats/rules/matches operation.
+	// APIV1StatsRuleMatchesGet invokes GET /api/v1/stats/rule-matches operation.
 	//
 	// Возвращает статистику по срабатываниям правил
 	// антифрода за период.
@@ -180,8 +180,8 @@ type Invoker interface {
 	// среди matched
 	// Результаты отсортированы по matches DESC.
 	//
-	// GET /api/v1/stats/rules/matches
-	APIV1StatsRulesMatchesGet(ctx context.Context, params APIV1StatsRulesMatchesGetParams) (APIV1StatsRulesMatchesGetRes, error)
+	// GET /api/v1/stats/rule-matches
+	APIV1StatsRuleMatchesGet(ctx context.Context, params APIV1StatsRuleMatchesGetParams) (APIV1StatsRuleMatchesGetRes, error)
 	// APIV1StatsTransactionsTimeseriesGet invokes GET /api/v1/stats/transactions/timeseries operation.
 	//
 	// Возвращает временной ряд метрик транзакций для
@@ -1720,7 +1720,7 @@ func (c *Client) sendAPIV1StatsOverviewGet(ctx context.Context, params APIV1Stat
 	return result, nil
 }
 
-// APIV1StatsRulesMatchesGet invokes GET /api/v1/stats/rules/matches operation.
+// APIV1StatsRuleMatchesGet invokes GET /api/v1/stats/rule-matches operation.
 //
 // Возвращает статистику по срабатываниям правил
 // антифрода за период.
@@ -1737,16 +1737,16 @@ func (c *Client) sendAPIV1StatsOverviewGet(ctx context.Context, params APIV1Stat
 // среди matched
 // Результаты отсортированы по matches DESC.
 //
-// GET /api/v1/stats/rules/matches
-func (c *Client) APIV1StatsRulesMatchesGet(ctx context.Context, params APIV1StatsRulesMatchesGetParams) (APIV1StatsRulesMatchesGetRes, error) {
-	res, err := c.sendAPIV1StatsRulesMatchesGet(ctx, params)
+// GET /api/v1/stats/rule-matches
+func (c *Client) APIV1StatsRuleMatchesGet(ctx context.Context, params APIV1StatsRuleMatchesGetParams) (APIV1StatsRuleMatchesGetRes, error) {
+	res, err := c.sendAPIV1StatsRuleMatchesGet(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendAPIV1StatsRulesMatchesGet(ctx context.Context, params APIV1StatsRulesMatchesGetParams) (res APIV1StatsRulesMatchesGetRes, err error) {
+func (c *Client) sendAPIV1StatsRuleMatchesGet(ctx context.Context, params APIV1StatsRuleMatchesGetParams) (res APIV1StatsRuleMatchesGetRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/api/v1/stats/rules/matches"),
+		semconv.HTTPRouteKey.String("/api/v1/stats/rule-matches"),
 	}
 
 	// Run stopwatch.
@@ -1761,7 +1761,7 @@ func (c *Client) sendAPIV1StatsRulesMatchesGet(ctx context.Context, params APIV1
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, APIV1StatsRulesMatchesGetOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, APIV1StatsRuleMatchesGetOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -1779,7 +1779,7 @@ func (c *Client) sendAPIV1StatsRulesMatchesGet(ctx context.Context, params APIV1
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/api/v1/stats/rules/matches"
+	pathParts[0] = "/api/v1/stats/rule-matches"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeQueryParams"
@@ -1848,7 +1848,7 @@ func (c *Client) sendAPIV1StatsRulesMatchesGet(ctx context.Context, params APIV1
 		var satisfied bitset
 		{
 			stage = "Security:BearerAuth"
-			switch err := c.securityBearerAuth(ctx, APIV1StatsRulesMatchesGetOperation, r); {
+			switch err := c.securityBearerAuth(ctx, APIV1StatsRuleMatchesGetOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -1884,7 +1884,7 @@ func (c *Client) sendAPIV1StatsRulesMatchesGet(ctx context.Context, params APIV1
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeAPIV1StatsRulesMatchesGetResponse(resp)
+	result, err := decodeAPIV1StatsRuleMatchesGetResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}

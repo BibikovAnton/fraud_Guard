@@ -143,7 +143,7 @@ type Handler interface {
 	//
 	// GET /api/v1/stats/overview
 	APIV1StatsOverviewGet(ctx context.Context, params APIV1StatsOverviewGetParams) (APIV1StatsOverviewGetRes, error)
-	// APIV1StatsRulesMatchesGet implements GET /api/v1/stats/rules/matches operation.
+	// APIV1StatsRuleMatchesGet implements GET /api/v1/stats/rule-matches operation.
 	//
 	// Возвращает статистику по срабатываниям правил
 	// антифрода за период.
@@ -160,8 +160,8 @@ type Handler interface {
 	// среди matched
 	// Результаты отсортированы по matches DESC.
 	//
-	// GET /api/v1/stats/rules/matches
-	APIV1StatsRulesMatchesGet(ctx context.Context, params APIV1StatsRulesMatchesGetParams) (APIV1StatsRulesMatchesGetRes, error)
+	// GET /api/v1/stats/rule-matches
+	APIV1StatsRuleMatchesGet(ctx context.Context, params APIV1StatsRuleMatchesGetParams) (APIV1StatsRuleMatchesGetRes, error)
 	// APIV1StatsTransactionsTimeseriesGet implements GET /api/v1/stats/transactions/timeseries operation.
 	//
 	// Возвращает временной ряд метрик транзакций для

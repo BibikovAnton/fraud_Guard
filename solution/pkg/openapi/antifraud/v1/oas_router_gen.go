@@ -275,9 +275,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 						return
 					}
 
-				case 'r': // Prefix: "rules/matches"
+				case 'r': // Prefix: "rule-matches"
 
-					if l := len("rules/matches"); len(elem) >= l && elem[0:l] == "rules/matches" {
+					if l := len("rule-matches"); len(elem) >= l && elem[0:l] == "rule-matches" {
 						elem = elem[l:]
 					} else {
 						break
@@ -287,7 +287,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 						// Leaf node.
 						switch r.Method {
 						case "GET":
-							s.handleAPIV1StatsRulesMatchesGetRequest([0]string{}, elemIsEscaped, w, r)
+							s.handleAPIV1StatsRuleMatchesGetRequest([0]string{}, elemIsEscaped, w, r)
 						default:
 							s.notAllowed(w, r, "GET")
 						}
@@ -884,9 +884,9 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						}
 					}
 
-				case 'r': // Prefix: "rules/matches"
+				case 'r': // Prefix: "rule-matches"
 
-					if l := len("rules/matches"); len(elem) >= l && elem[0:l] == "rules/matches" {
+					if l := len("rule-matches"); len(elem) >= l && elem[0:l] == "rule-matches" {
 						elem = elem[l:]
 					} else {
 						break
@@ -896,10 +896,10 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						// Leaf node.
 						switch method {
 						case "GET":
-							r.name = APIV1StatsRulesMatchesGetOperation
+							r.name = APIV1StatsRuleMatchesGetOperation
 							r.summary = "Статистика срабатываний правил"
 							r.operationID = ""
-							r.pathPattern = "/api/v1/stats/rules/matches"
+							r.pathPattern = "/api/v1/stats/rule-matches"
 							r.args = args
 							r.count = 0
 							return r, true

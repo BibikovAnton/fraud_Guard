@@ -181,7 +181,7 @@ func (UnimplementedHandler) APIV1StatsOverviewGet(ctx context.Context, params AP
 	return r, ht.ErrNotImplemented
 }
 
-// APIV1StatsRulesMatchesGet implements GET /api/v1/stats/rules/matches operation.
+// APIV1StatsRuleMatchesGet implements GET /api/v1/stats/rule-matches operation.
 //
 // Возвращает статистику по срабатываниям правил
 // антифрода за период.
@@ -198,8 +198,8 @@ func (UnimplementedHandler) APIV1StatsOverviewGet(ctx context.Context, params AP
 // среди matched
 // Результаты отсортированы по matches DESC.
 //
-// GET /api/v1/stats/rules/matches
-func (UnimplementedHandler) APIV1StatsRulesMatchesGet(ctx context.Context, params APIV1StatsRulesMatchesGetParams) (r APIV1StatsRulesMatchesGetRes, _ error) {
+// GET /api/v1/stats/rule-matches
+func (UnimplementedHandler) APIV1StatsRuleMatchesGet(ctx context.Context, params APIV1StatsRuleMatchesGetParams) (r APIV1StatsRuleMatchesGetRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 

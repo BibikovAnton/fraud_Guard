@@ -41,8 +41,8 @@ type APIV1StatsOverviewGetRes interface {
 	aPIV1StatsOverviewGetRes()
 }
 
-type APIV1StatsRulesMatchesGetRes interface {
-	aPIV1StatsRulesMatchesGetRes()
+type APIV1StatsRuleMatchesGetRes interface {
+	aPIV1StatsRuleMatchesGetRes()
 }
 
 type APIV1StatsTransactionsTimeseriesGetRes interface {

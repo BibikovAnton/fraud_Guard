@@ -1954,7 +1954,7 @@ func (s *Server) handleAPIV1StatsOverviewGetRequest(args [0]string, argsEscaped 
 	}
 }
 
-// handleAPIV1StatsRulesMatchesGetRequest handles GET /api/v1/stats/rules/matches operation.
+// handleAPIV1StatsRuleMatchesGetRequest handles GET /api/v1/stats/rule-matches operation.
 //
 // Возвращает статистику по срабатываниям правил
 // антифрода за период.
@@ -1971,17 +1971,17 @@ func (s *Server) handleAPIV1StatsOverviewGetRequest(args [0]string, argsEscaped 
 // среди matched
 // Результаты отсортированы по matches DESC.
 //
-// GET /api/v1/stats/rules/matches
-func (s *Server) handleAPIV1StatsRulesMatchesGetRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+// GET /api/v1/stats/rule-matches
+func (s *Server) handleAPIV1StatsRuleMatchesGetRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/api/v1/stats/rules/matches"),
+		semconv.HTTPRouteKey.String("/api/v1/stats/rule-matches"),
 	}
 
 	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), APIV1StatsRulesMatchesGetOperation,
+	ctx, span := s.cfg.Tracer.Start(r.Context(), APIV1StatsRuleMatchesGetOperation,
 		trace.WithAttributes(otelAttrs...),
 		serverSpanKind,
 	)
@@ -2036,7 +2036,7 @@ func (s *Server) handleAPIV1StatsRulesMatchesGetRequest(args [0]string, argsEsca
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
-			Name: APIV1StatsRulesMatchesGetOperation,
+			Name: APIV1StatsRuleMatchesGetOperation,
 			ID:   "",
 		}
 	)
@@ -2044,7 +2044,7 @@ func (s *Server) handleAPIV1StatsRulesMatchesGetRequest(args [0]string, argsEsca
 		type bitset = [1]uint8
 		var satisfied bitset
 		{
-			sctx, ok, err := s.securityBearerAuth(ctx, APIV1StatsRulesMatchesGetOperation, r)
+			sctx, ok, err := s.securityBearerAuth(ctx, APIV1StatsRuleMatchesGetOperation, r)
 			if err != nil {
 				err = &ogenerrors.SecurityError{
 					OperationContext: opErrContext,
@@ -2084,7 +2084,7 @@ func (s *Server) handleAPIV1StatsRulesMatchesGetRequest(args [0]string, argsEsca
 			return
 		}
 	}
-	params, err := decodeAPIV1StatsRulesMatchesGetParams(args, argsEscaped, r)
+	params, err := decodeAPIV1StatsRuleMatchesGetParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -2095,11 +2095,11 @@ func (s *Server) handleAPIV1StatsRulesMatchesGetRequest(args [0]string, argsEsca
 		return
 	}
 
-	var response APIV1StatsRulesMatchesGetRes
+	var response APIV1StatsRuleMatchesGetRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
-			OperationName:    APIV1StatsRulesMatchesGetOperation,
+			OperationName:    APIV1StatsRuleMatchesGetOperation,
 			OperationSummary: "Статистика срабатываний правил",
 			OperationID:      "",
 			Body:             nil,
@@ -2122,8 +2122,8 @@ func (s *Server) handleAPIV1StatsRulesMatchesGetRequest(args [0]string, argsEsca
 
 		type (
 			Request  = struct{}
-			Params   = APIV1StatsRulesMatchesGetParams
-			Response = APIV1StatsRulesMatchesGetRes
+			Params   = APIV1StatsRuleMatchesGetParams
+			Response = APIV1StatsRuleMatchesGetRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -2132,14 +2132,14 @@ func (s *Server) handleAPIV1StatsRulesMatchesGetRequest(args [0]string, argsEsca
 		](
 			m,
 			mreq,
-			unpackAPIV1StatsRulesMatchesGetParams,
+			unpackAPIV1StatsRuleMatchesGetParams,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.APIV1StatsRulesMatchesGet(ctx, params)
+				response, err = s.h.APIV1StatsRuleMatchesGet(ctx, params)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.APIV1StatsRulesMatchesGet(ctx, params)
+		response, err = s.h.APIV1StatsRuleMatchesGet(ctx, params)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -2147,7 +2147,7 @@ func (s *Server) handleAPIV1StatsRulesMatchesGetRequest(args [0]string, argsEsca
 		return
 	}
 
-	if err := encodeAPIV1StatsRulesMatchesGetResponse(response, w, span); err != nil {
+	if err := encodeAPIV1StatsRuleMatchesGetResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)
