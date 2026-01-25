@@ -149,7 +149,10 @@ func (h *handlerAdapter) APIV1TransactionsPost(ctx context.Context, req *antifra
 
 	ruleResults := make([]antifraud_v1.FraudRuleEvaluationResult, len(decision.RuleResults))
 	for i, rule := range decision.RuleResults {
-		ruleUUID, _ := uuid.Parse(rule.RuleID)
+		var ruleUUID uuid.UUID
+		if rule.RuleID != "" {
+			ruleUUID = uuid.MustParse(rule.RuleID)
+		}
 		ruleResults[i] = antifraud_v1.FraudRuleEvaluationResult{
 			RuleId:      ruleUUID,
 			RuleName:    rule.RuleName,
@@ -231,7 +234,10 @@ func (h *handlerAdapter) APIV1TransactionsBatchPost(ctx context.Context, req *an
 
 			ruleResults := make([]antifraud_v1.FraudRuleEvaluationResult, len(decision.RuleResults))
 			for j, rule := range decision.RuleResults {
-				ruleUUID, _ := uuid.Parse(rule.RuleID)
+				var ruleUUID uuid.UUID
+				if rule.RuleID != "" {
+					ruleUUID = uuid.MustParse(rule.RuleID)
+				}
 				ruleResults[j] = antifraud_v1.FraudRuleEvaluationResult{
 					RuleId:      ruleUUID,
 					RuleName:    rule.RuleName,
@@ -341,7 +347,10 @@ func (h *handlerAdapter) APIV1TransactionsIDGet(ctx context.Context, params anti
 	
 	ruleResults := make([]antifraud_v1.FraudRuleEvaluationResult, len(txDecision.RuleResults))
 	for i, rule := range txDecision.RuleResults {
-		ruleUUID, _ := uuid.Parse(rule.RuleID)
+		var ruleUUID uuid.UUID
+		if rule.RuleID != "" {
+			ruleUUID = uuid.MustParse(rule.RuleID)
+		}
 		ruleResults[i] = antifraud_v1.FraudRuleEvaluationResult{
 			RuleId:      ruleUUID,
 			RuleName:    rule.RuleName,

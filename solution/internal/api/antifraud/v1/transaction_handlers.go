@@ -50,24 +50,24 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 	transactionReq, err := h.validateAndConvertTransaction(rawRequest, userID, userRole)
 	if err != nil {
 		
-		fieldErrors := h.extractFieldErrors(err.Error(), rawRequest)
-		if len(fieldErrors) > 0 {
-			writeValidationErrorResponse(w, "/api/v1/transactions", fieldErrors)
+		errMsgLower := strings.ToLower(err.Error())
+		if strings.Contains(errMsgLower, "failed to get user by id") || 
+		   strings.Contains(errMsgLower, "no rows in result set") ||
+		   strings.Contains(errMsgLower, "user not found") {
+			
+			var userId string
+			if id, ok := rawRequest["userId"].(string); ok {
+				userId = id
+			}
+			writeUserNotFoundError(w, userId)
+		} else if strings.Contains(err.Error(), "user is deactivated") {
+			writeErrorResponse(w, http.StatusForbidden, "USER_INACTIVE", "User is deactivated")
+		} else if strings.Contains(err.Error(), "invalid userId format") {
+			writeErrorResponse(w, http.StatusUnprocessableEntity, "VALIDATION_FAILED", err.Error())
 		} else {
-			errMsgLower := strings.ToLower(err.Error())
-			if strings.Contains(errMsgLower, "failed to get user by id") || 
-			   strings.Contains(errMsgLower, "no rows in result set") ||
-			   strings.Contains(errMsgLower, "user not found") {
-				
-				var userId string
-				if id, ok := rawRequest["userId"].(string); ok {
-					userId = id
-				}
-				writeUserNotFoundError(w, userId)
-			} else if strings.Contains(err.Error(), "user is deactivated") {
-				writeErrorResponse(w, http.StatusForbidden, "USER_INACTIVE", "User is deactivated")
-			} else if strings.Contains(err.Error(), "invalid userId format") {
-				writeErrorResponse(w, http.StatusUnprocessableEntity, "VALIDATION_FAILED", err.Error())
+			fieldErrors := h.extractFieldErrors(err.Error(), rawRequest)
+			if len(fieldErrors) > 0 {
+				writeValidationErrorResponse(w, "/api/v1/transactions", fieldErrors)
 			} else {
 				writeErrorResponse(w, http.StatusUnprocessableEntity, "VALIDATION_FAILED", err.Error())
 			}
@@ -418,7 +418,10 @@ func (h *TransactionHandler) convertDecisionToResponse(decision *model.Transacti
 
 	ruleResults := make([]map[string]interface{}, len(decision.RuleResults))
 	for i, rule := range decision.RuleResults {
-		ruleUUID, _ := uuid.Parse(rule.RuleID)
+		var ruleUUID uuid.UUID
+		if rule.RuleID != "" {
+			ruleUUID = uuid.MustParse(rule.RuleID)
+		}
 		ruleResults[i] = map[string]interface{}{
 			"ruleId":      ruleUUID.String(),
 			"ruleName":    rule.RuleName,
