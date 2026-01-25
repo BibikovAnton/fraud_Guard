@@ -159,54 +159,27 @@ func (r *repository) GetRuleMatchesStats(ctx context.Context, from, to time.Time
 		ORDER BY matches DESC
 	`
 
-	fmt.Printf("DEBUG: Rule matches query: %s\n", query)
-	fmt.Printf("DEBUG: Query params: from=%v, to=%v\n", from, to)
-	
-	// First, let's see what's in the tables
-	debugQuery1 := `SELECT COUNT(*) as total_results FROM transaction_rule_results WHERE rule_id != '00000000-0000-0000-0000-000000000000'`
-	var totalResults int
-	r.db.QueryRow(ctx, debugQuery1).Scan(&totalResults)
-	fmt.Printf("DEBUG: Total non-nil rule_results: %d\n", totalResults)
-	
-	debugQuery2 := `SELECT rule_id, matched, COUNT(*) FROM transaction_rule_results WHERE rule_id != '00000000-0000-0000-0000-000000000000' GROUP BY rule_id, matched ORDER BY rule_id, matched`
-	rows2, _ := r.db.Query(ctx, debugQuery2)
-	fmt.Printf("DEBUG: Rule results breakdown:\n")
-	for rows2.Next() {
-		var ruleID string
-		var matched bool
-		var count int
-		rows2.Scan(&ruleID, &matched, &count)
-		fmt.Printf("  - %s: matched=%v, count=%d\n", ruleID, matched, count)
-	}
-	rows2.Close()
-
 	rows, err := r.db.Query(ctx, query, from, to)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get rule matches stats: %w", err)
 	}
 	defer rows.Close()
 
-	fmt.Printf("DEBUG: Rule matches query executed, checking results...\n")
-
 	var stats []RuleMatchStat
 	for rows.Next() {
 		var stat RuleMatchStat
-		err := rows.Scan(
+		if err := rows.Scan(
 			&stat.RuleID,
 			&stat.RuleName,
 			&stat.Matches,
 			&stat.ShareOfDeclines,
 			&stat.UniqueUsers,
-		)
-		if err != nil {
+		); err != nil {
 			return nil, fmt.Errorf("failed to scan rule match stat: %w", err)
 		}
 		stats = append(stats, stat)
-		fmt.Printf("DEBUG: Found rule match: %s - %s (%d matches)\n", stat.RuleID, stat.RuleName, stat.Matches)
 	}
 	
-	fmt.Printf("DEBUG: Total rule matches found: %d\n", len(stats))
-
 	return stats, nil
 }
 
