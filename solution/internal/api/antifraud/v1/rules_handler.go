@@ -36,7 +36,7 @@ func (h *handlerAdapter) APIV1FraudRulesGet(ctx context.Context) (antifraud_v1.A
 		}, nil
 	}
 
-	rules, err := h.fraudRuleService.GetAll(ctx, false) 
+	rules, err := h.fraudRuleService.GetAll(ctx, false)
 	if err != nil {
 		return &antifraud_v1.APIV1FraudRulesGetUnauthorized{
 			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
@@ -455,28 +455,12 @@ func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *a
 		}, nil
 	}
 
-	
-	
-	/*
-	userRole, ok := ctx.Value(ContextRoleKey).(string)
-	if !ok || userRole != "ADMIN" {
-		return &antifraud_v1.APIV1FraudRulesValidatePostForbidden{
-			Code:      antifraud_v1.ErrorCodeFORBIDDEN,
-			Message:   "Access denied: only ADMIN can validate DSL",
-			TraceId:   uuid.New(),
-			Timestamp: time.Now().UTC(),
-			Path:      "/api/v1/fraud-rules/validate",
-			Details:   antifraud_v1.OptApiErrorDetails{},
-		}, nil
-	}
-	*/
-
 	validateReq := model.DslValidateRequest{
 		DslExpression: req.DslExpression,
 	}
-	
+
 	result := h.fraudRuleService.ValidateDSL(ctx, validateReq)
-	
+
 	errors := make([]antifraud_v1.DslError, len(result.Errors))
 	for i, err := range result.Errors {
 		errors[i] = antifraud_v1.DslError{
@@ -485,7 +469,7 @@ func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *a
 			Position: antifraud_v1.OptNilInt{Set: false},
 			Near:     antifraud_v1.OptNilString{Set: false},
 		}
-		
+
 		if err.Position != nil && *err.Position > 0 {
 			errors[i].Position = antifraud_v1.OptNilInt{
 				Value: *err.Position,
@@ -499,19 +483,19 @@ func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *a
 			}
 		}
 	}
-	
+
 	response := antifraud_v1.DslValidateResponse{
 		IsValid:              result.IsValid,
 		NormalizedExpression: antifraud_v1.OptNilString{Set: false},
 		Errors:               errors,
 	}
-	
+
 	if result.NormalizedExpression != nil {
 		response.NormalizedExpression = antifraud_v1.OptNilString{
 			Value: *result.NormalizedExpression,
 			Set:   true,
 		}
 	}
-	
+
 	return &response, nil
 }

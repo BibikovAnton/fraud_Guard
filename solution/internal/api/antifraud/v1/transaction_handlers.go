@@ -295,8 +295,8 @@ func (h *TransactionHandler) validateAndConvertTransaction(raw map[string]interf
 			if parsedUUID != uuid.Nil {
 				userUUID = &parsedUUID
 			} else {
-				// Empty userId string for admin is invalid
-				return nil, fmt.Errorf("userId cannot be empty for admin")
+				// Empty userId string - treat as non-existent user for 404
+				userUUID = nil
 			}
 		} else {
 			// Missing userId for admin is invalid  

@@ -44,7 +44,7 @@ func (h *handlerAdapter) APIV1AuthLoginPost(ctx context.Context, req *antifraud_
 		if strings.Contains(err.Error(), "invalid credentials") || strings.Contains(err.Error(), "user not found") {
 			return &antifraud_v1.APIV1AuthLoginPostUnauthorized{
 				Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
-				Message:   "Неверные учетные данные",
+				Message:   "Invalid credentials",
 				TraceId:   uuid.New(),
 				Timestamp: time.Now().UTC(),
 				Path:      "/api/v1/auth/login",
@@ -55,7 +55,7 @@ func (h *handlerAdapter) APIV1AuthLoginPost(ctx context.Context, req *antifraud_
 		if strings.Contains(err.Error(), "deactivated") || strings.Contains(err.Error(), "USER_INACTIVE") {
 			return &antifraud_v1.APIV1AuthLoginPostLocked{
 				Code:      antifraud_v1.ErrorCodeUSERINACTIVE,
-				Message:   "Пользователь деактивирован",
+				Message:   "User is deactivated",
 				TraceId:   uuid.New(),
 				Timestamp: time.Now().UTC(),
 				Path:      "/api/v1/auth/login",
@@ -65,7 +65,7 @@ func (h *handlerAdapter) APIV1AuthLoginPost(ctx context.Context, req *antifraud_
 
 		return &antifraud_v1.APIV1AuthLoginPostUnauthorized{
 			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
-			Message:   "Ошибка аутентификации",
+			Message:   "Authentication error",
 			TraceId:   uuid.New(),
 			Timestamp: time.Now().UTC(),
 			Path:      "/api/v1/auth/login",
@@ -84,23 +84,23 @@ func (h *handlerAdapter) APIV1AuthLoginPost(ctx context.Context, req *antifraud_
 
 func (h *handlerAdapter) validateLoginRequest(req *antifraud_v1.LoginRequest) error {
 	if req.Email == "" {
-		return fmt.Errorf("email обязателен")
+		return fmt.Errorf("email is required")
 	}
 
 	if len(req.Email) > 254 {
-		return fmt.Errorf("email слишком длинный (максимум 254 символа)")
+		return fmt.Errorf("email is too long (maximum 254 characters)")
 	}
 
 	if !strings.Contains(req.Email, "@") {
-		return fmt.Errorf("неверный формат email")
+		return fmt.Errorf("invalid email format")
 	}
 
 	if req.Password == "" {
-		return fmt.Errorf("пароль обязателен")
+		return fmt.Errorf("password is required")
 	}
 
 	if len(req.Password) > 72 {
-		return fmt.Errorf("пароль слишком длинный (максимум 72 символа)")
+		return fmt.Errorf("password is too long (maximum 72 characters)")
 	}
 
 	return nil

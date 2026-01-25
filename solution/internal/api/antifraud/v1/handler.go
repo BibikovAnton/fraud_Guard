@@ -3,9 +3,8 @@ package v1
 import (
 	"context"
 	"fmt"
-	"github.com/go-faster/jx"
 	"github.com/google/uuid"
-	"net/netip"
+	"solution/internal/api/antifraud/v1/convertor"
 	"solution/internal/model"
 	"solution/internal/service"
 	"solution/internal/service/stats"
@@ -111,7 +110,7 @@ func (h *handlerAdapter) APIV1TransactionsPost(ctx context.Context, req *antifra
 		}, nil
 	}
 
-	createReq := convertTransactionCreateRequest(req, userID)
+	createReq := convertor.ConvertTransactionCreateRequest(req, userID)
 	decision, err := h.transactionService.Create(ctx, createReq)
 	if err != nil {
 
@@ -145,7 +144,7 @@ func (h *handlerAdapter) APIV1TransactionsPost(ctx context.Context, req *antifra
 		}, nil
 	}
 
-	apiTransaction := convertTransactionToAPI(decision.Transaction)
+	apiTransaction := convertor.ConvertTransactionToAPI(decision.Transaction)
 
 	ruleResults := make([]antifraud_v1.FraudRuleEvaluationResult, len(decision.RuleResults))
 	for i, rule := range decision.RuleResults {
@@ -188,7 +187,7 @@ func (h *handlerAdapter) APIV1TransactionsBatchPost(ctx context.Context, req *an
 
 	for i, item := range req.Items {
 
-		serviceReq := convertTransactionCreateRequest(&item, userID)
+		serviceReq := convertor.ConvertTransactionCreateRequest(&item, userID)
 
 		decision, err := h.transactionService.Create(ctx, serviceReq)
 		if err != nil {
@@ -251,7 +250,7 @@ func (h *handlerAdapter) APIV1TransactionsBatchPost(ctx context.Context, req *an
 				Index: i,
 				Decision: antifraud_v1.OptTransactionDecision{
 					Value: antifraud_v1.TransactionDecision{
-						Transaction: convertTransactionToAPI(decision.Transaction),
+						Transaction: convertor.ConvertTransactionToAPI(decision.Transaction),
 						RuleResults: ruleResults,
 					},
 					Set: true,
@@ -309,7 +308,7 @@ func (h *handlerAdapter) APIV1TransactionsGet(ctx context.Context, params antifr
 
 	apiTransactions := make([]antifraud_v1.Transaction, len(pagedTransactions.Items))
 	for i, tx := range pagedTransactions.Items {
-		apiTransactions[i] = convertTransactionToAPI(tx)
+		apiTransactions[i] = convertor.ConvertTransactionToAPI(tx)
 	}
 
 	result := antifraud_v1.PagedTransactions{
@@ -337,14 +336,12 @@ func (h *handlerAdapter) APIV1TransactionsIDGet(ctx context.Context, params anti
 		return nil, fmt.Errorf("transaction not found: %w", err)
 	}
 
-	
 	if userRole != "ADMIN" && txDecision.Transaction.UserID.String() != userID {
 		return nil, fmt.Errorf("access denied: users can only view their own transactions")
 	}
 
-	apiTransaction := convertTransactionToAPI(txDecision.Transaction)
+	apiTransaction := convertor.ConvertTransactionToAPI(txDecision.Transaction)
 
-	
 	ruleResults := make([]antifraud_v1.FraudRuleEvaluationResult, len(txDecision.RuleResults))
 	for i, rule := range txDecision.RuleResults {
 		var ruleUUID uuid.UUID
@@ -365,118 +362,4 @@ func (h *handlerAdapter) APIV1TransactionsIDGet(ctx context.Context, params anti
 		RuleResults: ruleResults,
 	}
 	return &transactionDecision, nil
-}
-
-func convertTransactionCreateRequest(req *antifraud_v1.TransactionCreateRequest, userID string) model.TransactionCreateRequest {
-	createReq := model.TransactionCreateRequest{
-		UserID:    &req.UserId,
-		Amount:    req.Amount,
-		Currency:  model.CurrencyCode(req.Currency),
-		Timestamp: req.Timestamp,
-	}
-
-	if req.MerchantId.Set {
-		createReq.MerchantID = &req.MerchantId.Value
-	}
-
-	if req.MerchantCategoryCode.Set {
-		mcc := model.MCCCode(req.MerchantCategoryCode.Value)
-		createReq.MerchantCategoryCode = &mcc
-	}
-
-	if req.IpAddress.Set {
-		if ip, err := netip.ParseAddr(req.IpAddress.Value); err == nil {
-			createReq.IPAddress = &ip
-		}
-	}
-
-	if req.DeviceId.Set {
-		createReq.DeviceID = &req.DeviceId.Value
-	}
-
-	if req.Channel.Set {
-		channel := model.TransactionChannel(req.Channel.Value)
-		createReq.Channel = &channel
-	}
-
-	if req.Location.Set {
-		if req.Location.Value.Latitude.Set && req.Location.Value.Longitude.Set {
-			createReq.Location = &model.TransactionLocation{
-				Latitude:  &req.Location.Value.Latitude.Value,
-				Longitude: &req.Location.Value.Longitude.Value,
-			}
-			if req.Location.Value.Country.Set {
-				createReq.Location.Country = req.Location.Value.Country.Value
-			}
-		}
-	}
-
-	if req.Metadata.Set {
-		metadata := make(model.TransactionMetadata)
-		for k, v := range req.Metadata.Value {
-			metadata[k] = v
-		}
-		createReq.Metadata = &metadata
-	}
-
-	return createReq
-}
-
-func convertTransactionToAPI(t *model.Transaction) antifraud_v1.Transaction {
-	transaction := antifraud_v1.Transaction{
-		ID:        t.ID,
-		UserId:    *t.UserID,
-		Amount:    t.Amount,
-		Currency:  antifraud_v1.CurrencyCode(t.Currency),
-		Status:    antifraud_v1.TransactionStatus(t.Status),
-		Timestamp: t.Timestamp,
-		Channel:   antifraud_v1.OptTransactionChannel{},
-		IsFraud:   t.IsFraud,
-		CreatedAt: t.CreatedAt,
-	}
-
-	if t.MerchantID != nil {
-		transaction.MerchantId = antifraud_v1.OptString{Set: true, Value: *t.MerchantID}
-	}
-
-	if t.MerchantCategoryCode != nil {
-		transaction.MerchantCategoryCode = antifraud_v1.OptMccCode{Set: true, Value: antifraud_v1.MccCode(*t.MerchantCategoryCode)}
-	}
-
-	if t.IPAddress != nil {
-		transaction.IpAddress = antifraud_v1.OptString{Set: true, Value: t.IPAddress.String()}
-	}
-
-	if t.DeviceID != nil {
-		transaction.DeviceId = antifraud_v1.OptString{Set: true, Value: *t.DeviceID}
-	}
-
-	if t.Channel != nil {
-		transaction.Channel = antifraud_v1.OptTransactionChannel{Set: true, Value: antifraud_v1.TransactionChannel(*t.Channel)}
-	}
-
-	if t.Location != nil {
-		transaction.Location = antifraud_v1.OptTransactionLocation{
-			Set: true,
-			Value: antifraud_v1.TransactionLocation{
-				Latitude:  antifraud_v1.OptFloat64{Set: true, Value: *t.Location.Latitude},
-				Longitude: antifraud_v1.OptFloat64{Set: true, Value: *t.Location.Longitude},
-			},
-		}
-		if t.Location.Country != "" {
-			transaction.Location.Value.Country = antifraud_v1.OptString{Set: true, Value: t.Location.Country}
-		}
-	}
-
-	if t.Metadata != nil {
-		metadata := make(antifraud_v1.TransactionMetadata)
-		for k, v := range *t.Metadata {
-			if str, ok := v.(string); ok {
-				metadata[k] = jx.Raw(str)
-			}
-		}
-		transaction.Metadata = antifraud_v1.OptTransactionMetadata{Set: true, Value: metadata}
-	}
-
-	return transaction
 }

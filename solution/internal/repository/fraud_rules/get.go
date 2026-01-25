@@ -85,7 +85,7 @@ func (r *repository) GetAll(ctx context.Context, activeOnly bool) ([]*model.Frau
 	var rules []*model.FraudRule
 	for rows.Next() {
 		rule := &model.FraudRule{}
-		err := rows.Scan(
+		err = rows.Scan(
 			&rule.ID,
 			&rule.Name,
 			&rule.Description,
@@ -101,7 +101,7 @@ func (r *repository) GetAll(ctx context.Context, activeOnly bool) ([]*model.Frau
 		rules = append(rules, rule)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err = rows.Err(); err != nil {
 		return nil, fmt.Errorf("error iterating fraud rules: %w", err)
 	}
 

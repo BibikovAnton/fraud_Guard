@@ -157,6 +157,7 @@ func (r *repository) GetRuleMatchesStats(ctx context.Context, from, to time.Time
 		JOIN fraud_rules fr ON trr.rule_id = fr.id
 		WHERE t.timestamp BETWEEN $1 AND $2
 			AND t.status = 'DECLINED'
+			AND trr.rule_id != '00000000-0000-0000-0000-000000000000'
 		GROUP BY trr.rule_id, fr.name
 		HAVING COUNT(*) FILTER (WHERE trr.matched = true) > 0
 		ORDER BY matches DESC

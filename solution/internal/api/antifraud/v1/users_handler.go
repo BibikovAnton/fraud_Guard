@@ -132,7 +132,7 @@ func (h *handlerAdapter) APIV1UsersIDGet(ctx context.Context, params antifraud_v
 	if !ok {
 		return &antifraud_v1.APIV1UsersIDGetUnauthorized{
 			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
-			Message:   "Не удалось определить роль пользователя",
+			Message:   "Failed to determine user role",
 			TraceId:   uuid.New(),
 			Timestamp: time.Now().UTC(),
 			Path:      "/api/v1/users/" + params.ID.String(),
@@ -144,7 +144,7 @@ func (h *handlerAdapter) APIV1UsersIDGet(ctx context.Context, params antifraud_v
 	if !ok {
 		return &antifraud_v1.APIV1UsersIDGetUnauthorized{
 			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
-			Message:   "Не удалось определить ID пользователя",
+			Message:   "Failed to determine user ID",
 			TraceId:   uuid.New(),
 			Timestamp: time.Now().UTC(),
 			Path:      "/api/v1/users/" + params.ID.String(),
@@ -155,7 +155,7 @@ func (h *handlerAdapter) APIV1UsersIDGet(ctx context.Context, params antifraud_v
 	if userRole != "ADMIN" && userID != params.ID.String() {
 		return &antifraud_v1.APIV1UsersIDGetForbidden{
 			Code:      antifraud_v1.ErrorCodeFORBIDDEN,
-			Message:   "Доступ запрещен: можно просматривать только свой профиль",
+			Message:   "Access denied: can only view own profile",
 			TraceId:   uuid.New(),
 			Timestamp: time.Now().UTC(),
 			Path:      "/api/v1/users/" + params.ID.String(),
@@ -176,7 +176,7 @@ func (h *handlerAdapter) APIV1UsersIDGet(ctx context.Context, params antifraud_v
 		if strings.Contains(err.Error(), "not found") {
 			return &antifraud_v1.APIV1UsersIDGetNotFound{
 				Code:      antifraud_v1.ErrorCodeNOTFOUND,
-				Message:   "Пользователь не найден",
+				Message:   "User not found",
 				TraceId:   uuid.New(),
 				Timestamp: time.Now().UTC(),
 				Path:      "/api/v1/users/" + params.ID.String(),
@@ -199,7 +199,7 @@ func (h *handlerAdapter) APIV1UsersIDPut(ctx context.Context, req *antifraud_v1.
 	if !ok {
 		return &antifraud_v1.APIV1UsersIDPutUnauthorized{
 			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
-			Message:   "Не удалось определить роль пользователя",
+			Message:   "Failed to determine user role",
 			TraceId:   uuid.New(),
 			Timestamp: time.Now().UTC(),
 			Path:      "/api/v1/users/" + params.ID.String(),
@@ -211,7 +211,7 @@ func (h *handlerAdapter) APIV1UsersIDPut(ctx context.Context, req *antifraud_v1.
 	if !ok {
 		return &antifraud_v1.APIV1UsersIDPutUnauthorized{
 			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
-			Message:   "Не удалось определить ID пользователя",
+			Message:   "Failed to determine user ID",
 			TraceId:   uuid.New(),
 			Timestamp: time.Now().UTC(),
 			Path:      "/api/v1/users/" + params.ID.String(),
@@ -222,7 +222,7 @@ func (h *handlerAdapter) APIV1UsersIDPut(ctx context.Context, req *antifraud_v1.
 	if userRole != "ADMIN" && userID != params.ID.String() {
 		return &antifraud_v1.APIV1UsersIDPutForbidden{
 			Code:      antifraud_v1.ErrorCodeFORBIDDEN,
-			Message:   "Доступ запрещен: можно обновлять только свой профиль",
+			Message:   "Access denied: can only update own profile",
 			TraceId:   uuid.New(),
 			Timestamp: time.Now().UTC(),
 			Path:      "/api/v1/users/" + params.ID.String(),
@@ -234,7 +234,7 @@ func (h *handlerAdapter) APIV1UsersIDPut(ctx context.Context, req *antifraud_v1.
 		if req.Role.Set {
 			return &antifraud_v1.APIV1UsersIDPutForbidden{
 				Code:      antifraud_v1.ErrorCodeFORBIDDEN,
-				Message:   "USER не может изменять роль",
+				Message:   "USER cannot change role",
 				TraceId:   uuid.New(),
 				Timestamp: time.Now().UTC(),
 				Path:      "/api/v1/users/" + params.ID.String(),
@@ -245,7 +245,7 @@ func (h *handlerAdapter) APIV1UsersIDPut(ctx context.Context, req *antifraud_v1.
 		if req.IsActive.Set {
 			return &antifraud_v1.APIV1UsersIDPutForbidden{
 				Code:      antifraud_v1.ErrorCodeFORBIDDEN,
-				Message:   "USER не может изменять статус активности",
+				Message:   "USER cannot change activity status",
 				TraceId:   uuid.New(),
 				Timestamp: time.Now().UTC(),
 				Path:      "/api/v1/users/" + params.ID.String(),
@@ -310,7 +310,7 @@ func (h *handlerAdapter) APIV1UsersIDPut(ctx context.Context, req *antifraud_v1.
 		if strings.Contains(err.Error(), "not found") {
 			return &antifraud_v1.APIV1UsersIDPutNotFound{
 				Code:      antifraud_v1.ErrorCodeNOTFOUND,
-				Message:   "Пользователь не найден",
+				Message:   "User not found",
 				TraceId:   uuid.New(),
 				Timestamp: time.Now().UTC(),
 				Path:      "/api/v1/users/" + params.ID.String(),
@@ -359,7 +359,7 @@ func (h *handlerAdapter) APIV1UsersMePut(ctx context.Context, req *antifraud_v1.
 	if !ok {
 		return &antifraud_v1.APIV1UsersMePutUnauthorized{
 			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
-			Message:   "Не удалось определить ID пользователя",
+			Message:   "Failed to determine user ID",
 			TraceId:   uuid.New(),
 			Timestamp: time.Now().UTC(),
 			Path:      "/api/v1/users/me",
@@ -370,7 +370,7 @@ func (h *handlerAdapter) APIV1UsersMePut(ctx context.Context, req *antifraud_v1.
 	if req.Role.Set {
 		return &antifraud_v1.APIV1UsersMePutForbidden{
 			Code:      antifraud_v1.ErrorCodeFORBIDDEN,
-			Message:   "USER не может изменять роль",
+			Message:   "USER cannot change role",
 			TraceId:   uuid.New(),
 			Timestamp: time.Now().UTC(),
 			Path:      "/api/v1/users/me",
@@ -381,7 +381,7 @@ func (h *handlerAdapter) APIV1UsersMePut(ctx context.Context, req *antifraud_v1.
 	if req.IsActive.Set {
 		return &antifraud_v1.APIV1UsersMePutForbidden{
 			Code:      antifraud_v1.ErrorCodeFORBIDDEN,
-			Message:   "USER не может изменять статус активности",
+			Message:   "USER cannot change activity status",
 			TraceId:   uuid.New(),
 			Timestamp: time.Now().UTC(),
 			Path:      "/api/v1/users/me",

@@ -34,7 +34,7 @@ func (h *handlerAdapter) APIV1AuthRegisterPost(ctx context.Context, req *antifra
 		if strings.Contains(err.Error(), "already exists") {
 			return &antifraud_v1.APIV1AuthRegisterPostConflict{
 				Code:      antifraud_v1.ErrorCodeEMAILALREADYEXISTS,
-				Message:   "Пользователь с таким email уже существует",
+				Message:   "User with this email already exists",
 				TraceId:   uuid.New(),
 				Timestamp: time.Now().UTC(),
 				Path:      "/api/v1/auth/register",
@@ -56,27 +56,27 @@ func (h *handlerAdapter) APIV1AuthRegisterPost(ctx context.Context, req *antifra
 
 func (h *handlerAdapter) validateRegisterRequest(req *antifraud_v1.RegisterRequest) error {
 	if req.Email == "" {
-		return fmt.Errorf("email обязателен")
+		return fmt.Errorf("email is required")
 	}
 
 	if len(req.Email) > 254 {
-		return fmt.Errorf("email слишком длинный (максимум 254 символа)")
+		return fmt.Errorf("email is too long (maximum 254 characters)")
 	}
 
 	if !strings.Contains(req.Email, "@") || !strings.Contains(req.Email, ".") {
-		return fmt.Errorf("неверный формат email")
+		return fmt.Errorf("invalid email format")
 	}
 
 	if req.Password == "" {
-		return fmt.Errorf("пароль обязателен")
+		return fmt.Errorf("password is required")
 	}
 
 	if len(req.Password) < 8 {
-		return fmt.Errorf("пароль должен содержать минимум 8 символов")
+		return fmt.Errorf("password must be at least 8 characters long")
 	}
 
 	if len(req.Password) > 72 {
-		return fmt.Errorf("пароль слишком длинный (максимум 72 символа)")
+		return fmt.Errorf("password is too long (maximum 72 characters)")
 	}
 
 	hasDigit := false
@@ -91,19 +91,19 @@ func (h *handlerAdapter) validateRegisterRequest(req *antifraud_v1.RegisterReque
 	}
 
 	if !hasDigit || !hasLetter {
-		return fmt.Errorf("пароль должен содержать минимум одну цифру и одну букву")
+		return fmt.Errorf("password must contain at least one digit and one letter")
 	}
 
 	if req.FullName == "" {
-		return fmt.Errorf("имя обязательно")
+		return fmt.Errorf("full name is required")
 	}
 
 	if len(req.FullName) < 2 {
-		return fmt.Errorf("имя слишком короткое (минимум 2 символа)")
+		return fmt.Errorf("full name is too short (minimum 2 characters)")
 	}
 
 	if len(req.FullName) > 200 {
-		return fmt.Errorf("имя слишком длинное (максимум 200 символов)")
+		return fmt.Errorf("full name is too long (maximum 200 characters)")
 	}
 
 	return nil
