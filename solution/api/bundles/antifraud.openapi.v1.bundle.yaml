@@ -982,7 +982,7 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
 
-  /api/v1/stats/rule-matches:
+  /api/v1/stats/rules/matches:
     get:
       tags: [Statistics]
       summary: Статистика срабатываний правил
