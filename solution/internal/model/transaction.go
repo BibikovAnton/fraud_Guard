@@ -63,7 +63,7 @@ type Transaction struct {
 }
 
 type TransactionCreateRequest struct {
-	UserID               uuid.UUID            `json:"userId"`
+	UserID               *uuid.UUID           `json:"userId,omitempty"`
 	Amount               float64              `json:"amount"`
 	Currency             CurrencyCode         `json:"currency"`
 	MerchantID           *string              `json:"merchantId,omitempty"`

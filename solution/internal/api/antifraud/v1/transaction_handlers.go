@@ -269,12 +269,25 @@ func (h *TransactionHandler) GetTransactions(w http.ResponseWriter, r *http.Requ
 }
 
 func (h *TransactionHandler) validateAndConvertTransaction(raw map[string]interface{}, userID, userRole string) (*model.TransactionCreateRequest, error) {
+	var userUUID *uuid.UUID
+	
 	if userRole == "ADMIN" {
 		userIdStr, ok := raw["userId"].(string)
 		if !ok || userIdStr == "" {
 			return nil, fmt.Errorf("userId is required for admin")
 		}
-		userID = userIdStr
+		parsedUUID, err := uuid.Parse(userIdStr)
+		if err != nil {
+			return nil, fmt.Errorf("invalid userId format")
+		}
+		userUUID = &parsedUUID
+	} else {
+		// For regular users, use their own ID
+		parsedUUID, err := uuid.Parse(userID)
+		if err != nil {
+			return nil, fmt.Errorf("invalid userId format")
+		}
+		userUUID = &parsedUUID
 	}
 
 	amountRaw, ok := raw["amount"].(float64)
@@ -311,11 +324,6 @@ func (h *TransactionHandler) validateAndConvertTransaction(raw map[string]interf
 	}
 	if timestamp.After(time.Now().Add(5 * time.Minute)) {
 		return nil, fmt.Errorf("timestamp cannot be more than 5 minutes in the future")
-	}
-
-	userUUID, err := uuid.Parse(userID)
-	if err != nil {
-		return nil, fmt.Errorf("invalid userId format")
 	}
 
 	req := &model.TransactionCreateRequest{

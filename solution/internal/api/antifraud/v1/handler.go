@@ -360,7 +360,7 @@ func (h *handlerAdapter) APIV1TransactionsIDGet(ctx context.Context, params anti
 
 func convertTransactionCreateRequest(req *antifraud_v1.TransactionCreateRequest, userID string) model.TransactionCreateRequest {
 	createReq := model.TransactionCreateRequest{
-		UserID:    req.UserId,
+		UserID:    &req.UserId,
 		Amount:    req.Amount,
 		Currency:  model.CurrencyCode(req.Currency),
 		Timestamp: req.Timestamp,

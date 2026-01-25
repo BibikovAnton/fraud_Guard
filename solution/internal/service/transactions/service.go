@@ -52,11 +52,16 @@ func NewService(txRepo transactionsRepo.Repository, userRepo repository.UserRepo
 }
 
 func (s *Service) Create(ctx context.Context, req model.TransactionCreateRequest) (*model.TransactionDecision, error) {
-	fmt.Printf("DEBUG: Creating transaction for user %s, amount %.2f\n", req.UserID.String(), req.Amount)
+	fmt.Printf("DEBUG: Creating transaction for user %v, amount %.2f\n", req.UserID, req.Amount)
 	
 	if err := s.validateCreateRequest(ctx, req); err != nil {
 		fmt.Printf("DEBUG: Validation failed: %v\n", err)
 		return nil, err
+	}
+
+	// Check if UserID is provided
+	if req.UserID == nil {
+		return nil, fmt.Errorf("userId is required")
 	}
 
 	user, err := s.userRepo.GetByIDIncludingInactive(ctx, req.UserID.String())
@@ -74,7 +79,7 @@ func (s *Service) Create(ctx context.Context, req model.TransactionCreateRequest
 
 	transaction := &model.Transaction{
 		ID:                   uuid.New(),
-		UserID:               req.UserID,
+		UserID:               *req.UserID,
 		Amount:               req.Amount,
 		Currency:             req.Currency,
 		Status:               model.TransactionStatusPending,
