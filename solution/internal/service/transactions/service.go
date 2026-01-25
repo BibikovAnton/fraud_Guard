@@ -227,29 +227,24 @@ func (s *Service) validateCreateRequest(ctx context.Context, req model.Transacti
 	}
 
 	if req.Location != nil {
-		if req.Location.Country == "" {
-			return fmt.Errorf("location.country is required when location is provided")
-		}
-		
-		if len(req.Location.Country) > 2 {
-			return fmt.Errorf("location.country must be at most 2 characters")
+		// country is optional - only validate if provided
+		if req.Location.Country != "" {
+			if len(req.Location.Country) > 2 {
+				return fmt.Errorf("location.country must be at most 2 characters")
+			}
 		}
 		
 		if (req.Location.Latitude != nil && req.Location.Longitude == nil) ||
 			(req.Location.Latitude == nil && req.Location.Longitude != nil) {
 			return fmt.Errorf("longitude and latitude must be provided together")
 		}
-		if req.Location.Latitude != nil {
-			lat := *req.Location.Latitude
-			if lat < -90 || lat > 90 {
-				return fmt.Errorf("must be between -90 and 90")
-			}
+		
+		if req.Location.Latitude != nil && (*req.Location.Latitude < -90 || *req.Location.Latitude > 90) {
+			return fmt.Errorf("location.latitude must be between -90 and 90")
 		}
-		if req.Location.Longitude != nil {
-			lon := *req.Location.Longitude
-			if lon < -180 || lon > 180 {
-				return fmt.Errorf("must be between -180 and 180")
-			}
+		
+		if req.Location.Longitude != nil && (*req.Location.Longitude < -180 || *req.Location.Longitude > 180) {
+			return fmt.Errorf("location.longitude must be between -180 and 180")
 		}
 	}
 	return nil

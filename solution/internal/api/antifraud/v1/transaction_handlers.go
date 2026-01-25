@@ -55,7 +55,12 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 			writeValidationErrorResponse(w, "/api/v1/transactions", fieldErrors)
 		} else {
 			if strings.Contains(err.Error(), "failed to get user by ID") || strings.Contains(err.Error(), "no rows in result set") {
-				writeErrorResponse(w, http.StatusNotFound, "USER_NOT_FOUND", "User not found")
+				// Extract userId from request for error details
+				var userId string
+				if id, ok := rawRequest["userId"].(string); ok {
+					userId = id
+				}
+				writeUserNotFoundError(w, userId)
 			} else if strings.Contains(err.Error(), "user is deactivated") {
 				writeErrorResponse(w, http.StatusForbidden, "USER_INACTIVE", "User is deactivated")
 			} else if strings.Contains(err.Error(), "invalid userId format") {
@@ -462,6 +467,23 @@ func (h *TransactionHandler) extractUserRoleFromToken(r *http.Request) (string, 
 	return userRole, nil
 }
 
+func writeUserNotFoundError(w http.ResponseWriter, userId string) {
+	response := map[string]interface{}{
+		"code":      "USER_NOT_FOUND",
+		"message":   "User not found",
+		"traceId":   uuid.New().String(),
+		"timestamp": time.Now().UTC().Format(time.RFC3339),
+		"path":      "/api/v1/transactions",
+		"details": map[string]interface{}{
+			"userId": userId,
+		},
+	}
+	
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusNotFound)
+	json.NewEncoder(w).Encode(response)
+}
+
 func writeErrorResponse(w http.ResponseWriter, statusCode int, code, message string) {
 	writeErrorResponseWithPath(w, statusCode, code, message, "/api/v1/transactions")
 }
@@ -488,6 +510,11 @@ func writeErrorResponseWithPath(w http.ResponseWriter, statusCode int, code, mes
 }
 
 func (h *TransactionHandler) extractFieldErrors(errMsg string, rawRequest map[string]interface{}) []map[string]interface{} {
+	// Don't extract field errors for user not found - these should be handled as 404
+	if strings.Contains(errMsg, "failed to get user by ID") || strings.Contains(errMsg, "no rows in result set") {
+		return []map[string]interface{}{}
+	}
+	
 	var fieldErrors []map[string]interface{}
 	
 	// Amount validation errors
@@ -509,6 +536,14 @@ func (h *TransactionHandler) extractFieldErrors(errMsg string, rawRequest map[st
 				"rejectedValue": val,
 			})
 		}
+	}
+	
+	if strings.Contains(errMsg, "amount must be a number") {
+		fieldErrors = append(fieldErrors, map[string]interface{}{
+			"field":        "amount",
+			"issue":        "must be a number",
+			"rejectedValue": rawRequest["amount"],
+		})
 	}
 	
 	// Currency validation errors
@@ -550,9 +585,9 @@ func (h *TransactionHandler) extractFieldErrors(errMsg string, rawRequest map[st
 	
 	if strings.Contains(errMsg, "location.country must be at most 2 characters") {
 		var rejectedValue interface{}
-		if location, ok := rawRequest["location"].(map[string]interface{}); ok {
-			if val, countryOk := location["country"]; countryOk {
-				rejectedValue = val
+		if val, ok := rawRequest["location"].(map[string]interface{}); ok {
+			if country, ok := val["country"]; ok {
+				rejectedValue = country
 			}
 		}
 		fieldErrors = append(fieldErrors, map[string]interface{}{
@@ -572,9 +607,9 @@ func (h *TransactionHandler) extractFieldErrors(errMsg string, rawRequest map[st
 	
 	if strings.Contains(errMsg, "must be between -90 and 90") {
 		var rejectedValue interface{}
-		if location, ok := rawRequest["location"].(map[string]interface{}); ok {
-			if val, latOk := location["latitude"]; latOk {
-				rejectedValue = val
+		if val, ok := rawRequest["location"].(map[string]interface{}); ok {
+			if lat, ok := val["latitude"]; ok {
+				rejectedValue = lat
 			}
 		}
 		fieldErrors = append(fieldErrors, map[string]interface{}{
@@ -586,9 +621,9 @@ func (h *TransactionHandler) extractFieldErrors(errMsg string, rawRequest map[st
 	
 	if strings.Contains(errMsg, "must be between -180 and 180") {
 		var rejectedValue interface{}
-		if location, ok := rawRequest["location"].(map[string]interface{}); ok {
-			if val, lonOk := location["longitude"]; lonOk {
-				rejectedValue = val
+		if val, ok := rawRequest["location"].(map[string]interface{}); ok {
+			if lon, ok := val["longitude"]; ok {
+				rejectedValue = lon
 			}
 		}
 		fieldErrors = append(fieldErrors, map[string]interface{}{
