@@ -511,7 +511,9 @@ func writeErrorResponseWithPath(w http.ResponseWriter, statusCode int, code, mes
 
 func (h *TransactionHandler) extractFieldErrors(errMsg string, rawRequest map[string]interface{}) []map[string]interface{} {
 	
-	if strings.Contains(errMsg, "failed to get user by ID") || strings.Contains(errMsg, "no rows in result set") {
+	if strings.Contains(errMsg, "failed to get user by ID") || 
+	   strings.Contains(errMsg, "no rows in result set") ||
+	   strings.Contains(errMsg, "user not found") {
 		return []map[string]interface{}{}
 	}
 	
