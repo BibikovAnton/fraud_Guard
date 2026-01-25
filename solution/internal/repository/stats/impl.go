@@ -144,14 +144,10 @@ func (r *repository) GetRuleMatchesStats(ctx context.Context, from, to time.Time
 	query := `
 		SELECT 
 			trr.rule_id,
-			fr.name as rule_name,
-			COUNT(*) FILTER (WHERE trr.matched = true) as matches,
-			CASE 
-				WHEN COUNT(*) FILTER (WHERE t.status = 'DECLINED') > 0 
-				THEN COUNT(*) FILTER (WHERE trr.matched = true)::float / COUNT(*) FILTER (WHERE t.status = 'DECLINED')
-				ELSE 0 
-			END as share_of_declines,
-			COUNT(DISTINCT t.user_id) as unique_users
+			fr.name,
+			COUNT(*) as matches,
+			COUNT(*) FILTER (WHERE trr.matched = true) * 1.0 / COUNT(*) as share_of_declines,
+			COUNT(DISTINCT trr.transaction_id) as unique_users
 		FROM transaction_rule_results trr
 		JOIN transactions t ON trr.transaction_id = t.id
 		JOIN fraud_rules fr ON trr.rule_id = fr.id
@@ -162,6 +158,27 @@ func (r *repository) GetRuleMatchesStats(ctx context.Context, from, to time.Time
 		HAVING COUNT(*) FILTER (WHERE trr.matched = true) > 0
 		ORDER BY matches DESC
 	`
+
+	fmt.Printf("DEBUG: Rule matches query: %s\n", query)
+	fmt.Printf("DEBUG: Query params: from=%v, to=%v\n", from, to)
+	
+	// First, let's see what's in the tables
+	debugQuery1 := `SELECT COUNT(*) as total_results FROM transaction_rule_results WHERE rule_id != '00000000-0000-0000-0000-000000000000'`
+	var totalResults int
+	r.db.QueryRow(ctx, debugQuery1).Scan(&totalResults)
+	fmt.Printf("DEBUG: Total non-nil rule_results: %d\n", totalResults)
+	
+	debugQuery2 := `SELECT rule_id, matched, COUNT(*) FROM transaction_rule_results WHERE rule_id != '00000000-0000-0000-0000-000000000000' GROUP BY rule_id, matched ORDER BY rule_id, matched`
+	rows2, _ := r.db.Query(ctx, debugQuery2)
+	fmt.Printf("DEBUG: Rule results breakdown:\n")
+	for rows2.Next() {
+		var ruleID string
+		var matched bool
+		var count int
+		rows2.Scan(&ruleID, &matched, &count)
+		fmt.Printf("  - %s: matched=%v, count=%d\n", ruleID, matched, count)
+	}
+	rows2.Close()
 
 	rows, err := r.db.Query(ctx, query, from, to)
 	if err != nil {
