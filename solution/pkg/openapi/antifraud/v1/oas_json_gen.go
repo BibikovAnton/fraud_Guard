@@ -1115,17 +1115,17 @@ func (s *APIV1StatsOverviewGetUnauthorized) UnmarshalJSON(data []byte) error {
 	return s.Decode(d)
 }
 
-// Encode encodes APIV1StatsRuleMatchesGetForbidden as json.
-func (s *APIV1StatsRuleMatchesGetForbidden) Encode(e *jx.Encoder) {
+// Encode encodes APIV1StatsRulesMatchesGetForbidden as json.
+func (s *APIV1StatsRulesMatchesGetForbidden) Encode(e *jx.Encoder) {
 	unwrapped := (*ApiError)(s)
 
 	unwrapped.Encode(e)
 }
 
-// Decode decodes APIV1StatsRuleMatchesGetForbidden from json.
-func (s *APIV1StatsRuleMatchesGetForbidden) Decode(d *jx.Decoder) error {
+// Decode decodes APIV1StatsRulesMatchesGetForbidden from json.
+func (s *APIV1StatsRulesMatchesGetForbidden) Decode(d *jx.Decoder) error {
 	if s == nil {
-		return errors.New("invalid: unable to decode APIV1StatsRuleMatchesGetForbidden to nil")
+		return errors.New("invalid: unable to decode APIV1StatsRulesMatchesGetForbidden to nil")
 	}
 	var unwrapped ApiError
 	if err := func() error {
@@ -1136,34 +1136,34 @@ func (s *APIV1StatsRuleMatchesGetForbidden) Decode(d *jx.Decoder) error {
 	}(); err != nil {
 		return errors.Wrap(err, "alias")
 	}
-	*s = APIV1StatsRuleMatchesGetForbidden(unwrapped)
+	*s = APIV1StatsRulesMatchesGetForbidden(unwrapped)
 	return nil
 }
 
 // MarshalJSON implements stdjson.Marshaler.
-func (s *APIV1StatsRuleMatchesGetForbidden) MarshalJSON() ([]byte, error) {
+func (s *APIV1StatsRulesMatchesGetForbidden) MarshalJSON() ([]byte, error) {
 	e := jx.Encoder{}
 	s.Encode(&e)
 	return e.Bytes(), nil
 }
 
 // UnmarshalJSON implements stdjson.Unmarshaler.
-func (s *APIV1StatsRuleMatchesGetForbidden) UnmarshalJSON(data []byte) error {
+func (s *APIV1StatsRulesMatchesGetForbidden) UnmarshalJSON(data []byte) error {
 	d := jx.DecodeBytes(data)
 	return s.Decode(d)
 }
 
-// Encode encodes APIV1StatsRuleMatchesGetUnauthorized as json.
-func (s *APIV1StatsRuleMatchesGetUnauthorized) Encode(e *jx.Encoder) {
+// Encode encodes APIV1StatsRulesMatchesGetUnauthorized as json.
+func (s *APIV1StatsRulesMatchesGetUnauthorized) Encode(e *jx.Encoder) {
 	unwrapped := (*ApiError)(s)
 
 	unwrapped.Encode(e)
 }
 
-// Decode decodes APIV1StatsRuleMatchesGetUnauthorized from json.
-func (s *APIV1StatsRuleMatchesGetUnauthorized) Decode(d *jx.Decoder) error {
+// Decode decodes APIV1StatsRulesMatchesGetUnauthorized from json.
+func (s *APIV1StatsRulesMatchesGetUnauthorized) Decode(d *jx.Decoder) error {
 	if s == nil {
-		return errors.New("invalid: unable to decode APIV1StatsRuleMatchesGetUnauthorized to nil")
+		return errors.New("invalid: unable to decode APIV1StatsRulesMatchesGetUnauthorized to nil")
 	}
 	var unwrapped ApiError
 	if err := func() error {
@@ -1174,19 +1174,19 @@ func (s *APIV1StatsRuleMatchesGetUnauthorized) Decode(d *jx.Decoder) error {
 	}(); err != nil {
 		return errors.Wrap(err, "alias")
 	}
-	*s = APIV1StatsRuleMatchesGetUnauthorized(unwrapped)
+	*s = APIV1StatsRulesMatchesGetUnauthorized(unwrapped)
 	return nil
 }
 
 // MarshalJSON implements stdjson.Marshaler.
-func (s *APIV1StatsRuleMatchesGetUnauthorized) MarshalJSON() ([]byte, error) {
+func (s *APIV1StatsRulesMatchesGetUnauthorized) MarshalJSON() ([]byte, error) {
 	e := jx.Encoder{}
 	s.Encode(&e)
 	return e.Bytes(), nil
 }
 
 // UnmarshalJSON implements stdjson.Unmarshaler.
-func (s *APIV1StatsRuleMatchesGetUnauthorized) UnmarshalJSON(data []byte) error {
+func (s *APIV1StatsRulesMatchesGetUnauthorized) UnmarshalJSON(data []byte) error {
 	d := jx.DecodeBytes(data)
 	return s.Decode(d)
 }

@@ -137,13 +137,13 @@ type APIV1StatsOverviewGetUnauthorized ApiError
 
 func (*APIV1StatsOverviewGetUnauthorized) aPIV1StatsOverviewGetRes() {}
 
-type APIV1StatsRuleMatchesGetForbidden ApiError
+type APIV1StatsRulesMatchesGetForbidden ApiError
 
-func (*APIV1StatsRuleMatchesGetForbidden) aPIV1StatsRuleMatchesGetRes() {}
+func (*APIV1StatsRulesMatchesGetForbidden) aPIV1StatsRulesMatchesGetRes() {}
 
-type APIV1StatsRuleMatchesGetUnauthorized ApiError
+type APIV1StatsRulesMatchesGetUnauthorized ApiError
 
-func (*APIV1StatsRuleMatchesGetUnauthorized) aPIV1StatsRuleMatchesGetRes() {}
+func (*APIV1StatsRulesMatchesGetUnauthorized) aPIV1StatsRulesMatchesGetRes() {}
 
 type APIV1StatsTransactionsTimeseriesGetForbidden ApiError
 
@@ -2781,7 +2781,7 @@ func (s *RuleMatchStats) SetItems(val []RuleMatchRow) {
 	s.Items = val
 }
 
-func (*RuleMatchStats) aPIV1StatsRuleMatchesGetRes() {}
+func (*RuleMatchStats) aPIV1StatsRulesMatchesGetRes() {}
 
 // Агрегированные метрики за указанный период.
 // Используется для дашборда администратора.

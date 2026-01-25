@@ -17,7 +17,7 @@ const (
 	APIV1PingGetOperation                        OperationName = "APIV1PingGet"
 	APIV1StatsMerchantsRiskGetOperation          OperationName = "APIV1StatsMerchantsRiskGet"
 	APIV1StatsOverviewGetOperation               OperationName = "APIV1StatsOverviewGet"
-	APIV1StatsRuleMatchesGetOperation            OperationName = "APIV1StatsRuleMatchesGet"
+	APIV1StatsRulesMatchesGetOperation           OperationName = "APIV1StatsRulesMatchesGet"
 	APIV1StatsTransactionsTimeseriesGetOperation OperationName = "APIV1StatsTransactionsTimeseriesGet"
 	APIV1StatsUsersIDRiskProfileGetOperation     OperationName = "APIV1StatsUsersIDRiskProfileGet"
 	APIV1TransactionsBatchPostOperation          OperationName = "APIV1TransactionsBatchPost"

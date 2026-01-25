@@ -1878,7 +1878,7 @@ func decodeAPIV1StatsOverviewGetResponse(resp *http.Response) (res APIV1StatsOve
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeAPIV1StatsRuleMatchesGetResponse(resp *http.Response) (res APIV1StatsRuleMatchesGetRes, _ error) {
+func decodeAPIV1StatsRulesMatchesGetResponse(resp *http.Response) (res APIV1StatsRulesMatchesGetRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -1938,7 +1938,7 @@ func decodeAPIV1StatsRuleMatchesGetResponse(resp *http.Response) (res APIV1Stats
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response APIV1StatsRuleMatchesGetUnauthorized
+			var response APIV1StatsRulesMatchesGetUnauthorized
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -1982,7 +1982,7 @@ func decodeAPIV1StatsRuleMatchesGetResponse(resp *http.Response) (res APIV1Stats
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response APIV1StatsRuleMatchesGetForbidden
+			var response APIV1StatsRulesMatchesGetForbidden
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err

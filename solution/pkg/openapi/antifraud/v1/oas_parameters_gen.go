@@ -629,8 +629,8 @@ func decodeAPIV1StatsOverviewGetParams(args [0]string, argsEscaped bool, r *http
 	return params, nil
 }
 
-// APIV1StatsRuleMatchesGetParams is parameters of GET /api/v1/stats/rule-matches operation.
-type APIV1StatsRuleMatchesGetParams struct {
+// APIV1StatsRulesMatchesGetParams is parameters of GET /api/v1/stats/rules/matches operation.
+type APIV1StatsRulesMatchesGetParams struct {
 	// Начало периода (RFC3339, включительно).
 	// **Валидация:**
 	// - Должен быть меньше `to` (иначе 422)
@@ -652,7 +652,7 @@ type APIV1StatsRuleMatchesGetParams struct {
 	Top OptInt
 }
 
-func unpackAPIV1StatsRuleMatchesGetParams(packed middleware.Parameters) (params APIV1StatsRuleMatchesGetParams) {
+func unpackAPIV1StatsRulesMatchesGetParams(packed middleware.Parameters) (params APIV1StatsRulesMatchesGetParams) {
 	{
 		key := middleware.ParameterKey{
 			Name: "from",
@@ -683,7 +683,7 @@ func unpackAPIV1StatsRuleMatchesGetParams(packed middleware.Parameters) (params 
 	return params
 }
 
-func decodeAPIV1StatsRuleMatchesGetParams(args [0]string, argsEscaped bool, r *http.Request) (params APIV1StatsRuleMatchesGetParams, _ error) {
+func decodeAPIV1StatsRulesMatchesGetParams(args [0]string, argsEscaped bool, r *http.Request) (params APIV1StatsRulesMatchesGetParams, _ error) {
 	q := uri.NewQueryDecoder(r.URL.Query())
 	// Decode query: from.
 	if err := func() error {

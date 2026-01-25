@@ -243,7 +243,7 @@ func (s *APIV1StatsOverviewGetUnauthorized) Validate() error {
 	return nil
 }
 
-func (s *APIV1StatsRuleMatchesGetForbidden) Validate() error {
+func (s *APIV1StatsRulesMatchesGetForbidden) Validate() error {
 	alias := (*ApiError)(s)
 	if err := alias.Validate(); err != nil {
 		return err
@@ -251,7 +251,7 @@ func (s *APIV1StatsRuleMatchesGetForbidden) Validate() error {
 	return nil
 }
 
-func (s *APIV1StatsRuleMatchesGetUnauthorized) Validate() error {
+func (s *APIV1StatsRulesMatchesGetUnauthorized) Validate() error {
 	alias := (*ApiError)(s)
 	if err := alias.Validate(); err != nil {
 		return err
