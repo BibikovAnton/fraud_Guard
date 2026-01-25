@@ -302,8 +302,8 @@ func (h *handlerAdapter) APIV1TransactionsGet(ctx context.Context, params antifr
 	}
 
 	apiTransactions := make([]antifraud_v1.Transaction, len(pagedTransactions.Items))
-	for i, txDecision := range pagedTransactions.Items {
-		apiTransactions[i] = convertTransactionToAPI(txDecision.Transaction)
+	for i, tx := range pagedTransactions.Items {
+		apiTransactions[i] = convertTransactionToAPI(tx)
 	}
 
 	result := antifraud_v1.PagedTransactions{

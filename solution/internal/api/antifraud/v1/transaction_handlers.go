@@ -355,6 +355,8 @@ func (h *TransactionHandler) validateAndConvertTransaction(raw map[string]interf
 
 	if locationRaw, ok := raw["location"].(map[string]interface{}); ok {
 		location := &model.TransactionLocation{}
+		
+		// country is optional - only validate if provided
 		if country, ok := locationRaw["country"].(string); ok {
 			if len(country) > 2 {
 				return nil, fmt.Errorf("location.country must be at most 2 characters")

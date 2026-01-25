@@ -27,8 +27,8 @@ type TransactionListParams struct {
 }
 
 type PagedTransactions struct {
-	Items []model.TransactionDecision `json:"items"`
-	Total int64                        `json:"total"`
-	Page  int                          `json:"page"`
-	Size  int                          `json:"size"`
+	Items []*model.Transaction `json:"items"`
+	Total int64                `json:"total"`
+	Page  int                  `json:"page"`
+	Size  int                  `json:"size"`
 }

@@ -188,16 +188,8 @@ func (s *Service) GetList(ctx context.Context, params service.TransactionListPar
 		return nil, fmt.Errorf("failed to get transactions: %w", err)
 	}
 
-	decisions := make([]model.TransactionDecision, len(transactions))
-	for i, tx := range transactions {
-		decisions[i] = model.TransactionDecision{
-			Transaction: tx,
-			RuleResults: []model.RuleResult{}, // Пусто для списка
-		}
-	}
-
 	return &service.PagedTransactions{
-		Items: decisions,
+		Items: transactions,
 		Total: total,
 		Page:  params.Page,
 		Size:  params.Size,
