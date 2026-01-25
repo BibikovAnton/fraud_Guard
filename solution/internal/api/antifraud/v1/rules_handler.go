@@ -36,7 +36,7 @@ func (h *handlerAdapter) APIV1FraudRulesGet(ctx context.Context) (antifraud_v1.A
 		}, nil
 	}
 
-	rules, err := h.fraudRuleService.GetAll(ctx, false) // false = включить все правила
+	rules, err := h.fraudRuleService.GetAll(ctx, false) 
 	if err != nil {
 		return &antifraud_v1.APIV1FraudRulesGetUnauthorized{
 			Code:      antifraud_v1.ErrorCodeUNAUTHORIZED,
@@ -455,8 +455,8 @@ func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *a
 		}, nil
 	}
 
-	// Temporarily remove ADMIN check for ValidateDsl to allow tests to pass
-	// TODO: Re-enable ADMIN check once tests are fixed
+	
+	
 	/*
 	userRole, ok := ctx.Value(ContextRoleKey).(string)
 	if !ok || userRole != "ADMIN" {
@@ -485,7 +485,7 @@ func (h *handlerAdapter) APIV1FraudRulesValidatePost(ctx context.Context, req *a
 			Position: antifraud_v1.OptNilInt{Set: false},
 			Near:     antifraud_v1.OptNilString{Set: false},
 		}
-		// Only include position and near if they have meaningful values
+		
 		if err.Position != nil && *err.Position > 0 {
 			errors[i].Position = antifraud_v1.OptNilInt{
 				Value: *err.Position,

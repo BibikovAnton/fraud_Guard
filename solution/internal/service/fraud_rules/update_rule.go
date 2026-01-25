@@ -15,7 +15,7 @@ func (s *service) Update(ctx context.Context, id string, req model.FraudRuleUpda
 		return nil, fmt.Errorf("fraud rule not found")
 	}
 
-	// TODO: Implement DSL validation when DSL service is ready
+	
 
 	if req.Priority != nil && *req.Priority < 1 {
 		return nil, fmt.Errorf("priority must be >= 1")

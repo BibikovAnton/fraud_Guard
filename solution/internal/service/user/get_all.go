@@ -10,7 +10,7 @@ func (s *userService) GetAll(ctx context.Context, page, size int) ([]*model.User
 		page = 0
 	}
 	if size <= 0 || size > 100 {
-		size = 20 // значение по умолчанию
+		size = 20 
 	}
 
 	return s.userRepo.GetAll(ctx, page, size)

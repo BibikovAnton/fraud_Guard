@@ -49,13 +49,13 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 
 	transactionReq, err := h.validateAndConvertTransaction(rawRequest, userID, userRole)
 	if err != nil {
-		// Check if it's a validation error that should return 422 with fieldErrors
+		
 		fieldErrors := h.extractFieldErrors(err.Error(), rawRequest)
 		if len(fieldErrors) > 0 {
 			writeValidationErrorResponse(w, "/api/v1/transactions", fieldErrors)
 		} else {
 			if strings.Contains(err.Error(), "failed to get user by ID") || strings.Contains(err.Error(), "no rows in result set") {
-				// Extract userId from request for error details
+				
 				var userId string
 				if id, ok := rawRequest["userId"].(string); ok {
 					userId = id
@@ -235,13 +235,13 @@ func (h *TransactionHandler) GetTransactions(w http.ResponseWriter, r *http.Requ
 	statusStr := r.URL.Query().Get("status")
 	isFraudStr := r.URL.Query().Get("isFraud")
 
-	// USER can only view their own transactions
+	
 	if userRole != "ADMIN" {
 		if userIDStr != "" && userIDStr != userID {
 			writeErrorResponse(w, http.StatusForbidden, "FORBIDDEN", "USER can only view their own transactions")
 			return
 		}
-		// Force filter to current user's ID for non-admin
+		
 		userIDStr = userID
 	}
 
@@ -285,9 +285,9 @@ func (h *TransactionHandler) validateAndConvertTransaction(raw map[string]interf
 			}
 			userUUID = &parsedUUID
 		}
-		// Admin can create transactions without userId - it will be nil
+		
 	} else {
-		// For regular users, use their own ID
+		
 		parsedUUID, err := uuid.Parse(userID)
 		if err != nil {
 			return nil, fmt.Errorf("invalid userId format")
@@ -361,7 +361,7 @@ func (h *TransactionHandler) validateAndConvertTransaction(raw map[string]interf
 	if locationRaw, ok := raw["location"].(map[string]interface{}); ok {
 		location := &model.TransactionLocation{}
 		
-		// country is optional - only validate if provided
+		
 		if country, ok := locationRaw["country"].(string); ok {
 			if len(country) > 2 {
 				return nil, fmt.Errorf("location.country must be at most 2 characters")
@@ -497,7 +497,7 @@ func writeErrorResponseWithPath(w http.ResponseWriter, statusCode int, code, mes
 		"path":      path,
 	}
 	
-	// Add details for specific error codes
+	
 	if code == "USER_NOT_FOUND" {
 		response["details"] = map[string]interface{}{
 			"userId": "unknown",
@@ -510,14 +510,14 @@ func writeErrorResponseWithPath(w http.ResponseWriter, statusCode int, code, mes
 }
 
 func (h *TransactionHandler) extractFieldErrors(errMsg string, rawRequest map[string]interface{}) []map[string]interface{} {
-	// Don't extract field errors for user not found - these should be handled as 404
+	
 	if strings.Contains(errMsg, "failed to get user by ID") || strings.Contains(errMsg, "no rows in result set") {
 		return []map[string]interface{}{}
 	}
 	
 	var fieldErrors []map[string]interface{}
 	
-	// Amount validation errors
+	
 	if strings.Contains(errMsg, "must be greater > 0") {
 		if val, ok := rawRequest["amount"]; ok {
 			fieldErrors = append(fieldErrors, map[string]interface{}{
@@ -546,7 +546,7 @@ func (h *TransactionHandler) extractFieldErrors(errMsg string, rawRequest map[st
 		})
 	}
 	
-	// Currency validation errors
+	
 	if strings.Contains(errMsg, "currency is required") {
 		fieldErrors = append(fieldErrors, map[string]interface{}{
 			"field":        "currency",
@@ -565,7 +565,7 @@ func (h *TransactionHandler) extractFieldErrors(errMsg string, rawRequest map[st
 		}
 	}
 	
-	// Timestamp validation errors
+	
 	if strings.Contains(errMsg, "timestamp is required") {
 		fieldErrors = append(fieldErrors, map[string]interface{}{
 			"field":        "timestamp",
@@ -574,7 +574,7 @@ func (h *TransactionHandler) extractFieldErrors(errMsg string, rawRequest map[st
 		})
 	}
 	
-	// Location validation errors
+	
 	if strings.Contains(errMsg, "location.country is required") {
 		fieldErrors = append(fieldErrors, map[string]interface{}{
 			"field":        "location.country",
@@ -633,7 +633,7 @@ func (h *TransactionHandler) extractFieldErrors(errMsg string, rawRequest map[st
 		})
 	}
 	
-	// User ID validation errors
+	
 	if strings.Contains(errMsg, "userId is required for admin") {
 		fieldErrors = append(fieldErrors, map[string]interface{}{
 			"field":        "userId",

@@ -8,7 +8,7 @@ import (
 )
 
 func (s *service) Create(ctx context.Context, req model.FraudRuleCreateRequest) (*model.FraudRule, error) {
-	// TODO: Implement DSL validation when DSL service is ready
+	
 
 	priority := model.DefaultPriority
 	if req.Priority != nil {

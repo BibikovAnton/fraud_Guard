@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	// CI build fix - force new image build
+	
 	if err := config.Load(); err != nil {
 		panic(err)
 	}

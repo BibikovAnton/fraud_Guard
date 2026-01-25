@@ -38,7 +38,7 @@ func (r *repo) GetByID(ctx context.Context, userID string) (*model.User, error) 
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, nil // Возвращаем nil, а не ошибку
+			return nil, nil 
 		}
 		return nil, fmt.Errorf("failed to get user by ID: %w", err)
 	}

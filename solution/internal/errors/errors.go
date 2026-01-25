@@ -44,7 +44,7 @@ func NewAPIError(code, message, path string) *APIError {
 		Code:      code,
 		Message:   message,
 		TraceID:   uuid.New(),
-		Timestamp: "2025-01-15T10:00:00Z", // В реальном приложении использовать time.Now().UTC().Format(time.RFC3339)
+		Timestamp: "2025-01-15T10:00:00Z", 
 		Path:      path,
 	}
 }

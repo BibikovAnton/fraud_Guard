@@ -89,7 +89,7 @@ func (e *DSLEvaluator) EvaluateRule(rule *model.FraudRule, transaction *model.Tr
 		if user != nil && user.Region != nil {
 			userRegion = *user.Region
 		}
-		// Remove quotes from value
+		
 		cleanValue := strings.Trim(value, "'")
 		matched := e.compareStrings(userRegion, operator, cleanValue)
 		result.Matched = matched
@@ -100,7 +100,7 @@ func (e *DSLEvaluator) EvaluateRule(rule *model.FraudRule, transaction *model.Tr
 		}
 		
 	case "currency":
-		// Remove quotes from value
+		
 		cleanValue := strings.Trim(value, "'")
 		matched := e.compareStrings(string(transaction.Currency), operator, cleanValue)
 		result.Matched = matched
@@ -115,7 +115,7 @@ func (e *DSLEvaluator) EvaluateRule(rule *model.FraudRule, transaction *model.Tr
 		if transaction.MerchantID != nil {
 			merchantId = *transaction.MerchantID
 		}
-		// Remove quotes from value
+		
 		cleanValue := strings.Trim(value, "'")
 		matched := e.compareStrings(merchantId, operator, cleanValue)
 		result.Matched = matched
@@ -130,7 +130,7 @@ func (e *DSLEvaluator) EvaluateRule(rule *model.FraudRule, transaction *model.Tr
 		if transaction.IPAddress != nil {
 			ipAddress = transaction.IPAddress.String()
 		}
-		// Remove quotes from value
+		
 		cleanValue := strings.Trim(value, "'")
 		matched := e.compareStrings(ipAddress, operator, cleanValue)
 		result.Matched = matched
@@ -145,7 +145,7 @@ func (e *DSLEvaluator) EvaluateRule(rule *model.FraudRule, transaction *model.Tr
 		if transaction.DeviceID != nil {
 			deviceId = *transaction.DeviceID
 		}
-		// Remove quotes from value
+		
 		cleanValue := strings.Trim(value, "'")
 		matched := e.compareStrings(deviceId, operator, cleanValue)
 		result.Matched = matched
@@ -178,10 +178,10 @@ func (e *DSLEvaluator) ValidateDSL(expression string) model.DslValidateResponse 
 	
 	normalized := e.normalizeExpression(expression)
 	
-	// Check for AND/OR operations - allow them for Tier 2 compatibility
+	
 	if strings.Contains(normalized, " AND ") || strings.Contains(normalized, " OR ") ||
 	   strings.Contains(normalized, " and ") || strings.Contains(normalized, " or ") {
-		// Clean up the expression and return as valid
+		
 		cleaned := strings.ReplaceAll(normalized, "(", "")
 		cleaned = strings.ReplaceAll(cleaned, ")", "")
 		cleaned = strings.ReplaceAll(cleaned, " and ", " AND ")
@@ -191,7 +191,7 @@ func (e *DSLEvaluator) ValidateDSL(expression string) model.DslValidateResponse 
 		return response
 	}
 	
-	// Check for NOT and parentheses - not supported
+	
 	if strings.Contains(normalized, " NOT ") || strings.Contains(normalized, "(") || strings.Contains(normalized, ")") {
 		response.Errors = append(response.Errors, model.DSLError{
 			Code:    "DSL_UNSUPPORTED_TIER",
@@ -242,9 +242,9 @@ func (e *DSLEvaluator) ValidateDSL(expression string) model.DslValidateResponse 
 		return response
 	}
 	
-	// String fields only support = and != operators  
+	
 	stringFields := []string{"currency", "merchantId", "ipAddress", "deviceId", "user.region"}
-	// user.age is numeric field
+	
 	if contains(stringFields, field) && operator != "=" && operator != "!=" {
 		response.Errors = append(response.Errors, model.DSLError{
 			Code:    "DSL_INVALID_OPERATOR", 
@@ -253,9 +253,9 @@ func (e *DSLEvaluator) ValidateDSL(expression string) model.DslValidateResponse 
 		return response
 	}
 	
-	// Validate value based on field type
+	
 	if contains(stringFields, field) {
-		// String values must be in single quotes
+		
 		if !(strings.HasPrefix(value, "'") && strings.HasSuffix(value, "'")) {
 			response.Errors = append(response.Errors, model.DSLError{
 				Code:    "DSL_PARSE_ERROR",
@@ -279,7 +279,7 @@ func (e *DSLEvaluator) ValidateDSL(expression string) model.DslValidateResponse 
 }
 
 func (e *DSLEvaluator) parseAndNormalize(expression string) (string, *model.DSLError) {
-	// Trim whitespace
+	
 	normalized := strings.TrimSpace(expression)
 	if normalized == "" {
 		return "", &model.DSLError{
@@ -288,20 +288,20 @@ func (e *DSLEvaluator) parseAndNormalize(expression string) (string, *model.DSLE
 		}
 	}
 	
-	// Convert to lowercase for case-insensitive operators
+	
 	normalized = strings.ToLower(normalized)
 	
-	// Normalize operators spacing
+	
 	normalized = strings.ReplaceAll(normalized, ">", " > ")
 	normalized = strings.ReplaceAll(normalized, "<", " < ")
 	normalized = strings.ReplaceAll(normalized, "=", " = ")
 	normalized = strings.ReplaceAll(normalized, "!", " ! ")
 	
-	// Clean up multiple spaces
+	
 	words := strings.Fields(normalized)
 	normalized = strings.Join(words, " ")
 	
-	// Check for unsupported features - only allow basic AND/OR for now
+	
 	if strings.Contains(normalized, "not") || strings.Contains(normalized, "(") || strings.Contains(normalized, ")") {
 		return "", &model.DSLError{
 			Code:    "DSL_UNSUPPORTED_TIER",
@@ -352,15 +352,15 @@ func (e *DSLEvaluator) compareFloats(a float64, operator string, b float64) bool
 }
 
 func (e *DSLEvaluator) normalizeExpression(expression string) string {
-	// Remove extra whitespace and trim
+	
 	normalized := strings.Join(strings.Fields(expression), " ")
 	
-	// Add spaces around operators
+	
 	for _, op := range []string{">=", "<=", "!=", ">", "<", "="} {
 		normalized = strings.ReplaceAll(normalized, op, " "+op+" ")
 	}
 	
-	// Clean up multiple spaces again
+	
 	normalized = strings.Join(strings.Fields(normalized), " ")
 	
 	return strings.TrimSpace(normalized)

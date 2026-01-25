@@ -9,16 +9,16 @@ import (
 )
 
 type Service interface {
-	// Stats Overview
+	
 	GetOverview(ctx context.Context, from, to time.Time) (*OverviewResult, error)
 	
-	// Time Series
+	
 	GetTransactionsTimeSeries(ctx context.Context, from, to time.Time, interval string) (*TimeSeriesResult, error)
 	
-	// Rule Matches
+	
 	GetRuleMatches(ctx context.Context, from, to time.Time) (*RuleMatchesResult, error)
 	
-	// Merchant Risk
+	
 	GetMerchantRisk(ctx context.Context, from, to time.Time, limit int) (*MerchantRiskResult, error)
 	
 	
@@ -93,13 +93,13 @@ type UserRiskProfileResult struct {
 }
 
 func (s *service) GetOverview(ctx context.Context, from, to time.Time) (*OverviewResult, error) {
-	// Get overview stats
+	
 	stats, err := s.statsRepo.GetOverviewStats(ctx, from, to)
 	if err != nil {
 		return nil, err
 	}
 
-	// Convert to result format
+	
 	topRiskMerchants := make([]MerchantRiskItem, len(stats.TopRiskMerchants))
 	for i, m := range stats.TopRiskMerchants {
 		topRiskMerchants[i] = MerchantRiskItem{
@@ -128,7 +128,7 @@ func (s *service) GetTransactionsTimeSeries(ctx context.Context, from, to time.T
 		return nil, err
 	}
 
-	// Convert to result format
+	
 	result := make([]TimeSeriesPoint, len(points))
 	for i, p := range points {
 		result[i] = TimeSeriesPoint{
@@ -151,7 +151,7 @@ func (s *service) GetRuleMatches(ctx context.Context, from, to time.Time) (*Rule
 		return nil, err
 	}
 
-	// Convert to result format
+	
 	items := make([]RuleMatchItem, len(stats))
 	for i, s := range stats {
 		items[i] = RuleMatchItem{
@@ -174,7 +174,7 @@ func (s *service) GetMerchantRisk(ctx context.Context, from, to time.Time, limit
 		return nil, err
 	}
 
-	// Convert to result format
+	
 	items := make([]MerchantRiskItem, len(stats))
 	for i, m := range stats {
 		items[i] = MerchantRiskItem{

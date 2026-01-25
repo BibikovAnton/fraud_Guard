@@ -58,17 +58,17 @@ func Init(levelStr string, asJSON bool) error {
 
 func buildProductionEncoderConfig() zapcore.EncoderConfig {
 	return zapcore.EncoderConfig{
-		TimeKey:        "timestamp",                 // время
-		LevelKey:       "level",                     // уровень логирования
-		NameKey:        "logger",                    // имя логгера, если используется
-		CallerKey:      "caller",                    // откуда вызван лог
-		MessageKey:     "message",                   // текст сообщения
-		StacktraceKey:  "stacktrace",                // стектрейс для ошибок
-		LineEnding:     zapcore.DefaultLineEnding,   // перенос строки
-		EncodeLevel:    zapcore.CapitalLevelEncoder, // INFO, ERROR
-		EncodeTime:     zapcore.ISO8601TimeEncoder,  // читаемый ISO 8601 формат
+		TimeKey:        "timestamp",                 
+		LevelKey:       "level",                     
+		NameKey:        "logger",                    
+		CallerKey:      "caller",                    
+		MessageKey:     "message",                   
+		StacktraceKey:  "stacktrace",                
+		LineEnding:     zapcore.DefaultLineEnding,   
+		EncodeLevel:    zapcore.CapitalLevelEncoder, 
+		EncodeTime:     zapcore.ISO8601TimeEncoder,  
 		EncodeDuration: zapcore.SecondsDurationEncoder,
-		EncodeCaller:   zapcore.ShortCallerEncoder, // короткий caller
+		EncodeCaller:   zapcore.ShortCallerEncoder, 
 		EncodeName:     zapcore.FullNameEncoder,
 	}
 }

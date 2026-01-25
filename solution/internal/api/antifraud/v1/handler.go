@@ -331,14 +331,14 @@ func (h *handlerAdapter) APIV1TransactionsIDGet(ctx context.Context, params anti
 		return nil, fmt.Errorf("transaction not found: %w", err)
 	}
 
-	// Check access: users can only see their own transactions, admins can see all
+	
 	if userRole != "ADMIN" && txDecision.Transaction.UserID.String() != userID {
 		return nil, fmt.Errorf("access denied: users can only view their own transactions")
 	}
 
 	apiTransaction := convertTransactionToAPI(txDecision.Transaction)
 
-	// Convert rule results
+	
 	ruleResults := make([]antifraud_v1.FraudRuleEvaluationResult, len(txDecision.RuleResults))
 	for i, rule := range txDecision.RuleResults {
 		ruleUUID, _ := uuid.Parse(rule.RuleID)

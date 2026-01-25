@@ -113,7 +113,7 @@ func (d *diContainer) StatsService(ctx context.Context) serviceStats.Service {
 func (d *diContainer) PostgresDBClient(ctx context.Context) *pgx.Conn {
 
 	if d.postgresConn == nil {
-		client, err := pgx.Connect(ctx, config.AppConfig().Database.URI()) //собрать URI
+		client, err := pgx.Connect(ctx, config.AppConfig().Database.URI()) 
 		if err != nil {
 			panic(fmt.Sprintf("failed to connect to PostgresDB: %s\n", err.Error()))
 		}

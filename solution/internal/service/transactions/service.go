@@ -62,7 +62,7 @@ func (s *Service) Create(ctx context.Context, req model.TransactionCreateRequest
 	var user *model.User
 	var err error
 	
-	// If UserID is provided, get user info
+	
 	if req.UserID != nil {
 		user, err = s.userRepo.GetByIDIncludingInactive(ctx, req.UserID.String())
 		if err != nil {
@@ -80,7 +80,7 @@ func (s *Service) Create(ctx context.Context, req model.TransactionCreateRequest
 
 	transaction := &model.Transaction{
 		ID:                   uuid.New(),
-		UserID:               req.UserID, // Use the pointer directly - can be nil for admin transactions
+		UserID:               req.UserID, 
 		Amount:               req.Amount,
 		Currency:             req.Currency,
 		Status:               model.TransactionStatusPending,
@@ -227,7 +227,7 @@ func (s *Service) validateCreateRequest(ctx context.Context, req model.Transacti
 	}
 
 	if req.Location != nil {
-		// country is optional - only validate if provided
+		
 		if req.Location.Country != "" {
 			if len(req.Location.Country) > 2 {
 				return fmt.Errorf("location.country must be at most 2 characters")

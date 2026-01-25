@@ -13,7 +13,7 @@ func (s *userService) CreateAdmin(ctx context.Context, email, passwordHash, full
 		return fmt.Errorf("failed to check email existence: %w", err)
 	}
 	if exists {
-		return nil // admin already exists, skip creation
+		return nil 
 	}
 
 	return s.userRepo.CreateAdmin(ctx, email, passwordHash, fullName)

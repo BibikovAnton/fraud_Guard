@@ -215,7 +215,7 @@ func (h *statsHandlerAdapter) APIV1StatsMerchantsRiskGet(ctx context.Context, pa
 		}, nil
 	}
 
-	from := time.Now().AddDate(0, -1, 0) // Default: 1 month ago
+	from := time.Now().AddDate(0, -1, 0) 
 	to := time.Now()
 	limit := 100
 

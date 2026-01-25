@@ -8,19 +8,19 @@ import (
 )
 
 type Repository interface {
-	// Stats Overview
+	
 	GetOverviewStats(ctx context.Context, from, to time.Time) (*OverviewStats, error)
 	
-	// Time Series
+	
 	GetTransactionsTimeSeries(ctx context.Context, from, to time.Time, interval string) ([]TimeSeriesPoint, error)
 	
-	// Rule Matches
+	
 	GetRuleMatchesStats(ctx context.Context, from, to time.Time) ([]RuleMatchStat, error)
 	
-	// Merchant Risk
+	
 	GetMerchantRiskStats(ctx context.Context, from, to time.Time, limit int) ([]MerchantRiskStat, error)
 	
-	// User Risk Profile
+	
 	GetUserRiskProfile(ctx context.Context, userID uuid.UUID) (*UserRiskProfile, error)
 }
 

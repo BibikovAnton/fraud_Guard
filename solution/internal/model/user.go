@@ -94,7 +94,7 @@ type UserUpdateRequest struct {
 }
 
 func NewUser(email, passwordHash, fullName string, role UserRole, age *int, region *string, score *float64, gender *Gender, maritalStatus *MaritalStatus) User {
-	now := time.Now().UTC() // всегда храним время в UTC для консистентности
+	now := time.Now().UTC() 
 	return User{
 		ID:            uuid.New().String(),
 		Email:         email,
