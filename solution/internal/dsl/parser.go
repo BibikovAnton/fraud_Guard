@@ -28,6 +28,14 @@ func NewDSLEvaluator(logger *zap.Logger) *DSLEvaluator {
 }
 
 func (e *DSLEvaluator) EvaluateRule(rule *model.FraudRule, transaction *model.Transaction, user *model.User) model.RuleResult {
+	fmt.Printf("DEBUG: Evaluating rule %s: %s\n", rule.Name, rule.DslExpression)
+	fmt.Printf("DEBUG: Transaction amount: %.2f, user age: %v\n", transaction.Amount, func() interface{} {
+		if user != nil && user.Age != nil {
+			return *user.Age
+		}
+		return "nil"
+	}())
+	
 	result := model.RuleResult{
 		RuleID:      rule.ID,
 		RuleName:    rule.Name,

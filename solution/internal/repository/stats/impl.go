@@ -57,11 +57,11 @@ func (r *repository) GetOverviewStats(ctx context.Context, from, to time.Time) (
 		WHERE timestamp BETWEEN $1 AND $2 
 			AND merchant_id IS NOT NULL
 		GROUP BY merchant_id, merchant_category_code
-		HAVING COUNT(*) >= 5
-		ORDER BY decline_rate DESC
+		ORDER BY decline_rate DESC, tx_count DESC
 		LIMIT 10
 	`
 
+	fmt.Printf("DEBUG: Executing merchant query with from=%v, to=%v\n", from, to)
 	rows, err := r.db.Query(ctx, merchantQuery, from, to)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get merchant risk stats: %w", err)

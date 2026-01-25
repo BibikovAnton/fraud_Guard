@@ -51,10 +51,14 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 	if err != nil {
 		
 		errMsgLower := strings.ToLower(err.Error())
+		fmt.Printf("DEBUG: Error message: %s\n", err.Error())
+		fmt.Printf("DEBUG: Error message lower: %s\n", errMsgLower)
+		
 		if strings.Contains(errMsgLower, "failed to get user by id") || 
 		   strings.Contains(errMsgLower, "no rows in result set") ||
 		   strings.Contains(errMsgLower, "user not found") {
 			
+			fmt.Printf("DEBUG: Detected user not found error\n")
 			var userId string
 			if id, ok := rawRequest["userId"].(string); ok {
 				userId = id
