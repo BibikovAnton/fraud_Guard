@@ -59,27 +59,28 @@ func (s *Service) Create(ctx context.Context, req model.TransactionCreateRequest
 		return nil, err
 	}
 
-	// Check if UserID is provided
-	if req.UserID == nil {
-		return nil, fmt.Errorf("userId is required")
-	}
-
-	user, err := s.userRepo.GetByIDIncludingInactive(ctx, req.UserID.String())
-	if err != nil {
-		return nil, fmt.Errorf("failed to get user by ID: %w", err)
-	}
+	var user *model.User
+	var err error
 	
-	if user == nil {
-		return nil, fmt.Errorf("failed to get user by ID: no rows in result set")
-	}
-	
-	if !user.IsActive {
-		return nil, fmt.Errorf("user is deactivated")
+	// If UserID is provided, get user info
+	if req.UserID != nil {
+		user, err = s.userRepo.GetByIDIncludingInactive(ctx, req.UserID.String())
+		if err != nil {
+			return nil, fmt.Errorf("failed to get user by ID: %w", err)
+		}
+		
+		if user == nil {
+			return nil, fmt.Errorf("failed to get user by ID: no rows in result set")
+		}
+		
+		if !user.IsActive {
+			return nil, fmt.Errorf("user is deactivated")
+		}
 	}
 
 	transaction := &model.Transaction{
 		ID:                   uuid.New(),
-		UserID:               *req.UserID,
+		UserID:               uuid.Nil, // Default to nil UUID for admin transactions without user
 		Amount:               req.Amount,
 		Currency:             req.Currency,
 		Status:               model.TransactionStatusPending,
@@ -94,6 +95,11 @@ func (s *Service) Create(ctx context.Context, req model.TransactionCreateRequest
 		Metadata:             req.Metadata,
 		CreatedAt:            time.Now().UTC(),
 		UpdatedAt:            time.Now().UTC(),
+	}
+
+	// If UserID is provided, set it
+	if req.UserID != nil {
+		transaction.UserID = *req.UserID
 	}
 
 	rules, err := s.fraudRuleRepo.GetActiveRules(ctx)

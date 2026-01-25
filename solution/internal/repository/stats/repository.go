@@ -25,12 +25,13 @@ type Repository interface {
 }
 
 type OverviewStats struct {
-	Volume       int64   `json:"volume"`
-	GMV          float64 `json:"gmv"`
-	ApprovalRate float64 `json:"approvalRate"`
-	DeclineRate  float64 `json:"declineRate"`
-	From         time.Time `json:"from"`
-	To           time.Time `json:"to"`
+	Volume       int64             `json:"volume"`
+	GMV          float64           `json:"gmv"`
+	ApprovalRate float64           `json:"approvalRate"`
+	DeclineRate  float64           `json:"declineRate"`
+	From         time.Time         `json:"from"`
+	To           time.Time         `json:"to"`
+	TopRiskMerchants []MerchantRiskStat `json:"topRiskMerchants"`
 }
 
 type TimeSeriesPoint struct {

@@ -273,14 +273,14 @@ func (h *TransactionHandler) validateAndConvertTransaction(raw map[string]interf
 	
 	if userRole == "ADMIN" {
 		userIdStr, ok := raw["userId"].(string)
-		if !ok || userIdStr == "" {
-			return nil, fmt.Errorf("userId is required for admin")
+		if ok && userIdStr != "" {
+			parsedUUID, err := uuid.Parse(userIdStr)
+			if err != nil {
+				return nil, fmt.Errorf("invalid userId format")
+			}
+			userUUID = &parsedUUID
 		}
-		parsedUUID, err := uuid.Parse(userIdStr)
-		if err != nil {
-			return nil, fmt.Errorf("invalid userId format")
-		}
-		userUUID = &parsedUUID
+		// Admin can create transactions without userId - it will be nil
 	} else {
 		// For regular users, use their own ID
 		parsedUUID, err := uuid.Parse(userID)

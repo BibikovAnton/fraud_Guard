@@ -45,8 +45,48 @@ func (r *repository) GetOverviewStats(ctx context.Context, from, to time.Time) (
 		return nil, fmt.Errorf("failed to get overview stats: %w", err)
 	}
 
+	
+	merchantQuery := `
+		SELECT 
+			merchant_id,
+			merchant_category_code,
+			COUNT(*) as tx_count,
+			COALESCE(SUM(amount), 0) as gmv,
+			COUNT(*) FILTER (WHERE status = 'DECLINED')::float / COUNT(*) as decline_rate
+		FROM transactions 
+		WHERE timestamp BETWEEN $1 AND $2 
+			AND merchant_id IS NOT NULL
+		GROUP BY merchant_id, merchant_category_code
+		HAVING COUNT(*) >= 5
+		ORDER BY decline_rate DESC
+		LIMIT 10
+	`
+
+	rows, err := r.db.Query(ctx, merchantQuery, from, to)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get merchant risk stats: %w", err)
+	}
+	defer rows.Close()
+
+	var topRiskMerchants []MerchantRiskStat
+	for rows.Next() {
+		var merchant MerchantRiskStat
+		err := rows.Scan(
+			&merchant.MerchantID,
+			&merchant.MerchantCategoryCode,
+			&merchant.TxCount,
+			&merchant.GMV,
+			&merchant.DeclineRate,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan merchant risk stat: %w", err)
+		}
+		topRiskMerchants = append(topRiskMerchants, merchant)
+	}
+
 	stats.From = from
 	stats.To = to
+	stats.TopRiskMerchants = topRiskMerchants
 	return &stats, nil
 }
 
@@ -94,14 +134,20 @@ func (r *repository) GetRuleMatchesStats(ctx context.Context, from, to time.Time
 		SELECT 
 			trr.rule_id,
 			fr.name as rule_name,
-			COUNT(*) as matches,
-			COUNT(*) FILTER (WHERE trr.matched = true)::float / COUNT(*) FILTER (WHERE t.status = 'DECLINED') as share_of_declines,
+			COUNT(*) FILTER (WHERE trr.matched = true) as matches,
+			CASE 
+				WHEN COUNT(*) FILTER (WHERE t.status = 'DECLINED') > 0 
+				THEN COUNT(*) FILTER (WHERE trr.matched = true)::float / COUNT(*) FILTER (WHERE t.status = 'DECLINED')
+				ELSE 0 
+			END as share_of_declines,
 			COUNT(DISTINCT t.user_id) as unique_users
 		FROM transaction_rule_results trr
 		JOIN transactions t ON trr.transaction_id = t.id
 		JOIN fraud_rules fr ON trr.rule_id = fr.id
 		WHERE t.timestamp BETWEEN $1 AND $2
+			AND t.status = 'DECLINED'
 		GROUP BY trr.rule_id, fr.name
+		HAVING COUNT(*) FILTER (WHERE trr.matched = true) > 0
 		ORDER BY matches DESC
 	`
 
@@ -178,7 +224,7 @@ func (r *repository) GetUserRiskProfile(ctx context.Context, userID uuid.UUID) (
 				COALESCE(SUM(amount), 0) as gmv_24h,
 				COUNT(DISTINCT device_id) as distinct_devices_24h,
 				COUNT(DISTINCT ip_address) as distinct_ips_24h,
-				COUNT(DISTINCT location->>'city') as distinct_cities_24h
+				COUNT(DISTINCT CASE WHEN location IS NOT NULL THEN location->>'city' END) as distinct_cities_24h
 			FROM transactions 
 			WHERE user_id = $1 
 			AND timestamp >= NOW() - INTERVAL '24 hours'

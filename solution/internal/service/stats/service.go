@@ -21,7 +21,7 @@ type Service interface {
 	// Merchant Risk
 	GetMerchantRisk(ctx context.Context, from, to time.Time, limit int) (*MerchantRiskResult, error)
 	
-	// User Risk Profile
+	
 	GetUserRiskProfile(ctx context.Context, userID uuid.UUID) (*UserRiskProfileResult, error)
 }
 
@@ -99,15 +99,9 @@ func (s *service) GetOverview(ctx context.Context, from, to time.Time) (*Overvie
 		return nil, err
 	}
 
-	// Get top risk merchants
-	merchantStats, err := s.statsRepo.GetMerchantRiskStats(ctx, from, to, 5)
-	if err != nil {
-		return nil, err
-	}
-
 	// Convert to result format
-	topRiskMerchants := make([]MerchantRiskItem, len(merchantStats))
-	for i, m := range merchantStats {
+	topRiskMerchants := make([]MerchantRiskItem, len(stats.TopRiskMerchants))
+	for i, m := range stats.TopRiskMerchants {
 		topRiskMerchants[i] = MerchantRiskItem{
 			MerchantID:           m.MerchantID,
 			MerchantCategoryCode: m.MerchantCategoryCode,
