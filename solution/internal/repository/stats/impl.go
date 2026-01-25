@@ -31,7 +31,7 @@ func (r *repository) GetOverviewStats(ctx context.Context, from, to time.Time) (
 				ELSE 0 
 			END as decline_rate
 		FROM transactions 
-		WHERE created_at BETWEEN $1 AND $2
+		WHERE timestamp BETWEEN $1 AND $2
 	`
 
 	var stats OverviewStats
@@ -53,14 +53,14 @@ func (r *repository) GetOverviewStats(ctx context.Context, from, to time.Time) (
 func (r *repository) GetTransactionsTimeSeries(ctx context.Context, from, to time.Time, interval string) ([]TimeSeriesPoint, error) {
 	query := fmt.Sprintf(`
 		SELECT 
-			date_trunc('%s', created_at) as bucket_start,
+			date_trunc('%s', timestamp) as bucket_start,
 			COUNT(*) as tx_count,
 			COALESCE(SUM(amount), 0) as gmv,
 			COUNT(*) FILTER (WHERE status = 'APPROVED')::float / COUNT(*) as approval_rate,
 			COUNT(*) FILTER (WHERE status = 'DECLINED')::float / COUNT(*) as decline_rate
 		FROM transactions 
-		WHERE created_at BETWEEN $1 AND $2
-		GROUP BY date_trunc('%s', created_at)
+		WHERE timestamp BETWEEN $1 AND $2
+		GROUP BY date_trunc('%s', timestamp)
 		ORDER BY bucket_start
 	`, interval, interval)
 
@@ -139,7 +139,7 @@ func (r *repository) GetMerchantRiskStats(ctx context.Context, from, to time.Tim
 			COALESCE(SUM(amount), 0) as gmv,
 			COUNT(*) FILTER (WHERE status = 'DECLINED')::float / COUNT(*) as decline_rate
 		FROM transactions 
-		WHERE created_at BETWEEN $1 AND $2
+		WHERE timestamp BETWEEN $1 AND $2
 		GROUP BY merchant_id, merchant_category_code
 		ORDER BY decline_rate DESC, tx_count DESC
 		LIMIT $3

@@ -307,8 +307,8 @@ func (h *handlerAdapter) APIV1TransactionsGet(ctx context.Context, params antifr
 	}
 
 	// Convert to API format
-	apiTransactions := make([]antifraud_v1.Transaction, len(pagedTransactions.Transactions))
-	for i, txDecision := range pagedTransactions.Transactions {
+	apiTransactions := make([]antifraud_v1.Transaction, len(pagedTransactions.Items))
+	for i, txDecision := range pagedTransactions.Items {
 		apiTransactions[i] = convertTransactionToAPI(txDecision.Transaction)
 	}
 

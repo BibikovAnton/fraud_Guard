@@ -25,7 +25,6 @@ type FieldError struct {
 	RejectedValue interface{} `json:"rejectedValue"`
 }
 
-// Error codes
 const (
 	ErrCodeBadRequest         = "BAD_REQUEST"
 	ErrCodeUnauthorized       = "UNAUTHORIZED"
@@ -50,7 +49,7 @@ func NewAPIError(code, message, path string) *APIError {
 	}
 }
 
-func NewValidationError(fieldErrors []FieldError, path string) *APIError {
+func NewValidationErrorWithFields(fieldErrors []FieldError, path string) *APIError {
 	return &APIError{
 		Code:      ErrCodeValidationFailed,
 		Message:   "Validation failed",

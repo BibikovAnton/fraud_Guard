@@ -55,9 +55,9 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 			writeValidationErrorResponse(w, "/api/v1/transactions", fieldErrors)
 		} else {
 			if strings.Contains(err.Error(), "failed to get user by ID") {
-				writeErrorResponse(w, http.StatusNotFound, "NOT_FOUND", "User not found")
+				writeErrorResponse(w, http.StatusNotFound, "USER_NOT_FOUND", "User not found")
 			} else if strings.Contains(err.Error(), "user is deactivated") {
-				writeErrorResponse(w, http.StatusForbidden, "FORBIDDEN", "User is deactivated")
+				writeErrorResponse(w, http.StatusForbidden, "USER_INACTIVE", "User is deactivated")
 			} else {
 				writeErrorResponse(w, http.StatusUnprocessableEntity, "VALIDATION_FAILED", err.Error())
 			}
@@ -351,7 +351,7 @@ func (h *TransactionHandler) validateAndConvertTransaction(raw map[string]interf
 			}
 			location.Country = country
 		} else {
-			return nil, fmt.Errorf("location.country is required when location is provided")
+			return nil, fmt.Errorf("location.country is required")
 		}
 
 		if lat, ok := locationRaw["latitude"].(float64); ok {
@@ -466,7 +466,7 @@ func writeErrorResponseWithPath(w http.ResponseWriter, statusCode int, code, mes
 	}
 	
 	// Add details for specific error codes
-	if code == "NOT_FOUND" && strings.Contains(message, "User not found") {
+	if code == "USER_NOT_FOUND" {
 		response["details"] = map[string]interface{}{
 			"userId": "unknown",
 		}

@@ -185,10 +185,10 @@ func (s *Service) GetList(ctx context.Context, params service.TransactionListPar
 	}
 
 	return &service.PagedTransactions{
-		Transactions: decisions,
-		Total:        total,
-		Page:         params.Page,
-		Size:         params.Size,
+		Items: decisions,
+		Total: total,
+		Page:  params.Page,
+		Size:  params.Size,
 	}, nil
 }
 

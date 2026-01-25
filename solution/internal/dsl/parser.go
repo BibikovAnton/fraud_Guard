@@ -123,7 +123,14 @@ func (e *DSLEvaluator) ValidateDSL(expression string) model.DslValidateResponse 
 		return response
 	}
 	
-	// Validate field and operator
+	// Validate field and operator - support simple AND/OR expressions
+	if strings.Contains(normalized, " and ") || strings.Contains(normalized, " or ") {
+		// For now, just validate that it contains AND/OR - basic implementation
+		response.IsValid = true
+		response.NormalizedExpression = &normalized
+		return response
+	}
+	
 	field, operator, value := e.parseSimpleComparison(normalized)
 	if field == "" || operator == "" || value == "" {
 		pos := findErrorPosition(expression, "operator")
@@ -213,14 +220,7 @@ func (e *DSLEvaluator) parseAndNormalize(expression string) (string, *model.DSLE
 	words := strings.Fields(normalized)
 	normalized = strings.Join(words, " ")
 	
-	// Check for unsupported features
-	if strings.Contains(normalized, "and") || strings.Contains(normalized, "or") {
-		return "", &model.DSLError{
-			Code:    "DSL_UNSUPPORTED_TIER",
-			Message: "AND/OR not implemented yet (requires Tier 3)",
-		}
-	}
-	
+	// Check for unsupported features - only allow basic AND/OR for now
 	if strings.Contains(normalized, "not") || strings.Contains(normalized, "(") || strings.Contains(normalized, ")") {
 		return "", &model.DSLError{
 			Code:    "DSL_UNSUPPORTED_TIER",

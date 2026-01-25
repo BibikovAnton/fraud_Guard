@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	antifraud_v1 "solution/pkg/openapi/antifraud/v1"
 	"solution/internal/service/stats"
+	antifraud_v1 "solution/pkg/openapi/antifraud/v1"
 )
 
 type statsHandlerAdapter struct {
@@ -42,10 +42,10 @@ func (h *statsHandlerAdapter) APIV1StatsOverviewGet(ctx context.Context, params 
 			Details:   antifraud_v1.OptApiErrorDetails{},
 		}, nil
 	}
-	
-	from := time.Now().AddDate(0, -1, 0) 
+
+	from := time.Now().AddDate(0, -1, 0)
 	to := time.Now()
-	
+
 	if params.From.Set {
 		from = params.From.Value
 	}
@@ -53,13 +53,11 @@ func (h *statsHandlerAdapter) APIV1StatsOverviewGet(ctx context.Context, params 
 		to = params.To.Value
 	}
 
-	// Get stats from service
 	result, err := h.statsService.GetOverview(ctx, from, to)
 	if err != nil {
 		return nil, err
 	}
 
-	// Convert top risk merchants
 	topRiskMerchants := make([]antifraud_v1.MerchantRiskRow, len(result.TopRiskMerchants))
 	for i, merchant := range result.TopRiskMerchants {
 		topRiskMerchants[i] = antifraud_v1.MerchantRiskRow{
@@ -72,12 +70,12 @@ func (h *statsHandlerAdapter) APIV1StatsOverviewGet(ctx context.Context, params 
 	}
 
 	return &antifraud_v1.StatsOverview{
-		From:            result.From,
-		To:              result.To,
-		Volume:          int(result.Volume),
-		Gmv:             result.GMV,
-		ApprovalRate:    result.ApprovalRate,
-		DeclineRate:     result.DeclineRate,
+		From:             result.From,
+		To:               result.To,
+		Volume:           int(result.Volume),
+		Gmv:              result.GMV,
+		ApprovalRate:     result.ApprovalRate,
+		DeclineRate:      result.DeclineRate,
 		TopRiskMerchants: topRiskMerchants,
 	}, nil
 }
@@ -106,11 +104,10 @@ func (h *statsHandlerAdapter) APIV1StatsTransactionsTimeseriesGet(ctx context.Co
 		}, nil
 	}
 
-	// Parse query parameters
-	from := time.Now().AddDate(0, -1, 0) 
+	from := time.Now().AddDate(0, -1, 0)
 	to := time.Now()
-	interval := "day" 
-	
+	interval := "day"
+
 	if params.From.Set {
 		from = params.From.Value
 	}
@@ -118,13 +115,11 @@ func (h *statsHandlerAdapter) APIV1StatsTransactionsTimeseriesGet(ctx context.Co
 		to = params.To.Value
 	}
 
-	
 	result, err := h.statsService.GetTransactionsTimeSeries(ctx, from, to, interval)
 	if err != nil {
 		return nil, err
 	}
 
-	// Convert points
 	points := make([]antifraud_v1.TransactionsTimePoint, len(result.Points))
 	for i, point := range result.Points {
 		points[i] = antifraud_v1.TransactionsTimePoint{
@@ -168,7 +163,7 @@ func (h *statsHandlerAdapter) APIV1StatsRulesMatchesGet(ctx context.Context, par
 	// Parse query parameters
 	from := time.Now().AddDate(0, -1, 0) // Default: 1 month ago
 	to := time.Now()
-	
+
 	if params.From.Set {
 		from = params.From.Value
 	}
@@ -227,7 +222,7 @@ func (h *statsHandlerAdapter) APIV1StatsMerchantsRiskGet(ctx context.Context, pa
 	from := time.Now().AddDate(0, -1, 0) // Default: 1 month ago
 	to := time.Now()
 	limit := 100 // Default limit
-	
+
 	if params.From.Set {
 		from = params.From.Value
 	}
@@ -291,13 +286,13 @@ func (h *statsHandlerAdapter) APIV1StatsUsersIDRiskProfileGet(ctx context.Contex
 	}
 
 	return &antifraud_v1.UserRiskProfile{
-		UserId:              result.UserID,
-		TxCount24h:          int(result.TxCount24h),
-		Gmv24h:              result.GMV24h,
-		DistinctDevices24h:  int(result.DistinctDevices24h),
-		DistinctIps24h:      int(result.DistinctIPs24h),
-		DistinctCities24h:    int(result.DistinctCities24h),
-		DeclineRate30d:      result.DeclineRate30d,
-		LastSeenAt:          antifraud_v1.OptNilDateTime{Value: result.LastSeenAt, Set: true, Null: false},
+		UserId:             result.UserID,
+		TxCount24h:         int(result.TxCount24h),
+		Gmv24h:             result.GMV24h,
+		DistinctDevices24h: int(result.DistinctDevices24h),
+		DistinctIps24h:     int(result.DistinctIPs24h),
+		DistinctCities24h:  int(result.DistinctCities24h),
+		DeclineRate30d:     result.DeclineRate30d,
+		LastSeenAt:         antifraud_v1.OptNilDateTime{Value: result.LastSeenAt, Set: true, Null: false},
 	}, nil
 }
