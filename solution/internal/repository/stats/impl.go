@@ -169,6 +169,8 @@ func (r *repository) GetRuleMatchesStats(ctx context.Context, from, to time.Time
 	}
 	defer rows.Close()
 
+	fmt.Printf("DEBUG: Rule matches query executed, checking results...\n")
+
 	var stats []RuleMatchStat
 	for rows.Next() {
 		var stat RuleMatchStat
@@ -183,7 +185,10 @@ func (r *repository) GetRuleMatchesStats(ctx context.Context, from, to time.Time
 			return nil, fmt.Errorf("failed to scan rule match stat: %w", err)
 		}
 		stats = append(stats, stat)
+		fmt.Printf("DEBUG: Found rule match: %s - %s (%d matches)\n", stat.RuleID, stat.RuleName, stat.Matches)
 	}
+	
+	fmt.Printf("DEBUG: Total rule matches found: %d\n", len(stats))
 
 	return stats, nil
 }

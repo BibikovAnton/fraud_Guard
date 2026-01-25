@@ -295,8 +295,8 @@ func (h *TransactionHandler) validateAndConvertTransaction(raw map[string]interf
 			if parsedUUID != uuid.Nil {
 				userUUID = &parsedUUID
 			} else {
-				// Empty userId string - treat as non-existent user for 404
-				userUUID = nil
+				// Empty userId string - return validation error for non-existent user
+				return nil, fmt.Errorf("user not found")
 			}
 		} else {
 			// Missing userId for admin is invalid  
@@ -432,7 +432,7 @@ func (h *TransactionHandler) convertDecisionToResponse(decision *model.Transacti
 
 	ruleResults := make([]map[string]interface{}, len(decision.RuleResults))
 	for i, rule := range decision.RuleResults {
-		// Return empty string for uuid.Nil to match test expectations
+		
 		ruleId := rule.RuleID
 		if ruleId == uuid.Nil.String() {
 			ruleId = ""
