@@ -4,7 +4,7 @@ CREATE TABLE users (
                        email VARCHAR(255) UNIQUE NOT NULL,
                        password_hash VARCHAR(255) NOT NULL,
                        full_name VARCHAR(200) NOT NULL,
-                       age INTEGER CHECK (age >= 18 AND age <= 120), -- исправлено на INTEGER с валидацией
+                       age INTEGER CHECK (age >= 18 AND age <= 120),
                        region VARCHAR(32),
                        gender VARCHAR(10) CHECK (gender IN ('MALE', 'FEMALE')),
                        marital_status VARCHAR(10) CHECK (marital_status IN ('SINGLE', 'MARRIED', 'DIVORCED', 'WIDOWED')),
@@ -18,7 +18,7 @@ CREATE TABLE users (
 
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_is_active ON users(is_active);
-CREATE INDEX idx_users_role ON users(role); -- добавил индекс для роли, часто используется в запросах
+CREATE INDEX idx_users_role ON users(role);
 
 -- +goose Down
 drop table users

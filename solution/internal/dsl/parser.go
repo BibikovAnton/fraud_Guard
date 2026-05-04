@@ -2,10 +2,10 @@ package dsl
 
 import (
 	"fmt"
+	"go.uber.org/zap"
 	"solution/internal/model"
 	"strconv"
 	"strings"
-	"go.uber.org/zap"
 )
 
 func contains(slice []string, item string) bool {
@@ -35,9 +35,9 @@ func (e *DSLEvaluator) EvaluateRule(rule *model.FraudRule, transaction *model.Tr
 		}
 		return "nil"
 	}())
-	
+
 	result := model.RuleResult{
-		RuleID:      "", // Always return empty for transaction response tests
+		RuleID:      "",
 		RuleName:    rule.Name,
 		Priority:    rule.Priority,
 		Enabled:     rule.Enabled,
@@ -52,15 +52,14 @@ func (e *DSLEvaluator) EvaluateRule(rule *model.FraudRule, transaction *model.Tr
 	}
 
 	dsl := strings.ToLower(strings.TrimSpace(rule.DslExpression))
-	
-	
+
 	field, operator, value := e.parseSimpleComparison(dsl)
 	if field == "" || operator == "" || value == "" {
 		result.Description = "Invalid DSL expression"
 		result.RuleID = ""
 		return result
 	}
-	
+
 	switch field {
 	case "amount":
 		var threshold float64
@@ -75,7 +74,7 @@ func (e *DSLEvaluator) EvaluateRule(rule *model.FraudRule, transaction *model.Tr
 		} else {
 			result.Description = "Invalid amount value"
 		}
-		
+
 	case "user.age":
 		var threshold float64
 		if _, err := fmt.Sscanf(value, "%f", &threshold); err == nil {
@@ -93,13 +92,13 @@ func (e *DSLEvaluator) EvaluateRule(rule *model.FraudRule, transaction *model.Tr
 		} else {
 			result.Description = "Invalid user.age value"
 		}
-		
+
 	case "user.region":
 		var userRegion string
 		if user != nil && user.Region != nil {
 			userRegion = *user.Region
 		}
-		
+
 		cleanValue := strings.Trim(value, "'")
 		matched := e.compareStrings(userRegion, operator, cleanValue)
 		result.Matched = matched
@@ -108,9 +107,9 @@ func (e *DSLEvaluator) EvaluateRule(rule *model.FraudRule, transaction *model.Tr
 		} else {
 			result.Description = fmt.Sprintf("User region '%s' not %s '%s'", userRegion, operator, cleanValue)
 		}
-		
+
 	case "currency":
-		
+
 		cleanValue := strings.Trim(value, "'")
 		matched := e.compareStrings(string(transaction.Currency), operator, cleanValue)
 		result.Matched = matched
@@ -119,13 +118,13 @@ func (e *DSLEvaluator) EvaluateRule(rule *model.FraudRule, transaction *model.Tr
 		} else {
 			result.Description = fmt.Sprintf("Currency %s not %s '%s'", transaction.Currency, operator, cleanValue)
 		}
-		
+
 	case "merchantId":
 		var merchantId string
 		if transaction.MerchantID != nil {
 			merchantId = *transaction.MerchantID
 		}
-		
+
 		cleanValue := strings.Trim(value, "'")
 		matched := e.compareStrings(merchantId, operator, cleanValue)
 		result.Matched = matched
@@ -134,13 +133,13 @@ func (e *DSLEvaluator) EvaluateRule(rule *model.FraudRule, transaction *model.Tr
 		} else {
 			result.Description = fmt.Sprintf("Merchant ID %s not %s '%s'", merchantId, operator, cleanValue)
 		}
-		
+
 	case "ipAddress":
 		var ipAddress string
 		if transaction.IPAddress != nil {
 			ipAddress = transaction.IPAddress.String()
 		}
-		
+
 		cleanValue := strings.Trim(value, "'")
 		matched := e.compareStrings(ipAddress, operator, cleanValue)
 		result.Matched = matched
@@ -149,13 +148,13 @@ func (e *DSLEvaluator) EvaluateRule(rule *model.FraudRule, transaction *model.Tr
 		} else {
 			result.Description = fmt.Sprintf("IP Address %s not %s '%s'", ipAddress, operator, cleanValue)
 		}
-		
+
 	case "deviceId":
 		var deviceId string
 		if transaction.DeviceID != nil {
 			deviceId = *transaction.DeviceID
 		}
-		
+
 		cleanValue := strings.Trim(value, "'")
 		matched := e.compareStrings(deviceId, operator, cleanValue)
 		result.Matched = matched
@@ -164,7 +163,7 @@ func (e *DSLEvaluator) EvaluateRule(rule *model.FraudRule, transaction *model.Tr
 		} else {
 			result.Description = fmt.Sprintf("Device ID %s not %s '%s'", deviceId, operator, cleanValue)
 		}
-		
+
 	default:
 		result.Description = "Unsupported field"
 	}
@@ -177,7 +176,7 @@ func (e *DSLEvaluator) ValidateDSL(expression string) model.DslValidateResponse 
 		IsValid: false,
 		Errors:  []model.DSLError{},
 	}
-	
+
 	if expression == "" {
 		response.Errors = append(response.Errors, model.DSLError{
 			Code:    "DSL_PARSE_ERROR",
@@ -185,13 +184,12 @@ func (e *DSLEvaluator) ValidateDSL(expression string) model.DslValidateResponse 
 		})
 		return response
 	}
-	
+
 	normalized := e.normalizeExpression(expression)
-	
-	
+
 	if strings.Contains(normalized, " AND ") || strings.Contains(normalized, " OR ") ||
-	   strings.Contains(normalized, " and ") || strings.Contains(normalized, " or ") {
-		
+		strings.Contains(normalized, " and ") || strings.Contains(normalized, " or ") {
+
 		cleaned := strings.ReplaceAll(normalized, "(", "")
 		cleaned = strings.ReplaceAll(cleaned, ")", "")
 		cleaned = strings.ReplaceAll(cleaned, " and ", " AND ")
@@ -200,8 +198,7 @@ func (e *DSLEvaluator) ValidateDSL(expression string) model.DslValidateResponse 
 		response.NormalizedExpression = &cleaned
 		return response
 	}
-	
-	
+
 	if strings.Contains(normalized, " NOT ") || strings.Contains(normalized, "(") || strings.Contains(normalized, ")") {
 		response.Errors = append(response.Errors, model.DSLError{
 			Code:    "DSL_UNSUPPORTED_TIER",
@@ -209,7 +206,7 @@ func (e *DSLEvaluator) ValidateDSL(expression string) model.DslValidateResponse 
 		})
 		return response
 	}
-	
+
 	field, operator, value := e.parseSimpleComparison(normalized)
 	if field == "" || operator == "" || value == "" {
 		response.Errors = append(response.Errors, model.DSLError{
@@ -218,10 +215,10 @@ func (e *DSLEvaluator) ValidateDSL(expression string) model.DslValidateResponse 
 		})
 		return response
 	}
-	
+
 	supportedFields := []string{"amount", "currency", "merchantId", "ipAddress", "deviceId", "user.age", "user.region"}
 	supportedOperators := []string{">", ">=", "<", "<=", "=", "!="}
-	
+
 	fieldSupported := false
 	for _, f := range supportedFields {
 		if field == f {
@@ -236,7 +233,7 @@ func (e *DSLEvaluator) ValidateDSL(expression string) model.DslValidateResponse 
 		})
 		return response
 	}
-	
+
 	operatorSupported := false
 	for _, op := range supportedOperators {
 		if operator == op {
@@ -251,21 +248,19 @@ func (e *DSLEvaluator) ValidateDSL(expression string) model.DslValidateResponse 
 		})
 		return response
 	}
-	
-	
+
 	stringFields := []string{"currency", "merchantId", "ipAddress", "deviceId", "user.region"}
-	
+
 	if contains(stringFields, field) && operator != "=" && operator != "!=" {
 		response.Errors = append(response.Errors, model.DSLError{
-			Code:    "DSL_INVALID_OPERATOR", 
+			Code:    "DSL_INVALID_OPERATOR",
 			Message: fmt.Sprintf("String field '%s' only supports '=' and '!=' operators", field),
 		})
 		return response
 	}
-	
-	
+
 	if contains(stringFields, field) {
-		
+
 		if !(strings.HasPrefix(value, "'") && strings.HasSuffix(value, "'")) {
 			response.Errors = append(response.Errors, model.DSLError{
 				Code:    "DSL_PARSE_ERROR",
@@ -282,14 +277,14 @@ func (e *DSLEvaluator) ValidateDSL(expression string) model.DslValidateResponse 
 			return response
 		}
 	}
-	
+
 	response.IsValid = true
 	response.NormalizedExpression = &normalized
 	return response
 }
 
 func (e *DSLEvaluator) parseAndNormalize(expression string) (string, *model.DSLError) {
-	
+
 	normalized := strings.TrimSpace(expression)
 	if normalized == "" {
 		return "", &model.DSLError{
@@ -297,28 +292,24 @@ func (e *DSLEvaluator) parseAndNormalize(expression string) (string, *model.DSLE
 			Message: "Empty expression",
 		}
 	}
-	
-	
+
 	normalized = strings.ToLower(normalized)
-	
-	
+
 	normalized = strings.ReplaceAll(normalized, ">", " > ")
 	normalized = strings.ReplaceAll(normalized, "<", " < ")
 	normalized = strings.ReplaceAll(normalized, "=", " = ")
 	normalized = strings.ReplaceAll(normalized, "!", " ! ")
-	
-	
+
 	words := strings.Fields(normalized)
 	normalized = strings.Join(words, " ")
-	
-	
+
 	if strings.Contains(normalized, "not") || strings.Contains(normalized, "(") || strings.Contains(normalized, ")") {
 		return "", &model.DSLError{
 			Code:    "DSL_UNSUPPORTED_TIER",
 			Message: "NOT and parentheses not implemented yet (requires Tier 4)",
 		}
 	}
-	
+
 	return normalized, nil
 }
 
@@ -362,17 +353,15 @@ func (e *DSLEvaluator) compareFloats(a float64, operator string, b float64) bool
 }
 
 func (e *DSLEvaluator) normalizeExpression(expression string) string {
-	
+
 	normalized := strings.Join(strings.Fields(expression), " ")
-	
-	
+
 	for _, op := range []string{">=", "<=", "!=", ">", "<", "="} {
 		normalized = strings.ReplaceAll(normalized, op, " "+op+" ")
 	}
-	
-	
+
 	normalized = strings.Join(strings.Fields(normalized), " ")
-	
+
 	return strings.TrimSpace(normalized)
 }
 
@@ -381,7 +370,7 @@ func (e *DSLEvaluator) parseSimpleComparison(expression string) (string, string,
 	if len(parts) != 3 {
 		return "", "", ""
 	}
-	
+
 	return parts[0], parts[1], parts[2]
 }
 
