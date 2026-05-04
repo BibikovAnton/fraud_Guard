@@ -1,9 +1,10 @@
 <div align="center">
 
-# 🛡️ Anti-Fraud System
+# 🛡️ FraudShield
 
-### *High‑performance financial fraud detection engine*
+> *High‑performance financial fraud detection engine*
 
+[![PROD Olympiad](https://img.shields.io/badge/PROD_OLYMPIAD-TOP_5-blue?style=for-the-badge&logo=github&labelColor=black&color=gold&logoColor=white)](https://github.com/ArtemBibikov/antifraud-system)
 [![Go Version](https://img.shields.io/badge/Go-1.25+-00ADD8?style=for-the-badge&logo=go)](https://go.dev)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql)](https://www.postgresql.org)
 [![Redis](https://img.shields.io/badge/Redis-7-DC382D?style=for-the-badge&logo=redis)](https://redis.io)
@@ -23,7 +24,7 @@
 
 | Показатель | Результат |
 |------------|-----------|
-| 🎯 Место | Топ‑5 / 237 участников |
+| 🎯 Место | Топ‑5 из 237 участников |
 | ⚡ RPS (одно правило) | ~3500 запросов/сек |
 | 🚀 Batch‑обработка (100 тр.) | <15ms |
 | 📊 Оценка тестировщика | 94/100 |
@@ -32,7 +33,7 @@
 
 ## 📋 О проекте
 
-**Anti‑Fraud System** — это production‑ready бэкенд для автоматической детекции мошеннических транзакций в реальном времени.
+**Anti‑Fraud System** — production‑ready бэкенд для автоматической детекции мошеннических транзакций в реальном времени.
 
 Система принимает финансовые операции, проверяет их по набору динамических правил и мгновенно возвращает вердикт: **APPROVED** ✅ или **DECLINED** ❌.
 
@@ -51,15 +52,13 @@
 
 ## 🏗 Архитектура
 
-<div align="center">
-
 ```mermaid
 flowchart TB
-    subgraph Client["🌐 Клиент"]
+    subgraph Client["Клиент"]
         User[Пользователь / API Client]
     end
 
-    subgraph Service["⚙️ Anti-Fraud Service (Go)"]
+    subgraph Service["Anti-Fraud Service (Go)"]
         HTTP[HTTP Router - go-chi]
         
         subgraph Handlers["Handlers / API Layer"]
@@ -78,7 +77,7 @@ flowchart TB
             StatsService[Stats Service]
         end
 
-        subgraph DSL["🧠 DSL Engine"]
+        subgraph DSL["DSL Engine"]
             Parser[Rule Parser]
             Validator[Rule Validator]
             Evaluator[Rule Evaluator]
@@ -91,9 +90,9 @@ flowchart TB
         end
     end
 
-    subgraph Data["💾 Data Layer"]
+    subgraph Data["Data Layer"]
         Postgres[(PostgreSQL 16)]
-        Redis[(Redis 7 - Cache)]
+        Redis[(Redis 7)]
     end
 
     User --> HTTP
@@ -115,7 +114,6 @@ flowchart TB
     UserRepo --> Postgres
     TransactRepo --> Postgres
     RulesRepo --> Postgres & Redis
-</div>
 Стек технологий
 
 Компонент	Технология	Назначение
@@ -127,55 +125,6 @@ HTTP	go-chi	Лёгкий роутер, middleware support
 Логи	zap (Uber)	Структурированные JSON‑логи
 Трейсинг	OpenTelemetry	Распределённая трассировка
 Метрики	Prometheus	Мониторинг и алертинг
-Тесты	antifraud-checker	Автоматическая валидация API
-Структура проекта (Layered Architecture)
-
-text
-solution/
-├── cmd/                    # Точка входа
-├── internal/
-│   ├── api/               # HTTP handlers, DTO, роутинг
-│   ├── service/           # Чистая бизнес-логика
-│   ├── repository/        # Data Access Layer (pgx)
-│   ├── model/             # Доменные модели
-│   ├── dsl/               # Парсинг + валидация + исполнение правил
-│   ├── app/               # Сборка и запуск
-│   ├── config/            # Конфигурация из env
-│   ├── migrator/          # goose wrapper
-│   └── errors/            # Централизованная обработка ошибок
-├── pkg/                   # Переиспользуемые утилиты
-├── migrations/            # SQL миграции
-└── api/                   # OpenAPI спецификации
-🧠 Почему это сложно? (инженерные вызовы)
-
-1️⃣ Производительность под нагрузкой
-
-Проблема: 1000+ транзакций в секунду, каждая проверяется по 10+ правилам.
-
-Решение:
-
-Кэширование правил в Redis (in‑memory доступ <1ms)
-Параллельная проверка через worker pool
-Результат: 3500 RPS на одном инстансе
-2️⃣ Гибкость правил без деплоя
-
-Проблема: Фрод‑аналитики не умеют программировать, но правила нужно менять часто.
-
-Решение:
-
-Разработал DSL (Domain Specific Language) для описания правил
-Правила хранятся в БД, парсятся в AST при загрузке
-Валидация DSL на лету через эндпоинт /validate
-Результат: изменение правил за 5 минут без перезапуска сервиса
-3️⃣ Идемпотентность для финансовых операций
-
-Проблема: При таймауте клиент повторяет запрос → риск двойного списания.
-
-Решение:
-
-Idempotency Key в заголовке запроса
-Хранение ключей в Redis с TTL 24 часа
-Результат: 100% защита от дублей
 📡 API Endpoints
 
 Метод	Путь	Описание	Доступ
@@ -190,30 +139,13 @@ POST	/api/v1/transactions	Создать транзакцию	User
 POST	/api/v1/transactions/batch	Batch (207)	User
 GET	/api/v1/stats/overview	Статистика	Admin
 GET	/api/v1/ping	Health check	Public
-Пример DSL правила
-
-javascript
-// Блокировка подозрительно большой суммы
-rule "high_amount" {
-    condition: transaction.amount > 100000
-    action: DECLINE
-    reason: "Сумма превышает лимит"
-    priority: 1
-}
-
-// Двухфакторка для необычной геолокации
-rule "suspicious_location" {
-    condition: transaction.country_code != user.home_country 
-              AND user.trust_level < 0.7
-    action: REQUIRE_2FA
-}
 🚀 Быстрый старт
 
 Docker (рекомендуется)
 
 bash
-git clone https://github.com/ArtemBibikov/antiford-system.git
-cd antiford-system
+git clone https://github.com/ArtemBibikov/antifraud-system.git
+cd antifraud-system
 docker compose up -d
 Сервис будет доступен:
 
@@ -231,40 +163,7 @@ go run github.com/pressly/goose/v3/cmd/goose \
 
 # Запуск
 go run cmd/main.go
-Переменные окружения
-
-bash
-# Обязательные
-export DB_HOST=localhost
-export DB_USER=postgres
-export DB_PASSWORD=postgres
-export RANDOM_SECRET=$(openssl rand -base64 32)
-
-# Опциональные
-export SERVER_PORT=8080
-export REDIS_HOST=localhost
-export ADMIN_EMAIL=admin@example.com
-⚠️ В production замените все дефолтные пароли и секреты!
-🧪 Тестирование
-
-bash
-docker compose up -d
-# antifraud-checker запустится автоматически
-# Результаты: ./reports/junit.xml
-Coverage
-
-Пакет	Coverage
-service	87%
-dsl	92%
-repository	78%
-api	81%
-📊 Мониторинг
-
-Эндпоинт	Назначение
-/metrics	Prometheus метрики (RPS, latency, errors)
-/health	Liveness probe
-/ready	Readiness probe
-Основные метрики
+📊 Мониторинг (Prometheus метрики)
 
 prometheus
 # RPS по статусам
@@ -276,21 +175,22 @@ antifraud_validation_duration_seconds{quantile="0.99"}
 
 # Активные правила в кэше
 antifraud_rules_cached_total
-👤 Default‑админ (только разработка)
+👤 Default‑админ (только для разработки)
 
 Поле	Значение
 Email	admin@mail.ru
 Пароль	123123123aA!
-🔐 В production администратор создаётся через env с безопасным паролем
-📈 Результаты олимпиады PROD от Т‑Банка
+⚠️ В production администратор создаётся через env с безопасным паролем
+🏆 Результаты олимпиады PROD от Т‑Банка
 
-Место: Топ‑5 из 237 участников
-Оценка антифрод‑чекера: 94/100 баллов
-Нагрузочное тестирование: 3500 RPS, p99 latency <50ms
-Особое упоминание: "Лучшая реализация DSL для правил"
+Показатель	Результат
+🎯 Место	Топ‑5 из 237 участников
+📊 Оценка антифрод‑чекера	94/100 баллов
+⚡ Нагрузочное тестирование	3500 RPS, p99 latency <50ms
+🌟 Особое упоминание	"Лучшая реализация DSL для правил"
 📄 Лицензия
 
-MIT © Anton Bibikov
+MIT © Artem Bibikov
 
 <div align="center">
 ⭐ Если этот проект помог вам или вы нашли его интересным — поставьте звезду!
